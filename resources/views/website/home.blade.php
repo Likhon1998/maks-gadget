@@ -3,72 +3,114 @@
 
 @section('content')
 
-{{-- Hero posters (CMS → Home Posters) — 1920×640 / 3:1 full-design art --}}
-<section class="tn-hero" x-data="{ slide: 0, total: {{ max($heroSlides->count(), 1) }} }"
-         @if($heroSlides->count() > 1) x-init="setInterval(()=>{ slide=(slide+1)%total }, 6000)" @endif>
+{{-- Hero posters (CMS → Home Posters) — smooth crossfade + ken burns --}}
+<section
+    class="tn-hero"
     @if($heroSlides->count() > 1)
-        <button type="button" @click="slide=(slide-1+total)%total" class="tn-hero-arrow left" aria-label="Previous">
+        x-data="{
+            slide: 0,
+            total: {{ $heroSlides->count() }},
+            timer: null,
+            paused: false,
+            go(i) { this.slide = ((i % this.total) + this.total) % this.total; this.restart(); },
+            next() { this.go(this.slide + 1); },
+            prev() { this.go(this.slide - 1); },
+            restart() {
+                clearInterval(this.timer);
+                if (this.paused || this.total < 2) return;
+                this.timer = setInterval(() => { if (!this.paused) this.slide = (this.slide + 1) % this.total; }, 5500);
+            },
+            init() { this.restart(); }
+        }"
+        @mouseenter="paused = true; clearInterval(timer)"
+        @mouseleave="paused = false; restart()"
+        @focusin="paused = true; clearInterval(timer)"
+        @focusout="paused = false; restart()"
+    @else
+        x-data="{ slide: 0, total: 1 }"
+    @endif
+>
+    @if($heroSlides->count() > 1)
+        <button type="button" @click="prev()" class="tn-hero-arrow left" aria-label="Previous">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <button type="button" @click="slide=(slide+1)%total" class="tn-hero-arrow right" aria-label="Next">
+        <button type="button" @click="next()" class="tn-hero-arrow right" aria-label="Next">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </button>
     @endif
-    @forelse($heroSlides as $i => $slide)
-        @php
-            $posterUrl = $slide->image_path ? public_storage_url($slide->image_path) : null;
-            if ($posterUrl && $slide->image_path) {
-                $full = public_storage_path($slide->image_path);
-                $posterUrl .= '?v='.(is_file($full) ? filemtime($full) : time());
-            }
-            $link = $slide->button_url ?: route('website.shop');
-        @endphp
-        <div class="tn-hero-slide" x-show="slide==={{ $i }}" @if($i > 0) x-cloak @endif>
-            @if($posterUrl)
-                <a href="{{ $link }}" class="tn-hero-poster" aria-label="{{ $slide->title }}">
-                    <img
-                        src="{{ $posterUrl }}"
-                        alt="{{ $slide->title }}"
-                        class="tn-hero-img"
-                        width="1920"
-                        height="640"
-                        decoding="async"
-                        @if($i === 0) fetchpriority="high" @endif
-                    >
-                </a>
-            @else
+    <div class="tn-hero-track">
+        @forelse($heroSlides as $i => $slide)
+            @php
+                $posterUrl = $slide->image_path ? public_storage_url($slide->image_path) : null;
+                if ($posterUrl && $slide->image_path) {
+                    $full = public_storage_path($slide->image_path);
+                    $posterUrl .= '?v='.(is_file($full) ? filemtime($full) : time());
+                }
+                $link = $slide->button_url ?: route('website.shop');
+            @endphp
+            <div
+                class="tn-hero-slide{{ $i === 0 ? ' is-active' : '' }}"
+                :class="{ 'is-active': slide === {{ $i }} }"
+                x-bind:aria-hidden="slide !== {{ $i }}"
+            >
+                @if($posterUrl)
+                    <a href="{{ $link }}" class="tn-hero-poster" aria-label="{{ $slide->title }}" x-bind:tabindex="slide === {{ $i }} ? 0 : -1">
+                        <img
+                            src="{{ $posterUrl }}"
+                            alt="{{ $slide->title }}"
+                            class="tn-hero-img"
+                            width="1920"
+                            height="640"
+                            decoding="async"
+                            @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
+                        >
+                    </a>
+                @else
+                    <div class="tn-hero-fallback">
+                        <div class="tn-container tn-hero-fallback-inner">
+                            <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
+                            <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
+                            <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? 'our store' }}.</p>
+                            <div class="tn-hero-actions">
+                                <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
+                                <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @empty
+            <div class="tn-hero-slide is-active">
                 <div class="tn-hero-fallback">
                     <div class="tn-container tn-hero-fallback-inner">
                         <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
                         <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                        <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? 'our store' }}.</p>
+                        <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
                         <div class="tn-hero-actions">
                             <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
                             <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
                         </div>
                     </div>
                 </div>
-            @endif
-        </div>
-    @empty
-        <div class="tn-hero-slide">
-            <div class="tn-hero-fallback">
-                <div class="tn-container tn-hero-fallback-inner">
-                    <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
-                    <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                    <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
-                    <div class="tn-hero-actions">
-                        <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
-                        <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
-                    </div>
-                </div>
             </div>
-        </div>
-    @endforelse
+        @endforelse
+    </div>
     @if($heroSlides->count() > 1)
-        <div class="tn-hero-dots">
+        <div class="tn-hero-dots" role="tablist" aria-label="Hero slides">
             @foreach($heroSlides as $di => $ds)
-                <button type="button" @click="slide={{ $di }}" class="tn-hero-dot" :class="slide==={{ $di }}?'active':''" aria-label="Slide {{ $di + 1 }}"></button>
+                <button
+                    type="button"
+                    class="tn-hero-dot"
+                    :class="{ 'is-active': slide === {{ $di }} }"
+                    @click="go({{ $di }})"
+                    role="tab"
+                    :aria-selected="slide === {{ $di }}"
+                    aria-label="Slide {{ $di + 1 }}"
+                >
+                    <template x-if="slide === {{ $di }}">
+                        <span class="tn-hero-dot-fill"></span>
+                    </template>
+                </button>
             @endforeach
         </div>
     @endif
