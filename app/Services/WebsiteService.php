@@ -59,7 +59,7 @@ class WebsiteService
         }
 
         return (object) [
-            'store_name' => $site->store_name ?: ($shop?->name ?? config('app.name', 'Akhi Telecom')),
+            'store_name' => $site->store_name ?: ($shop?->name ?? config('app.name', 'Maks Gadget')),
             'logo_path' => $site->logo_path,
             'favicon_path' => $site->favicon_path,
             'currency_code' => $currencyCode,
@@ -123,8 +123,8 @@ class WebsiteService
             return $this->emptyHomepage($settings);
         }
 
-        $visibleProducts = fn ($q) => $q->where('stock_quantity', '>', 0)
-            ->where(fn ($q) => $q->where('is_published', true)->orWhereNull('is_published'));
+        $visibleProducts = fn ($q) => $q->availableForSale()
+            ->where(fn ($inner) => $inner->where('is_published', true)->orWhereNull('is_published'));
 
         $categories = Category::where('shop_id', $shopId)
             ->whereHas('products', $visibleProducts)
@@ -207,7 +207,7 @@ class WebsiteService
             'features' => SiteFeature::where('shop_id', $shopId)->where('is_active', true)->orderBy('sort_order')->orderBy('id')->take(4)->get(),
             'categories' => $categories,
             'allCategories' => Category::where('shop_id', $shopId)
-                ->withCount(['products' => fn ($q) => $q->where('stock_quantity', '>', 0)])
+                ->withCount(['products' => fn ($q) => $q->availableForSale()])
                 ->orderBy('name')
                 ->get(),
             'promoBanners' => PromoBanner::where('shop_id', $shopId)->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get(),
@@ -221,7 +221,7 @@ class WebsiteService
             'topBarNav' => NavigationLink::where('shop_id', $shopId)->where('location', 'top_bar')->where('is_active', true)->orderBy('sort_order')->get(),
             'featuredReviews' => CmsReview::where('shop_id', $shopId)->where('is_published', true)->where('is_featured', true)->orderBy('sort_order')->take(6)->get(),
             'footerPages' => CmsPage::where('shop_id', $shopId)->where('is_published', true)->where('show_in_footer', true)->orderBy('sort_order')->get(),
-            'latestBlogs' => CmsBlog::where('shop_id', $shopId)->published()->with('category')->latest('published_at')->take(3)->get(),
+            'latestBlogs' => CmsBlog::where('shop_id', $shopId)->published()->with('category')->latest('published_at')->take(4)->get(),
             'deliveryConfig' => app(\App\Services\DeliveryChargeService::class)->publicConfig(),
         ];
     }
@@ -537,7 +537,7 @@ class WebsiteService
         return Product::query()
             ->with('galleryImages')
             ->where('shop_id', $shopId)
-            ->where('stock_quantity', '>', 0)
+            ->availableForSale()
             ->where(function ($q) {
                 $q->where('is_published', true)->orWhereNull('is_published');
             });
@@ -613,7 +613,7 @@ class WebsiteService
             $family->push($product);
         }
 
-        $inStock = fn (Product $p) => (int) $p->stock_quantity > 0;
+        $inStock = fn (Product $p) => (int) $p->availableStock() > 0;
         $colorKey = fn (?string $color) => strtolower(trim((string) $color));
         $ramKey = fn (?string $ram) => memory_size_compact($ram);
         $storageKey = fn (?string $storage) => memory_size_compact($storage);
@@ -852,7 +852,7 @@ class WebsiteService
         $product = Product::query()
             ->where('shop_id', $category->shop_id)
             ->where('category_id', $category->id)
-            ->where('stock_quantity', '>', 0)
+            ->availableForSale()
             ->where(fn ($q) => $q->where('is_published', true)->orWhereNull('is_published'))
             ->whereNotNull('image')
             ->latest()

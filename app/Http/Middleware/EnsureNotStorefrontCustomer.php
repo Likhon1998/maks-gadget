@@ -14,7 +14,7 @@ class EnsureNotStorefrontCustomer
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user() ?? $request->user('admin');
 
         if ($user && $user->isStorefrontCustomer()) {
             if ($request->expectsJson() || $request->ajax()) {

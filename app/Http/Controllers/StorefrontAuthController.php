@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\User;
 use App\Services\WebsiteService;
+use App\Support\AuthSession;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -48,11 +49,11 @@ class StorefrontAuthController extends Controller
         ]);
 
         $totalOrders = $orders->count();
-        $packagingOrders = $orders->whereIn('status', ['pending', 'processing'])->count();
+        $packagingOrders = $orders->whereIn('status', ['pending', 'pending_fulfillment', 'processing'])->count();
         $inTransitOrders = $orders->where('status', 'shipped')->count();
         $deliveredOrders = $orders->where('status', 'completed')->count();
         $activeOrders = $orders
-            ->filter(fn ($order) => in_array($order->status, ['pending', 'processing', 'shipped'], true))
+            ->filter(fn ($order) => in_array($order->status, ['pending', 'pending_fulfillment', 'processing', 'shipped'], true))
             ->values();
         $activeOrder = $activeOrders->first() ?? $orders->first();
         $activeTracking = $activeOrder ? ($orderTracking[$activeOrder->id] ?? null) : null;
@@ -216,7 +217,7 @@ class StorefrontAuthController extends Controller
         }
 
         $request->validate([
-            'password' => ['required', 'current_password'],
+            'password' => ['required', 'current_password:web'],
         ]);
 
         $customer = $user->customerProfile;
@@ -229,11 +230,8 @@ class StorefrontAuthController extends Controller
         }
 
         $user->syncRoles([]);
-        Auth::logout();
+        AuthSession::logout($request, 'web');
         $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
 
         return redirect()->route('home')->with('profile_success', 'Your account has been deleted.');
     }
@@ -247,7 +245,7 @@ class StorefrontAuthController extends Controller
 
         $this->ensureLoginNotRateLimited($data['email']);
 
-        if (! Auth::attempt(['email' => $data['email'], 'password' => $data['password']], true)) {
+        if (! Auth::guard('web')->attempt(['email' => $data['email'], 'password' => $data['password']], true)) {
             RateLimiter::hit($this->throttleKey($data['email']));
 
             throw ValidationException::withMessages([
@@ -255,17 +253,17 @@ class StorefrontAuthController extends Controller
             ]);
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('web')->user();
 
         if ($user->is_suspended) {
-            Auth::logout();
+            Auth::guard('web')->logout();
             throw ValidationException::withMessages([
                 'email' => 'Your account is suspended. Please contact the store.',
             ]);
         }
 
         if (! $user->isStorefrontCustomer()) {
-            Auth::logout();
+            Auth::guard('web')->logout();
             throw ValidationException::withMessages([
                 'email' => 'This is a staff account. Please use the admin login instead.',
             ]);
@@ -376,12 +374,7 @@ class StorefrontAuthController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
-
-        if ($request->hasSession()) {
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-        }
+        AuthSession::logout($request, 'web');
 
         return redirect()
             ->route('home')

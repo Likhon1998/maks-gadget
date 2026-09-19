@@ -2,39 +2,37 @@
 
 namespace Database\Seeders;
 
-use App\Models\Shop;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call([
-            RolesAndPermissionsSeeder::class,
-        ]);
+        // Always: roles, shop, admin, minimal settings (safe for production).
+        $this->call(ProductionSeeder::class);
 
-        $shop = Shop::firstOrCreate(
-            ['email' => 'admin@akhitelecom.com'],
-            [
-                'name' => 'Akhi Telecom',
-                'phone' => '01700000000',
-                'address' => 'Dhaka, Bangladesh',
-                'is_active' => true,
-            ]
-        );
+        // Demo catalog / CMS only when allowed (local by default).
+        if ($this->shouldSeedDemo()) {
+            $this->call(DemoSeeder::class);
+            $this->command?->warn('Demo data loaded. Set SEED_DEMO=false (or APP_ENV=production) for a clean DB.');
+        } else {
+            $this->command?->info('Skipped demo seeders — database left clean for production.');
+        }
+    }
 
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@akhitelecom.com'],
-            [
-                'shop_id' => $shop->id,
-                'role' => 'admin',
-                'name' => 'Admin',
-                'password' => '12345678',
-                'email_verified_at' => now(),
-            ]
-        );
+    /**
+     * Demo data rules:
+     * - SEED_DEMO=true|false overrides everything
+     * - Otherwise: seed demo in local / development / testing only
+     */
+    protected function shouldSeedDemo(): bool
+    {
+        $override = env('SEED_DEMO');
 
-        $admin->syncRoles(['Admin']);
+        if ($override !== null && $override !== '') {
+            return filter_var($override, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return app()->environment(['local', 'development', 'testing']);
     }
 }

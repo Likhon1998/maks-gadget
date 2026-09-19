@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Support\AuthSession;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -28,8 +29,7 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // 1. Verify Email and Password
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::guard('admin')->attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -37,13 +37,18 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user();
 
-        // 2. 🚀 CHECK 1: Is this individual staff member suspended?
+        if ($user->isStorefrontCustomer()) {
+            Auth::guard('admin')->logout();
+
+            throw ValidationException::withMessages([
+                'email' => 'This is a customer account. Please sign in on the website instead.',
+            ]);
+        }
+
         if ($user->is_suspended) {
-            Auth::logout();
-            $this->session()->invalidate();
-            $this->session()->regenerateToken();
+            AuthSession::logout($this, 'admin');
 
             throw ValidationException::withMessages([
                 'email' => 'Your account is suspended. Please contact your shop owner.',

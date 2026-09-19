@@ -104,7 +104,9 @@ class PosController extends Controller
                     'list_price' => $listPrice,
                     'on_sale' => $onSale,
                     'sale_percent' => $onSale ? $product->discountPercent() : 0,
-                    'stock_quantity' => $product->stock_quantity,
+                    'stock_quantity' => $product->availableStock(),
+                    'physical_stock' => $product->physicalStock(),
+                    'reserved_stock' => $product->reservedStock(),
                     'requires_imei' => (bool) $product->requires_imei,
                     'available_imeis' => $availableImeis,
                     'image' => $imagePath,
@@ -285,7 +287,7 @@ class PosController extends Controller
             // 1. Subtotal at list price; charge uses product discount / sale when enabled
             foreach ($request->cart as $item) {
                 $product = Product::where('shop_id', $shopId)->findOrFail($item['id']);
-                if ($product->stock_quantity < $item['qty']) {
+                if ($product->availableStock() < $item['qty']) {
                     throw new \Exception("Not enough stock for {$product->name}");
                 }
                 if ($product->requires_imei) {
@@ -634,7 +636,9 @@ class PosController extends Controller
                 ->get()
                 ->map(fn (Product $p) => [
                     'id' => (int) $p->id,
-                    'stock_quantity' => (int) $p->stock_quantity,
+                    'stock_quantity' => (int) $p->availableStock(),
+                    'physical_stock' => (int) $p->physicalStock(),
+                    'reserved_stock' => (int) $p->reservedStock(),
                     'available_imeis' => $p->requires_imei
                         ? $p->availableImeis->pluck('imei')->values()->all()
                         : [],
@@ -830,7 +834,7 @@ class PosController extends Controller
                         throw new \Exception('Product not found for offline sync item.');
                     }
                     $qty = max(1, (int) ($item['qty'] ?? 0));
-                    if ($product->stock_quantity < $qty) {
+                    if ($product->availableStock() < $qty) {
                         throw new \Exception("Insufficient stock for {$product->name} during offline sync.");
                     }
                     $list = (float) $product->selling_price;

@@ -13,6 +13,7 @@ class OnlineOrderTrackingService
     {
         return [
             'pending' => 'Order received',
+            'pending_fulfillment' => 'Order received',
             'processing' => 'Packaging',
             'shipped' => 'Out for delivery',
             'completed' => 'Delivered',
@@ -20,6 +21,11 @@ class OnlineOrderTrackingService
             'returned' => 'Returned',
             'refunded' => 'Refunded',
         ];
+    }
+
+    public function normalizeFlowStatus(string $status): string
+    {
+        return $status === 'pending_fulfillment' ? 'pending' : $status;
     }
 
     public function log(
@@ -72,7 +78,7 @@ class OnlineOrderTrackingService
     {
         return $this->log(
             $order,
-            'pending',
+            $order->status ?: 'pending_fulfillment',
             'We received your order. Our team will confirm and start packing soon.',
         );
     }
@@ -103,17 +109,21 @@ class OnlineOrderTrackingService
         }
 
         $statusRank = array_flip(self::FLOW_STATUSES);
-        $currentRank = $statusRank[$current] ?? 0;
+        $flowCurrent = $this->normalizeFlowStatus($current);
+        $currentRank = $statusRank[$flowCurrent] ?? 0;
         $timeline = [];
 
         foreach (self::FLOW_STATUSES as $index => $step) {
             $stepLog = $this->latestLogForStatus($logs, $step);
-            $isActive = $step === $current;
+            if ($step === 'pending' && ! $stepLog) {
+                $stepLog = $this->latestLogForStatus($logs, 'pending_fulfillment');
+            }
+            $isActive = $step === $flowCurrent;
             $isDone = $index < $currentRank;
             $timeline[] = [
                 'key' => $step,
                 'label' => $this->statusLabels()[$step],
-                'done' => $isDone || ($isActive && $current === 'completed'),
+                'done' => $isDone || ($isActive && $flowCurrent === 'completed'),
                 'active' => $isActive,
                 'at' => $stepLog?->created_at?->format('d M Y, h:i A')
                     ?? (($step === 'pending' && ($isDone || $isActive)) ? $order->created_at->format('d M Y, h:i A') : null),

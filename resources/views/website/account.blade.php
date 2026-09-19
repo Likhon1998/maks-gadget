@@ -1,10 +1,10 @@
 @extends('website.layout')
 
-@section('title', 'My Account — ' . ($settings->store_name ?? 'Store'))
+@section('title', 'My Account — ' . ($settings->store_name ?? config('app.name', 'Maks Gadget')))
 
 @section('content')
 @php
-    $currency = $settings->currency_symbol ?? 'Tk';
+    $currency = $settings->currency_symbol ?? '৳';
     $firstName = explode(' ', trim($customer?->name ?? auth()->user()->name ?? 'Customer'))[0] ?? 'Customer';
     $justPlacedInvoice = request('order');
     $justPlacedOid = request('oid');
@@ -68,7 +68,7 @@
             if (status === 'completed') return 'bg-emerald-100 text-emerald-700';
             if (status === 'shipped') return 'bg-sky-100 text-sky-800';
             if (status === 'processing') return 'bg-amber-100 text-amber-800 ring-1 ring-amber-300';
-            if (status === 'pending') return 'bg-orange-100 text-orange-800';
+            if (status === 'pending' || status === 'pending_fulfillment') return 'bg-orange-100 text-orange-800';
             if (['cancelled','returned','refunded'].includes(status)) return 'bg-rose-100 text-rose-700';
             return 'bg-slate-100 text-slate-700';
         },
@@ -266,7 +266,7 @@
                                 if (status === 'completed') return 'bg-emerald-100 text-emerald-700';
                                 if (status === 'shipped') return 'bg-sky-100 text-sky-800';
                                 if (status === 'processing') return 'bg-amber-100 text-amber-800 ring-1 ring-amber-300';
-                                if (status === 'pending') return 'bg-orange-100 text-orange-800';
+                                if (status === 'pending' || status === 'pending_fulfillment') return 'bg-orange-100 text-orange-800';
                                 if (status === 'cancelled' || status === 'returned' || status === 'refunded') return 'bg-rose-100 text-rose-700';
                                 return 'bg-slate-100 text-slate-700';
                             }

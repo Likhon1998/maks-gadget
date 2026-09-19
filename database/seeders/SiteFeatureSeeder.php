@@ -19,7 +19,7 @@ class SiteFeatureSeeder extends Seeder
             [
                 'icon' => 'truck',
                 'title' => 'Free Shipping',
-                'subtitle' => 'On all orders over $50',
+                'subtitle' => 'On orders over ৳10,000',
                 'sort_order' => 1,
             ],
             [
@@ -30,14 +30,14 @@ class SiteFeatureSeeder extends Seeder
             ],
             [
                 'icon' => 'lock',
-                'title' => 'Secure Payments',
-                'subtitle' => '100% secure checkout',
+                'title' => 'Cash on Delivery',
+                'subtitle' => 'Pay when you receive',
                 'sort_order' => 3,
             ],
             [
                 'icon' => 'shield',
-                'title' => '1 Year Warranty',
-                'subtitle' => 'Product warranty included',
+                'title' => 'Official Warranty',
+                'subtitle' => 'On eligible products',
                 'sort_order' => 4,
             ],
         ];

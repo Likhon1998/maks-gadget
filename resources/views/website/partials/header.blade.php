@@ -15,7 +15,7 @@
 
                 <a href="{{ route('home') }}" class="flex items-center gap-3 shrink-0 no-underline min-w-0">
                     @php
-                        $headerName = $settings->store_name ?? config('app.name', 'Akhi Telecom');
+                        $headerName = $settings->store_name ?? config('app.name', 'Maks Gadget');
                         $headerIconPath = $settings->favicon_path ?: $settings->logo_path;
                         $headerIcon = $headerIconPath ? public_storage_url($headerIconPath) : null;
                         $headerIconVer = $headerIconPath
@@ -40,7 +40,7 @@
 
                 {{-- Live search: truly centered between logo and actions --}}
                 <div class="gaget-header-center hidden lg:block"
-                     x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '$'))"
+                     x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '৳'))"
                      @click.outside="open = false">
                     <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="open = false">
                         <div class="gaget-search-bar">
@@ -134,10 +134,22 @@
 
                     {{-- Cart with hover preview --}}
                     <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
-                        <button type="button" @click="cartOpen=true" class="gaget-action-btn" aria-label="Cart">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <button type="button"
+                                id="gaget-cart-target"
+                                data-cart-target
+                                @click="openCart()"
+                                class="gaget-action-btn"
+                                :class="{ 'is-cart-swing': cartBump }"
+                                aria-label="Cart">
+                            <svg class="gaget-cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                             <span class="gaget-action-label">Cart</span>
-                            <span class="gaget-cart-badge" x-text="cartCount" x-show="cartCount > 0" x-cloak></span>
+                            <span class="gaget-cart-badge"
+                                  x-text="cartCount"
+                                  x-show="cartCount > 0"
+                                  x-cloak
+                                  x-transition:enter="transition ease-out duration-200"
+                                  x-transition:enter-start="opacity-0 scale-50"
+                                  x-transition:enter-end="opacity-100 scale-100"></span>
                         </button>
                         <div class="gaget-hover-panel gaget-hover-panel--cart" x-show="open" x-cloak x-transition.opacity.duration.150ms>
                             <div class="gaget-hover-panel__head">
@@ -163,32 +175,32 @@
                                     <span>Total</span>
                                     <strong x-text="currency + cartTotal.toFixed(2)"></strong>
                                 </div>
-                                <button type="button" class="gaget-hover-panel__cta" @click="open=false; cartOpen=true">View cart</button>
+                                <button type="button" class="gaget-hover-panel__cta" @click="open=false; openCart()">View cart</button>
                             </div>
                         </div>
                     </div>
 
-                    @auth
-                        @if(auth()->user()->isStorefrontCustomer())
+                    @auth('web')
+                        @if(auth('web')->user()->isStorefrontCustomer())
                             <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
-                                <a href="{{ route('website.account') }}" class="gaget-action-btn" title="{{ auth()->user()->name }}">
-                                    @if(auth()->user()->avatarUrl())
-                                        <img src="{{ auth()->user()->avatarUrl() }}" alt="" class="h-7 w-7 rounded-full object-cover border border-slate-200">
+                                <a href="{{ route('website.account') }}" class="gaget-action-btn" title="{{ auth('web')->user()->name }}">
+                                    @if(auth('web')->user()->avatarUrl())
+                                        <img src="{{ auth('web')->user()->avatarUrl() }}" alt="" class="h-7 w-7 rounded-full object-cover border border-slate-200">
                                     @else
-                                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-700">{{ auth()->user()->avatarInitials() }}</span>
+                                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-700">{{ auth('web')->user()->avatarInitials() }}</span>
                                     @endif
-                                    <span class="hidden xl:inline text-xs font-semibold ml-1 max-w-[72px] truncate">{{ explode(' ', auth()->user()->name)[0] }}</span>
+                                    <span class="hidden xl:inline text-xs font-semibold ml-1 max-w-[72px] truncate">{{ explode(' ', auth('web')->user()->name)[0] }}</span>
                                 </a>
                                 <div class="gaget-hover-panel gaget-hover-panel--account" x-show="open" x-cloak x-transition.opacity.duration.150ms>
                                     <div class="gaget-account-menu__user">
-                                        @if(auth()->user()->avatarUrl())
-                                            <img src="{{ auth()->user()->avatarUrl() }}" alt="" class="gaget-account-menu__avatar">
+                                        @if(auth('web')->user()->avatarUrl())
+                                            <img src="{{ auth('web')->user()->avatarUrl() }}" alt="" class="gaget-account-menu__avatar">
                                         @else
-                                            <span class="gaget-account-menu__avatar gaget-account-menu__avatar--initials">{{ auth()->user()->avatarInitials() }}</span>
+                                            <span class="gaget-account-menu__avatar gaget-account-menu__avatar--initials">{{ auth('web')->user()->avatarInitials() }}</span>
                                         @endif
                                         <div class="min-w-0">
-                                            <p class="gaget-account-menu__name">{{ auth()->user()->name }}</p>
-                                            <p class="gaget-account-menu__email">{{ auth()->user()->email }}</p>
+                                            <p class="gaget-account-menu__name">{{ auth('web')->user()->name }}</p>
+                                            <p class="gaget-account-menu__email">{{ auth('web')->user()->email }}</p>
                                         </div>
                                     </div>
                                     <div class="gaget-account-menu__links">
@@ -205,10 +217,6 @@
                                     </div>
                                 </div>
                             </div>
-                        @else
-                            <a href="{{ route('dashboard') }}" class="gaget-action-btn" title="Staff account">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                            </a>
                         @endif
                     @else
                         <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
@@ -235,7 +243,7 @@
 
             {{-- Mobile live search --}}
             <div class="lg:hidden mt-3"
-                 x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '$'))"
+                 x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '৳'))"
                  @click.outside="open = false">
                 <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="open = false">
                     <div class="gaget-mobile-search">
@@ -357,16 +365,14 @@
                 </div>
             @endif
 
-            @auth
-                @if(auth()->user()->isStorefrontCustomer())
+            @auth('web')
+                @if(auth('web')->user()->isStorefrontCustomer())
                     <a href="{{ route('website.account') }}" class="gaget-mobile-drawer-link mt-4" @click="mobileOpen = false">My Account</a>
                     <button type="button"
                             class="gaget-mobile-drawer-link w-full text-left text-rose-300"
                             @click="mobileOpen = false; typeof storefrontLogout === 'function' && storefrontLogout()">
                         Sign out
                     </button>
-                @else
-                    <a href="{{ route('dashboard') }}" class="gaget-mobile-drawer-link mt-4" @click="mobileOpen = false">Staff dashboard</a>
                 @endif
             @else
                 <button type="button" class="gaget-mobile-drawer-link mt-4 w-full text-left" @click="mobileOpen = false; openSignIn('login')">Sign in</button>
@@ -523,3 +529,4 @@
         </div>
     </nav>
 </div>
+<div class="gaget-header-spacer" id="gaget-header-spacer" aria-hidden="true"></div>

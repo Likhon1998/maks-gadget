@@ -91,11 +91,11 @@
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Weekday hours</label>
-                <input name="contact_hours_weekday" value="{{ old('contact_hours_weekday', $settings->contact_hours_weekday ?? 'Mon - Fri: 9:00 AM - 6:00 PM') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_hours_weekday" value="{{ old('contact_hours_weekday', $settings->contact_hours_weekday ?? 'Sat - Thu: 10:00 AM - 8:00 PM (BDT)') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div class="md:col-span-2">
                 <label class="text-[11px] font-bold uppercase text-slate-500">Weekend hours</label>
-                <input name="contact_hours_weekend" value="{{ old('contact_hours_weekend', $settings->contact_hours_weekend ?? 'Sat - Sun: 10:00 AM - 4:00 PM (EST)') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_hours_weekend" value="{{ old('contact_hours_weekend', $settings->contact_hours_weekend ?? 'Fri: 3:00 PM - 8:00 PM (BDT)') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
 
             <div class="md:col-span-2 pt-2"><p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Form & newsletter</p></div>

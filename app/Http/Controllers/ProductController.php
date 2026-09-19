@@ -1182,7 +1182,7 @@ class ProductController extends Controller
 
         try {
             $response = Http::timeout(12)
-                ->withHeaders(['User-Agent' => 'AkhiTelecom-ProductImport/1.0'])
+                ->withHeaders(['User-Agent' => 'MaksGadget-ProductImport/1.0'])
                 ->get($url);
 
             if (! $response->successful()) {

@@ -224,7 +224,11 @@
                 get filteredOrders() {
                     const q = (this.search || '').trim().toLowerCase();
                     return this.allOrders.filter((order) => {
-                        if (this.status !== 'all' && order.status !== this.status) return false;
+                        if (this.status === 'pending') {
+                            if (!['pending', 'pending_fulfillment'].includes(order.status)) return false;
+                        } else if (this.status !== 'all' && order.status !== this.status) {
+                            return false;
+                        }
                         if (!q) return true;
                         return (order.search_blob || '').includes(q);
                     });
@@ -232,6 +236,7 @@
                 statusLabel(status) {
                     const map = {
                         pending: 'Pending',
+                        pending_fulfillment: 'Pending',
                         processing: 'Processing',
                         shipped: 'Shipped',
                         completed: 'Completed',
@@ -244,6 +249,7 @@
                 statusBadgeClass(status) {
                     const map = {
                         pending: 'bg-amber-100 text-amber-800 border-amber-200',
+                        pending_fulfillment: 'bg-amber-100 text-amber-800 border-amber-200',
                         processing: 'bg-blue-100 text-blue-800 border-blue-200',
                         shipped: 'bg-purple-100 text-purple-800 border-purple-200',
                         completed: 'bg-emerald-100 text-emerald-800 border-emerald-200',

@@ -8,7 +8,7 @@
             @php
                 $boundMin = (float) ($priceBounds['min'] ?? 0);
                 $boundMax = max($boundMin, (float) ($priceBounds['max'] ?? 0));
-                $currency = $settings->currency_symbol ?? '$';
+                $currency = $settings->currency_symbol ?? '৳';
                 $minVal = request()->filled('min_price') ? request('min_price') : '';
                 $maxVal = request()->filled('max_price') ? request('max_price') : '';
             @endphp

@@ -20,13 +20,26 @@ return Application::configure(basePath: dirname(__DIR__))
             'staff.only' => \App\Http\Middleware\EnsureNotStorefrontCustomer::class,
         ]);
 
-        // Storefront shoppers should return to the shop home, not the staff login.
+        // Drop leftover staff sessions from the customer (web) guard on every request.
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\EnsureStorefrontWebGuardIsCustomer::class,
+        ]);
+
+        // Guests: customers → storefront sign-in; staff routes → admin login.
         $middleware->redirectGuestsTo(function (Request $request) {
-            if ($request->is('account', 'account/*', 'checkout')) {
-                return route('home');
+            if ($request->is('account', 'account/*', 'checkout') || $request->routeIs('website.*')) {
+                return route('login');
             }
 
-            return route('login');
+            return route('admin.login');
+        });
+
+        $middleware->redirectUsersTo(function (Request $request) {
+            if ($request->is('admin/login') || $request->routeIs('admin.login', 'admin.login.store')) {
+                return route('dashboard');
+            }
+
+            return route('home');
         });
     })
     ->withExceptions(function (Exceptions $exceptions) {
@@ -34,23 +47,36 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->routeIs('website.account.logout') || $request->is('account/logout')) {
                 Auth::guard('web')->logout();
                 if ($request->hasSession()) {
-                    $request->session()->invalidate();
-                    $request->session()->regenerateToken();
+                    $otherStillLoggedIn = Auth::guard('admin')->check();
+                    if ($otherStillLoggedIn) {
+                        $request->session()->regenerateToken();
+                    } else {
+                        $request->session()->invalidate();
+                        $request->session()->regenerateToken();
+                    }
                 }
 
                 return redirect()->route('home');
             }
 
-            if ($request->expectsJson() || $request->ajax()) {
-                if ($request->hasSession()) {
-                    $request->session()->regenerateToken();
-                }
+            if ($request->hasSession()) {
+                $request->session()->regenerateToken();
+            }
 
+            if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'message' => 'Your session expired. Please try again.',
                     'csrf_mismatch' => true,
                     'csrf_token' => csrf_token(),
                 ], 419);
+            }
+
+            // Admin login: always re-render a fresh form (avoid stale back/bfcache tokens).
+            if ($request->is('admin/login') || $request->routeIs('admin.login', 'admin.login.store')) {
+                return redirect()
+                    ->route('admin.login')
+                    ->withInput($request->except('_token', 'password', 'password_confirmation'))
+                    ->with('error', 'Your session expired for security. Please try again.');
             }
 
             return redirect()

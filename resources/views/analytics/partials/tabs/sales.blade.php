@@ -19,6 +19,10 @@
     $catLabels = $categorySales->pluck('category')->values();
     $catRevenue = $categorySales->pluck('revenue')->map(fn ($v) => round((float) $v, 2))->values();
     $catTotal = max(1, (float) $categorySales->sum('revenue'));
+
+    $brandLabels = ($brandSales ?? collect())->pluck('brand')->values();
+    $brandRevenue = ($brandSales ?? collect())->pluck('revenue')->map(fn ($v) => round((float) $v, 2))->values();
+    $brandTotal = max(1, (float) ($brandSales ?? collect())->sum('revenue'));
 @endphp
 
 {{-- KPI cards --}}
@@ -113,6 +117,50 @@
                 <p class="text-xs text-gray-400 text-center py-4">No category sales in this period.</p>
             @endforelse
         </div>
+    </div>
+</div>
+
+{{-- Brand breakdown (POS + website) --}}
+<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+    <div class="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2">
+        <div>
+            <h3 class="font-bold text-gray-900">Sales by Brand</h3>
+            <p class="text-xs text-gray-500">Units &amp; revenue — POS and website completed orders</p>
+        </div>
+        <a href="{{ route('reports.daily_by_brand', request()->only(['start_date', 'end_date', 'all_time', 'today'])) }}"
+           class="text-xs font-bold text-cyan-700 hover:text-cyan-600">Full daily report →</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-[11px] uppercase font-bold text-gray-500">
+                <tr>
+                    <th class="px-5 py-3 text-left">Brand</th>
+                    <th class="px-5 py-3 text-right">Units</th>
+                    <th class="px-5 py-3 text-right">Purchase Cost</th>
+                    <th class="px-5 py-3 text-right">Selling Amount</th>
+                    <th class="px-5 py-3 text-right">Profit</th>
+                    <th class="px-5 py-3 text-right">POS</th>
+                    <th class="px-5 py-3 text-right">Website</th>
+                    <th class="px-5 py-3 text-right">Share</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                @forelse(($brandSales ?? collect()) as $row)
+                    <tr class="hover:bg-gray-50/80">
+                        <td class="px-5 py-3 font-semibold text-gray-900">{{ $row->brand }}</td>
+                        <td class="px-5 py-3 text-right font-medium">{{ number_format($row->sold) }}</td>
+                        <td class="px-5 py-3 text-right font-semibold text-amber-700">৳{{ number_format($row->cost, 2) }}</td>
+                        <td class="px-5 py-3 text-right font-bold text-indigo-600">৳{{ number_format($row->revenue, 2) }}</td>
+                        <td class="px-5 py-3 text-right font-bold {{ ($row->profit ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">৳{{ number_format($row->profit ?? 0, 2) }}</td>
+                        <td class="px-5 py-3 text-right text-gray-600">৳{{ number_format($row->pos_revenue, 2) }}</td>
+                        <td class="px-5 py-3 text-right text-gray-600">৳{{ number_format($row->web_revenue, 2) }}</td>
+                        <td class="px-5 py-3 text-right text-gray-500">{{ number_format(($row->revenue / $brandTotal) * 100, 0) }}%</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="8" class="px-5 py-8 text-center text-gray-400">No brand sales in this period.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 </div>
 

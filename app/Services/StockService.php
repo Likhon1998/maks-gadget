@@ -48,10 +48,11 @@ class StockService
         ) {
             $userId ??= Auth::id();
             $product = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
-            $previousStock = $product->stock_quantity;
+            $previousStock = (int) $product->stock_quantity;
+            $available = $product->availableStock();
 
-            if ($direction === 'out' && $quantity > $previousStock) {
-                throw new InvalidArgumentException("Insufficient stock for {$product->name}. Available: {$previousStock}");
+            if ($direction === 'out' && $quantity > $available) {
+                throw new InvalidArgumentException("Insufficient stock for {$product->name}. Available: {$available}");
             }
 
             $currentStock = $direction === 'in'
@@ -99,10 +100,11 @@ class StockService
         return DB::transaction(function () use ($product, $quantity, $reference, $userId, $documentType, $documentId) {
             $userId ??= Auth::id();
             $product = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
-            $previousStock = $product->stock_quantity;
+            $previousStock = (int) $product->stock_quantity;
+            $available = $product->availableStock();
 
-            if ($quantity > $previousStock) {
-                throw new InvalidArgumentException("Insufficient stock for {$product->name}. Available: {$previousStock}");
+            if ($quantity > $available) {
+                throw new InvalidArgumentException("Insufficient stock for {$product->name}. Available: {$available}");
             }
 
             $currentStock = $previousStock - $quantity;
@@ -190,8 +192,82 @@ class StockService
             ->exists();
     }
 
+    public function hasActiveReservationForOrder(Product $product, int $orderId): bool
+    {
+        $reserved = StockMovement::where('shop_id', $product->shop_id)
+            ->where('product_id', $product->id)
+            ->where('document_type', 'order_reserve')
+            ->where('document_id', $orderId)
+            ->where('type', 'reserve')
+            ->sum('quantity');
+
+        $released = StockMovement::where('shop_id', $product->shop_id)
+            ->where('product_id', $product->id)
+            ->where('document_type', 'order_reserve')
+            ->where('document_id', $orderId)
+            ->whereIn('type', ['release', 'commit'])
+            ->sum('quantity');
+
+        return ((int) $reserved - (int) $released) > 0;
+    }
+
     /**
-     * Deduct stock for a web order once (e.g. when packing starts).
+     * Hold stock for a web COD order at checkout (does not reduce physical stock).
+     * Available to sell = physical − reserved.
+     */
+    public function reserveWebOrderStock(Order $order, ?int $userId = null): void
+    {
+        $order->loadMissing('items.product');
+        $userId ??= Auth::id() ?? $order->user_id;
+
+        DB::transaction(function () use ($order, $userId) {
+            foreach ($order->items as $item) {
+                $product = $item->product;
+                if (! $product) {
+                    continue;
+                }
+
+                $qty = (int) $item->quantity;
+                if ($qty < 1) {
+                    continue;
+                }
+
+                if ($this->hasActiveReservationForOrder($product, $order->id) || $this->hasSaleForOrder($product, $order->id)) {
+                    continue;
+                }
+
+                $product = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
+                $available = $product->availableStock();
+
+                if ($qty > $available) {
+                    throw new InvalidArgumentException(
+                        "Insufficient stock for {$product->name}. Available: {$available}"
+                    );
+                }
+
+                $reserved = $product->reservedStock() + $qty;
+                $product->update(['reserved_stock' => $reserved]);
+
+                StockMovement::create([
+                    'shop_id' => $product->shop_id,
+                    'product_id' => $product->id,
+                    'user_id' => $userId,
+                    'type' => 'reserve',
+                    'reason' => 'web_order_reserve',
+                    'quantity' => $qty,
+                    'previous_stock' => (int) $product->stock_quantity,
+                    'current_stock' => (int) $product->stock_quantity,
+                    'reference' => 'Reserve website order - '.$order->invoice_no,
+                    'document_type' => 'order_reserve',
+                    'document_id' => $order->id,
+                    'location_id' => $this->defaultStore($product->shop_id)?->id,
+                ]);
+            }
+        });
+    }
+
+    /**
+     * Packing / shipping: convert reservation into a real stock out (physical ↓, reserved ↓).
      * Idempotent per product+order.
      */
     public function commitWebOrderStock(Order $order, ?int $userId = null): void
@@ -199,23 +275,145 @@ class StockService
         $order->loadMissing('items.product');
         $userId ??= Auth::id() ?? $order->user_id;
 
-        foreach ($order->items as $item) {
-            $product = $item->product;
-            if (! $product) {
-                continue;
+        DB::transaction(function () use ($order, $userId) {
+            foreach ($order->items as $item) {
+                $product = $item->product;
+                if (! $product) {
+                    continue;
+                }
+
+                $qty = (int) $item->quantity;
+                if ($qty < 1) {
+                    continue;
+                }
+
+                if ($this->hasSaleForOrder($product, $order->id)) {
+                    continue;
+                }
+
+                $product = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
+                $previousStock = (int) $product->stock_quantity;
+                $reserved = $product->reservedStock();
+
+                // Prefer consuming reservation; still allow commit if reserve was missed (legacy orders).
+                if ($reserved < $qty && $previousStock < $qty) {
+                    throw new InvalidArgumentException(
+                        "Insufficient stock for {$product->name}. Physical: {$previousStock}, reserved: {$reserved}"
+                    );
+                }
+
+                if ($previousStock < $qty) {
+                    throw new InvalidArgumentException(
+                        "Insufficient physical stock for {$product->name}. On hand: {$previousStock}"
+                    );
+                }
+
+                $newPhysical = $previousStock - $qty;
+                $newReserved = max(0, $reserved - $qty);
+
+                $product->update([
+                    'stock_quantity' => $newPhysical,
+                    'reserved_stock' => $newReserved,
+                ]);
+
+                StockMovement::create([
+                    'shop_id' => $product->shop_id,
+                    'product_id' => $product->id,
+                    'user_id' => $userId,
+                    'type' => 'sale',
+                    'reason' => 'sale',
+                    'quantity' => $qty,
+                    'previous_stock' => $previousStock,
+                    'current_stock' => $newPhysical,
+                    'reference' => 'Website order - '.$order->invoice_no,
+                    'document_type' => 'order',
+                    'document_id' => $order->id,
+                    'location_id' => $this->defaultStore($product->shop_id)?->id,
+                ]);
+
+                if ($reserved > 0) {
+                    StockMovement::create([
+                        'shop_id' => $product->shop_id,
+                        'product_id' => $product->id,
+                        'user_id' => $userId,
+                        'type' => 'commit',
+                        'reason' => 'web_order_commit',
+                        'quantity' => min($qty, $reserved),
+                        'previous_stock' => $previousStock,
+                        'current_stock' => $newPhysical,
+                        'reference' => 'Commit reservation - '.$order->invoice_no,
+                        'document_type' => 'order_reserve',
+                        'document_id' => $order->id,
+                        'location_id' => $this->defaultStore($product->shop_id)?->id,
+                    ]);
+                }
             }
-            if ($this->hasSaleForOrder($product, $order->id)) {
-                continue;
+        });
+    }
+
+    /**
+     * Cancel / fraud / door reject before packing: drop reservation, return to available pool.
+     * If stock was already committed (packed), restock physical instead.
+     */
+    public function releaseReservedStock(Order $order, ?int $userId = null, string $reason = 'order_cancelled'): void
+    {
+        $order->loadMissing('items.product');
+        $userId ??= Auth::id() ?? $order->user_id;
+
+        DB::transaction(function () use ($order, $userId, $reason) {
+            foreach ($order->items as $item) {
+                $product = $item->product;
+                if (! $product) {
+                    continue;
+                }
+
+                $qty = (int) $item->quantity;
+                if ($qty < 1) {
+                    continue;
+                }
+
+                if ($this->hasSaleForOrder($product, $order->id)) {
+                    $this->restockForDocument(
+                        $product,
+                        $qty,
+                        'Order release - '.$order->invoice_no,
+                        'order_refund',
+                        $order->id,
+                        $reason,
+                        $userId,
+                    );
+                    continue;
+                }
+
+                if (! $this->hasActiveReservationForOrder($product, $order->id)) {
+                    continue;
+                }
+
+                $product = Product::whereKey($product->id)->lockForUpdate()->firstOrFail();
+                $reserved = $product->reservedStock();
+                $releaseQty = min($qty, $reserved);
+                if ($releaseQty < 1) {
+                    continue;
+                }
+
+                $product->update(['reserved_stock' => max(0, $reserved - $releaseQty)]);
+
+                StockMovement::create([
+                    'shop_id' => $product->shop_id,
+                    'product_id' => $product->id,
+                    'user_id' => $userId,
+                    'type' => 'release',
+                    'reason' => $reason,
+                    'quantity' => $releaseQty,
+                    'previous_stock' => (int) $product->stock_quantity,
+                    'current_stock' => (int) $product->stock_quantity,
+                    'reference' => 'Release reservation - '.$order->invoice_no,
+                    'document_type' => 'order_reserve',
+                    'document_id' => $order->id,
+                    'location_id' => $this->defaultStore($product->shop_id)?->id,
+                ]);
             }
-            $this->recordSale(
-                $product,
-                (int) $item->quantity,
-                'Website order - '.$order->invoice_no,
-                $userId,
-                'order',
-                $order->id,
-            );
-        }
+        });
     }
 
     public function setOpeningStock(Product $product, int $quantity, ?int $userId = null): StockMovement

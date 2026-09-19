@@ -31,7 +31,41 @@
     /* Keep tiny labels readable but not huge */
     body.admin-panel .text-\[11px\],
     body.admin-panel .text-\[10px\] {
-        font-size: 0.68rem !important;
+        font-size: 0.72rem !important;
+        letter-spacing: 0.04em;
+    }
+
+    /*
+     * Admin contrast: dark heroes + faint table headers are hard to read
+     * at the compact type scale used across the panel.
+     */
+    body.admin-panel .bg-slate-900 .text-slate-500,
+    body.admin-panel .bg-gray-900 .text-slate-500,
+    body.admin-panel .bg-slate-900 .text-gray-500,
+    body.admin-panel .bg-gray-900 .text-gray-500 {
+        color: #cbd5e1 !important; /* slate-300 */
+    }
+
+    body.admin-panel .bg-slate-900 .text-slate-400,
+    body.admin-panel .bg-gray-900 .text-slate-400,
+    body.admin-panel .bg-slate-900 .text-gray-400,
+    body.admin-panel .bg-gray-900 .text-gray-400 {
+        color: #e2e8f0 !important; /* slate-200 */
+    }
+
+    body.admin-panel thead th.text-gray-400,
+    body.admin-panel thead th.text-slate-400,
+    body.admin-panel thead .text-gray-400,
+    body.admin-panel thead .text-slate-400 {
+        color: #475569 !important; /* slate-600 */
+    }
+
+    body.admin-panel .border-slate-100 {
+        border-color: #e2e8f0 !important; /* slate-200 */
+    }
+
+    body.admin-panel .border-gray-100 {
+        border-color: #e5e7eb !important; /* gray-200 */
     }
 }
 

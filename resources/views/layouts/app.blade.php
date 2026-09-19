@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Akhi Telecom') }}</title>
+    <title>{{ config('app.name', 'Maks Gadget') }}</title>
     @include('partials.favicon')
 
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,11 +21,13 @@
             font-size:11px;
             font-weight:500;
             letter-spacing:.03em;
-            color:#94a3b8;
-            border-top:1px solid #eef2f7;
-            background:rgba(255,255,255,.7);
+            color:#64748b;
+            border-top:1px solid #e2e8f0;
+            background:rgba(255,255,255,.85);
         }
         .powered-by-admin strong{color:#0f172a;font-weight:800}
+        .powered-by-admin a,.powered-by-link{color:inherit;text-decoration:none}
+        .powered-by-admin a:hover,.powered-by-admin .powered-by-link:hover{color:#2563eb;text-decoration:underline}
     </style>
 </head>
 <body class="admin-panel font-sans antialiased text-slate-900 bg-[#F4F6FB]">
@@ -54,7 +56,7 @@
 
         <div class="admin-scroll-hide relative flex flex-col flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
             @isset($header)
-                <header class="bg-white/80 backdrop-blur border-b border-slate-100 mt-16 lg:mt-[4.25rem]">
+                <header class="bg-white/80 backdrop-blur border-b border-slate-200 mt-16 lg:mt-[4.25rem]">
                     <div class="max-w-[1800px] mx-auto py-3 px-3 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

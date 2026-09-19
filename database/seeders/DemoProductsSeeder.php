@@ -55,7 +55,7 @@ class DemoProductsSeeder extends Seeder
                 [
                     'name' => $def['name'],
                     'icon' => $def['icon'],
-                    'description' => $def['name'].' for Akhi Telecom',
+                    'description' => $def['name'].' for Maks Gadget',
                     'is_featured' => $def['featured'],
                 ]
             );

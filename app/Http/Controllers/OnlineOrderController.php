@@ -44,7 +44,7 @@ class OnlineOrderController extends Controller
         }
 
         $stats = $statsQuery->selectRaw("
-            COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) as pending_count,
+            COALESCE(SUM(CASE WHEN status IN ('pending', 'pending_fulfillment') THEN 1 ELSE 0 END), 0) as pending_count,
             COALESCE(SUM(CASE WHEN status = 'processing' THEN 1 ELSE 0 END), 0) as processing_count,
             COALESCE(SUM(CASE WHEN status = 'shipped' THEN 1 ELSE 0 END), 0) as shipped_count,
             COALESCE(SUM(CASE WHEN status = 'completed' THEN GREATEST(0, total_amount - COALESCE(delivery_charge, 0) - COALESCE(discount_amount, 0) - COALESCE(exchange_credit, 0)) ELSE 0 END), 0) as settled_revenue
@@ -276,6 +276,7 @@ class OnlineOrderController extends Controller
     /** Allowed forward status changes for online orders (terminal states cannot reopen). */
     private const STATUS_TRANSITIONS = [
         'pending' => ['processing', 'cancelled'],
+        'pending_fulfillment' => ['processing', 'cancelled'],
         'processing' => ['shipped', 'cancelled'],
         'shipped' => ['completed', 'returned', 'cancelled'],
         'completed' => ['refunded'],
@@ -283,6 +284,8 @@ class OnlineOrderController extends Controller
         'returned' => [],
         'refunded' => [],
     ];
+
+    private const AWAITING_FULFILLMENT = ['pending', 'pending_fulfillment'];
 
     public function updateStatus(Request $request, Order $order)
     {
@@ -294,7 +297,7 @@ class OnlineOrderController extends Controller
         $shopId = Auth::user()->shop_id;
 
         $request->validate([
-            'status' => 'required|in:pending,processing,shipped,completed,cancelled,returned,refunded',
+            'status' => 'required|in:pending,pending_fulfillment,processing,shipped,completed,cancelled,returned,refunded',
             'customer_note' => 'nullable|string|max:500',
             'courier_service_id' => [
                 'nullable',
@@ -406,13 +409,13 @@ class OnlineOrderController extends Controller
                 Auth::id(),
             );
 
-            if ($newStatus === 'processing' && $oldStatus === 'pending') {
+            if ($newStatus === 'processing' && in_array($oldStatus, self::AWAITING_FULFILLMENT, true)) {
                 $order->load('items.product');
                 $this->stock->commitWebOrderStock($order, Auth::id());
             }
 
-            // If an order skips packing and goes pending → shipped, still commit stock.
-            if ($newStatus === 'shipped' && in_array($oldStatus, ['pending', 'processing'], true)) {
+            // If an order skips packing and goes awaiting → shipped, still commit stock.
+            if ($newStatus === 'shipped' && in_array($oldStatus, [...self::AWAITING_FULFILLMENT, 'processing'], true)) {
                 $order->load('items.product');
                 $this->stock->commitWebOrderStock($order, Auth::id());
             }
@@ -424,23 +427,9 @@ class OnlineOrderController extends Controller
             }
 
             if (in_array($newStatus, ['cancelled', 'returned', 'refunded']) && ! in_array($oldStatus, ['cancelled', 'returned', 'refunded'])) {
-                foreach ($order->items as $item) {
-                    $product = $item->product;
-
-                    if ($product) {
-                        $this->stock->restockForDocument(
-                            $product,
-                            $item->quantity,
-                            'Order '.ucfirst($newStatus).' - '.$order->invoice_no,
-                            'order_refund',
-                            $order->id,
-                            'order_'.$newStatus,
-                            Auth::id(),
-                        );
-                    }
-                }
-
                 $order->load('items.product', 'counter');
+                // Drop reservation (or restock physical if already packed).
+                $this->stock->releaseReservedStock($order, Auth::id(), 'order_'.$newStatus);
                 $this->accounts->postOrderRefund($order);
             }
 

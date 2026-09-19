@@ -62,7 +62,7 @@ class SalesLedgerController extends Controller
         ];
 
         $onlineStats = [
-            'pending' => $onlineOrders->where('status', 'pending')->count(),
+            'pending' => $onlineOrders->whereIn('status', ['pending', 'pending_fulfillment'])->count(),
             'processing' => $onlineOrders->where('status', 'processing')->count(),
             'shipped' => $onlineOrders->where('status', 'shipped')->count(),
             'completed' => $onlineOrders->where('status', 'completed')->count(),
@@ -163,7 +163,7 @@ class SalesLedgerController extends Controller
 
         // Returned for undelivered orders (pending / packing / shipped) — no Refund button.
         $canMarkReturned = ! $isVoided && $withinWindow
-            && in_array($order->status, ['pending', 'processing', 'shipped'], true);
+            && in_array($order->status, ['pending', 'pending_fulfillment', 'processing', 'shipped'], true);
 
         return [
             'id' => $order->id,
@@ -344,7 +344,7 @@ class SalesLedgerController extends Controller
             return back()->with('error', 'This order is already delivered and paid. Use Refund instead of Returned.');
         }
 
-        if (! in_array($order->status, ['pending', 'processing', 'shipped'], true)) {
+        if (! in_array($order->status, ['pending', 'pending_fulfillment', 'processing', 'shipped'], true)) {
             return back()->with('error', 'Only undelivered orders can be marked as Returned.');
         }
 

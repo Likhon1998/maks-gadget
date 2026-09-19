@@ -7,6 +7,13 @@
     $displayName = $product->storefrontDisplayName();
     $catLabel = $product->category?->name ?? $product->brand_name ?? 'Electronics';
     $isNew = $product->showsAsNew();
+    $cartItem = [
+        'id' => $product->id,
+        'name' => $displayName,
+        'price' => $currentPrice,
+        'image' => $img,
+        'stock' => max(0, (int) $product->availableStock()),
+    ];
     $listItem = [
         'id' => $product->id,
         'name' => $displayName,
@@ -15,12 +22,7 @@
         'url' => route('website.product', $product),
         'category' => $catLabel,
         'rating' => (float) ($product->rating ?? 0),
-    ];
-    $cartItem = [
-        'id' => $product->id,
-        'name' => $displayName,
-        'price' => $currentPrice,
-        'image' => $img,
+        'stock' => max(0, (int) $product->availableStock()),
     ];
 @endphp
 <article class="gaget-product-card gs-card">

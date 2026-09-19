@@ -14,7 +14,7 @@ class EnsureStaffOpeningBalance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user() ?? $request->user('admin');
 
         if (! $user || ! $user->requiresDailyOpeningBalance()) {
             return $next($request);

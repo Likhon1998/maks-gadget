@@ -1,5 +1,5 @@
 @php
-    $storeName = $settings->store_name ?? config('app.name', 'Akhi Telecom');
+    $storeName = $settings->store_name ?? config('app.name', 'Maks Gadget');
     $storeLogo = !empty($settings->logo_path) ? public_storage_url($settings->logo_path) : null;
     $tagline = 'Your one-stop shop for the latest tech gadgets and accessories.';
 
@@ -77,20 +77,22 @@
                 </a>
                 <p class="tn-footer-tagline">{{ $tagline }}</p>
 
+                @php
+                    $socialLinks = collect($socialMap)->map(function ($meta, $key) use ($socialRaw) {
+                        $url = trim((string) ($socialRaw[$key] ?? ''));
+
+                        return $url !== '' ? ['url' => $url, 'label' => $meta['label'], 'path' => $meta['path']] : null;
+                    })->filter()->values();
+                @endphp
+                @if($socialLinks->isNotEmpty())
                 <div class="tn-footer-social">
-                    @foreach($socialMap as $key => $meta)
-                        @php $url = trim((string) ($socialRaw[$key] ?? '')); @endphp
-                        @if($url !== '')
-                            <a href="{{ $url }}" target="_blank" rel="noopener" class="tn-footer-social-btn" aria-label="{{ $meta['label'] }}">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="{{ $meta['path'] }}"/></svg>
-                            </a>
-                        @else
-                            <span class="tn-footer-social-btn" aria-label="{{ $meta['label'] }}">
-                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="{{ $meta['path'] }}"/></svg>
-                            </span>
-                        @endif
+                    @foreach($socialLinks as $social)
+                        <a href="{{ $social['url'] }}" target="_blank" rel="noopener" class="tn-footer-social-btn" aria-label="{{ $social['label'] }}">
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="{{ $social['path'] }}"/></svg>
+                        </a>
                     @endforeach
                 </div>
+                @endif
             </div>
 
             <div class="tn-footer-col">
@@ -182,13 +184,13 @@
                         </a>
                     </li>
                     <li>
-                        <a href="{{ $privacyPage ? route('website.page', $privacyPage->slug) : route('website.faqs') }}">
+                        <a href="{{ $privacyPage ? route('website.page', $privacyPage->slug) : url('/page/privacy-policy') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z"/></svg>
                             Privacy Policy
                         </a>
                     </li>
                     <li>
-                        <a href="{{ $termsPage ? route('website.page', $termsPage->slug) : route('website.faqs') }}">
+                        <a href="{{ $termsPage ? route('website.page', $termsPage->slug) : url('/page/terms-and-conditions') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3h7l5 5v11a2 2 0 01-2 2H8a2 2 0 01-2-2V5a2 2 0 012-2z"/><path stroke-linecap="round" d="M15 3v5h5M9 13h6M9 17h4"/></svg>
                             Terms &amp; Conditions
                         </a>

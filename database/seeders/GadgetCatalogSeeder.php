@@ -30,7 +30,7 @@ class GadgetCatalogSeeder extends Seeder
         if ($settings) {
             $settings->fill([
                 'default_shop_id' => $settings->default_shop_id ?: $shop->id,
-                'store_name' => $settings->store_name ?: 'Gadget Store',
+                'store_name' => $settings->store_name ?: 'Maks Gadget',
                 'trusted_by_text' => $settings->trusted_by_text ?: 'Trusted by gadget lovers across Bangladesh',
             ])->save();
         }

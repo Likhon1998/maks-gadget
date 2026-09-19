@@ -9,7 +9,7 @@
         $issuedAt = $order->created_at?->copy()->timezone($tz);
         $printedAt = now()->timezone($tz);
         $shop = $order->shop ?? Auth::user()->shop ?? null;
-        $shopName = $shop->name ?? config('app.name', 'Akhi Telecom');
+        $shopName = $shop->name ?? config('app.name', 'Maks Gadget');
         $isOnline = $order->isOnlineOrder();
         $paymentState = $order->receiptPaymentState();
         $isVoid = $paymentState['is_void'];

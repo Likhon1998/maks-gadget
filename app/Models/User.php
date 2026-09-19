@@ -15,6 +15,15 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasRoles;
 
     /**
+     * Spatie roles/permissions are stored under the "web" guard.
+     * Staff authenticate via the "admin" session guard but keep the same permissions.
+     */
+    public function getDefaultGuardName(): string
+    {
+        return 'web';
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

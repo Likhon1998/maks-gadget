@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="app-base" content="{{ rtrim(request()->getBasePath(), '/') }}">
-    <title>POS Terminal — {{ config('app.name', 'Akhi Telecom') }}</title>
+    <title>POS Terminal — {{ config('app.name', 'Maks Gadget') }}</title>
     @include('partials.favicon')
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -17,7 +17,7 @@
             right:10px;
             bottom:8px;
             z-index:40;
-            pointer-events:none;
+            pointer-events:auto;
             font-size:10px;
             font-weight:600;
             letter-spacing:.04em;
@@ -29,6 +29,8 @@
             box-shadow:0 4px 12px rgba(15,23,42,.06);
         }
         .powered-by-fixed strong{color:#0f172a;font-weight:800}
+        .powered-by-fixed a,.powered-by-fixed .powered-by-link{color:inherit;text-decoration:none}
+        .powered-by-fixed a:hover{color:#2563eb;text-decoration:underline}
         @media print { .powered-by-fixed { display:none !important; } }
     </style>
 </head>

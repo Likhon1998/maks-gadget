@@ -213,6 +213,131 @@ class AnalyticsService
             ->get();
     }
 
+    /**
+     * Brand merchandise sales (POS + website completed orders).
+     * Delivery fees are excluded so brand totals reflect product revenue only.
+     */
+    public function salesByBrand(int $shopId, Carbon $start, Carbon $end, ?int $limit = 12)
+    {
+        $brandLabel = "COALESCE(NULLIF(brands.name, ''), NULLIF(products.brand_name, ''), 'Unbranded')";
+        $merchGross = 'GREATEST(orders.total_amount - COALESCE(orders.delivery_charge, 0), 0)';
+        $merchNet = 'GREATEST(orders.total_amount - COALESCE(orders.delivery_charge, 0) - COALESCE(orders.discount_amount, 0) - COALESCE(orders.exchange_credit, 0), 0)';
+        $netShare = "COALESCE(order_items.subtotal * ({$merchNet}) / NULLIF({$merchGross}, 0), 0)";
+        $isWeb = "(orders.counter_id IS NULL AND orders.invoice_no LIKE 'WEB-%')";
+        $isPos = "(NOT {$isWeb})";
+
+        $query = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+            ->where('orders.shop_id', $shopId)
+            ->whereBetween('orders.created_at', [$start, $end])
+            ->where('orders.status', 'completed')
+            ->where(function ($q) {
+                $q->where('orders.is_exchange_receipt', false)
+                    ->orWhereNull('orders.is_exchange_receipt');
+            })
+            ->select(
+                DB::raw("{$brandLabel} as brand"),
+                DB::raw('SUM(order_items.quantity) as sold'),
+                DB::raw("SUM({$netShare}) as revenue"),
+                DB::raw('SUM(order_items.quantity * COALESCE(products.cost_price, 0)) as cost'),
+                DB::raw("SUM(CASE WHEN {$isPos} THEN order_items.quantity ELSE 0 END) as pos_sold"),
+                DB::raw("SUM(CASE WHEN {$isWeb} THEN order_items.quantity ELSE 0 END) as web_sold"),
+                DB::raw("SUM(CASE WHEN {$isPos} THEN {$netShare} ELSE 0 END) as pos_revenue"),
+                DB::raw("SUM(CASE WHEN {$isWeb} THEN {$netShare} ELSE 0 END) as web_revenue"),
+                DB::raw('COUNT(DISTINCT orders.id) as orders_count')
+            )
+            // Include raw columns so MySQL ONLY_FULL_GROUP_BY accepts the COALESCE label.
+            ->groupBy('brands.name', 'products.brand_name')
+            ->orderByDesc('revenue')
+            ->get()
+            ->groupBy(fn ($row) => $row->brand)
+            ->map(function ($rows) {
+                $first = $rows->first();
+                $revenue = (float) $rows->sum('revenue');
+                $cost = (float) $rows->sum('cost');
+
+                return (object) [
+                    'brand' => $first->brand,
+                    'sold' => (int) $rows->sum('sold'),
+                    'revenue' => $revenue,
+                    'cost' => $cost,
+                    'profit' => $revenue - $cost,
+                    'pos_sold' => (int) $rows->sum('pos_sold'),
+                    'web_sold' => (int) $rows->sum('web_sold'),
+                    'pos_revenue' => (float) $rows->sum('pos_revenue'),
+                    'web_revenue' => (float) $rows->sum('web_revenue'),
+                    'orders_count' => (int) $rows->sum('orders_count'),
+                ];
+            })
+            ->sortByDesc('revenue')
+            ->values();
+
+        return $limit !== null ? $query->take($limit)->values() : $query;
+    }
+
+    /**
+     * Per-day brand units + revenue (POS + website).
+     */
+    public function dailySalesByBrand(int $shopId, Carbon $start, Carbon $end)
+    {
+        $brandLabel = "COALESCE(NULLIF(brands.name, ''), NULLIF(products.brand_name, ''), 'Unbranded')";
+        $merchGross = 'GREATEST(orders.total_amount - COALESCE(orders.delivery_charge, 0), 0)';
+        $merchNet = 'GREATEST(orders.total_amount - COALESCE(orders.delivery_charge, 0) - COALESCE(orders.discount_amount, 0) - COALESCE(orders.exchange_credit, 0), 0)';
+        $netShare = "COALESCE(order_items.subtotal * ({$merchNet}) / NULLIF({$merchGross}, 0), 0)";
+        $isWeb = "(orders.counter_id IS NULL AND orders.invoice_no LIKE 'WEB-%')";
+        $isPos = "(NOT {$isWeb})";
+
+        return DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+            ->where('orders.shop_id', $shopId)
+            ->whereBetween('orders.created_at', [$start, $end])
+            ->where('orders.status', 'completed')
+            ->where(function ($q) {
+                $q->where('orders.is_exchange_receipt', false)
+                    ->orWhereNull('orders.is_exchange_receipt');
+            })
+            ->select(
+                DB::raw('DATE(orders.created_at) as date'),
+                DB::raw("{$brandLabel} as brand"),
+                DB::raw('SUM(order_items.quantity) as sold'),
+                DB::raw("SUM({$netShare}) as revenue"),
+                DB::raw('SUM(order_items.quantity * COALESCE(products.cost_price, 0)) as cost'),
+                DB::raw("SUM(CASE WHEN {$isPos} THEN order_items.quantity ELSE 0 END) as pos_sold"),
+                DB::raw("SUM(CASE WHEN {$isWeb} THEN order_items.quantity ELSE 0 END) as web_sold"),
+                DB::raw("SUM(CASE WHEN {$isPos} THEN {$netShare} ELSE 0 END) as pos_revenue"),
+                DB::raw("SUM(CASE WHEN {$isWeb} THEN {$netShare} ELSE 0 END) as web_revenue")
+            )
+            ->groupBy(DB::raw('DATE(orders.created_at)'), 'brands.name', 'products.brand_name')
+            ->orderByDesc(DB::raw('DATE(orders.created_at)'))
+            ->orderByDesc('revenue')
+            ->get()
+            ->groupBy(fn ($row) => $row->date.'|'.$row->brand)
+            ->map(function ($rows) {
+                $first = $rows->first();
+                $revenue = (float) $rows->sum('revenue');
+                $cost = (float) $rows->sum('cost');
+
+                return (object) [
+                    'date' => $first->date,
+                    'brand' => $first->brand,
+                    'sold' => (int) $rows->sum('sold'),
+                    'revenue' => $revenue,
+                    'cost' => $cost,
+                    'profit' => $revenue - $cost,
+                    'pos_sold' => (int) $rows->sum('pos_sold'),
+                    'web_sold' => (int) $rows->sum('web_sold'),
+                    'pos_revenue' => (float) $rows->sum('pos_revenue'),
+                    'web_revenue' => (float) $rows->sum('web_revenue'),
+                ];
+            })
+            ->sortByDesc(fn ($row) => $row->date.'-'.str_pad((string) round($row->revenue * 100), 12, '0', STR_PAD_LEFT))
+            ->values();
+    }
+
     public function topCustomers(int $shopId, Carbon $start, Carbon $end, int $limit = 15)
     {
         return $this->baseOrderQuery($shopId, $start, $end)

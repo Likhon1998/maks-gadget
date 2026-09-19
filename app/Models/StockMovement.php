@@ -38,6 +38,9 @@ class StockMovement extends Model
             'in' => 'IN (+)',
             'out' => 'OUT (−)',
             'sale' => 'SALE (−)',
+            'reserve' => 'RESERVE',
+            'release' => 'RELEASE',
+            'commit' => 'COMMIT',
             default => strtoupper((string) $this->type),
         };
     }

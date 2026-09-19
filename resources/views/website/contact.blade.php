@@ -5,9 +5,9 @@
     $heroTitle = data_get($settings, 'contact_hero_title') ?: "We're Here to Help!";
     $heroSub = data_get($settings, 'contact_hero_subtitle')
         ?: 'Have a question about an order, product, or return? Our support team is ready to assist you.';
-    $email = data_get($settings, 'contact_email') ?: 'admin@akhitelecom.com';
-    $phone = data_get($settings, 'contact_phone') ?: '+880 1700-000000';
-    $address = data_get($settings, 'contact_address') ?: 'Dhaka, Bangladesh';
+    $email = data_get($settings, 'contact_email') ?: 'support@maksgadget.com';
+    $phone = data_get($settings, 'contact_phone') ?: '+880 1712-345678';
+    $address = data_get($settings, 'contact_address') ?: 'Gulshan 1, Dhaka 1212, Bangladesh';
     $website = data_get($settings, 'contact_website_url') ?: url('/');
     $websiteLabel = preg_replace('#^https?://#', '', rtrim($website, '/'));
     $mapEmbed = normalize_map_embed_url(data_get($settings, 'contact_map_embed'));
@@ -15,7 +15,7 @@
     $newsletterTitle = data_get($settings, 'contact_newsletter_title') ?: 'Stay in the loop';
     $newsletterText = data_get($settings, 'contact_newsletter_text') ?: 'Subscribe for deals and product updates.';
 @endphp
-@section('title', 'Contact — '.($settings->store_name ?? config('app.name', 'Akhi Telecom')))
+@section('title', 'Contact — '.($settings->store_name ?? config('app.name', 'Maks Gadget')))
 @section('content')
 
 <section class="relative overflow-hidden border-b border-slate-100 bg-gradient-to-br from-slate-50 via-blue-50/50 to-white">
@@ -70,8 +70,8 @@
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
             <h3 class="mt-3 text-sm font-bold text-slate-900">{{ data_get($settings, 'contact_hours_title') ?: 'Working Hours' }}</h3>
-            <p class="mt-1 text-xs text-slate-600">{{ data_get($settings, 'contact_hours_weekday') ?: 'Mon - Fri: 9:00 AM - 6:00 PM' }}</p>
-            <p class="mt-0.5 text-xs text-slate-500">{{ data_get($settings, 'contact_hours_weekend') ?: 'Sat - Sun: 10:00 AM - 4:00 PM (EST)' }}</p>
+            <p class="mt-1 text-xs text-slate-600">{{ data_get($settings, 'contact_hours_weekday') ?: 'Sat - Thu: 10:00 AM - 8:00 PM (BDT)' }}</p>
+            <p class="mt-0.5 text-xs text-slate-500">{{ data_get($settings, 'contact_hours_weekend') ?: 'Fri: 3:00 PM - 8:00 PM (BDT)' }}</p>
         </div>
     </div>
 </div>
@@ -130,7 +130,7 @@
                     <div class="h-56 bg-gradient-to-br from-slate-100 to-blue-50 flex items-center justify-center text-slate-400 text-sm">
                         <div class="text-center px-4">
                             <svg class="w-10 h-10 mx-auto text-blue-500 mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
-                            <p class="font-semibold text-slate-600">{{ $settings->store_name ?? config('app.name', 'Akhi Telecom') }}</p>
+                            <p class="font-semibold text-slate-600">{{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}</p>
                             <p class="text-xs mt-1">Add a map embed URL in CMS → Contact</p>
                         </div>
                     </div>

@@ -13,6 +13,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExchangeController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\OnlineOrderController;
+use App\Http\Controllers\OrderCancellationController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\PosSettingsController;
 use App\Http\Controllers\ProductController;
@@ -55,8 +56,16 @@ Route::get('/', [WebsiteController::class, 'home'])->name('home');
 Route::get('/favicon.ico', function () {
     return redirect()->to(site_favicon_url(), 302);
 })->name('favicon');
-Route::redirect('/login', '/admin/login');
+/*
+| Customer auth entry — storefront uses a modal, so /login opens home + sign-in.
+| Staff login lives at /admin/login (route: admin.login). Never collide names.
+*/
+Route::get('/login', function () {
+    return redirect()->route('home', ['signin' => 1]);
+})->name('login');
+
 Route::get('/shop', [WebsiteController::class, 'shop'])->name('website.shop');
+Route::post('/cart/sync', [WebsiteController::class, 'syncCart'])->name('website.cart.sync');
 Route::get('/search/suggest', [WebsiteController::class, 'searchSuggest'])->name('website.search.suggest');
 Route::get('/category/{slug}', [WebsiteController::class, 'category'])->name('website.category');
 Route::get('/brand/{slug}', [WebsiteController::class, 'brand'])->name('website.brand');
@@ -77,7 +86,7 @@ Route::get('/csrf-token', function () {
 Route::post('/account/login', [StorefrontAuthController::class, 'login'])->name('website.account.login');
 Route::post('/account/register', [StorefrontAuthController::class, 'register'])->name('website.account.register');
 Route::post('/account/logout', [StorefrontAuthController::class, 'logout'])->name('website.account.logout');
-Route::middleware('auth')->group(function () {
+Route::middleware('auth:web')->group(function () {
     Route::get('/account', [StorefrontAuthController::class, 'account'])->name('website.account');
     Route::get('/account/profile', [StorefrontAuthController::class, 'editProfile'])->name('website.account.profile.edit');
     Route::put('/account/profile', [StorefrontAuthController::class, 'updateProfile'])->name('website.account.profile.update');
@@ -94,7 +103,7 @@ Route::post('/contact', [WebsiteController::class, 'submitContact'])->name('webs
 Route::get('/wishlist', [WebsiteController::class, 'wishlist'])->name('website.wishlist');
 
 Route::middleware([
-    'auth',
+    'auth:admin',
     'verified',
     \App\Http\Middleware\EnsureNotStorefrontCustomer::class,
     \App\Http\Middleware\CheckIfSuspended::class,
@@ -246,6 +255,7 @@ Route::middleware([
     });
 
     Route::get('/reports/daily-sales', [ReportController::class, 'dailySales'])->name('reports.daily');
+    Route::get('/reports/daily-sales-by-brand', [ReportController::class, 'dailySalesByBrand'])->name('reports.daily_by_brand');
     Route::get('/reports/best-sellers', [ReportController::class, 'bestSellers'])->name('reports.best_sellers');
     Route::get('/reports/low-stock', [ReportController::class, 'lowStock'])
         ->middleware('can:manage inventory')
@@ -284,6 +294,7 @@ Route::middleware([
     Route::post('/online-orders/notifications/seen', [OnlineOrderController::class, 'markNotificationsSeen'])->name('online-orders.notifications.seen');
     Route::get('/online-orders/{order}', [OnlineOrderController::class, 'show'])->name('online-orders.show');
     Route::post('/online-orders/{order}/status', [OnlineOrderController::class, 'updateStatus'])->name('online-orders.update-status');
+    Route::post('/online-orders/{order}/cancel', [OrderCancellationController::class, 'cancel'])->name('online-orders.cancel');
     Route::post('/online-orders/{order}/collect-from-courier', [OnlineOrderController::class, 'collectFromCourier'])->name('online-orders.collect-from-courier');
 });
 

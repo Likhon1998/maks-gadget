@@ -38,7 +38,13 @@ return [
     */
 
     'guards' => [
+        // Storefront customers (default)
         'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        // Admin / POS staff — separate session key so both can stay logged in together
+        'admin' => [
             'driver' => 'session',
             'provider' => 'users',
         ],

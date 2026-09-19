@@ -58,17 +58,17 @@
             };
         })();
     </script>
-    <title>@yield('title', $settings->store_name ?? config('app.name', 'Akhi Telecom'))</title>
+    <title>@yield('title', $settings->store_name ?? config('app.name', 'Maks Gadget'))</title>
     @include('partials.favicon', ['settings' => $settings ?? null])
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
     @php
-        $storefrontUser = auth()->check() && auth()->user()->isStorefrontCustomer()
+        $storefrontUser = auth('web')->check() && auth('web')->user()->isStorefrontCustomer()
             ? [
-                'name' => auth()->user()->name,
-                'email' => auth()->user()->email,
-                'phone' => auth()->user()->customerProfile?->phone ?? '',
-                'address' => auth()->user()->customerProfile?->address ?? '',
+                'name' => auth('web')->user()->name,
+                'email' => auth('web')->user()->email,
+                'phone' => auth('web')->user()->customerProfile?->phone ?? '',
+                'address' => auth('web')->user()->customerProfile?->address ?? '',
             ]
             : null;
         if (! isset($deliveryConfig) || ! is_array($deliveryConfig)) {
@@ -108,7 +108,7 @@
                 products: [],
                 mode: 'best',
                 activeIndex: -1,
-                currency: currencySymbol || '$',
+                currency: currencySymbol || '৳',
                 _req: 0,
                 get shopUrl() {
                     const params = new URLSearchParams();
@@ -167,6 +167,9 @@
                 cart: readStorefrontList('gaget_cart'),
                 wishlist: readStorefrontList('gaget_wishlist'),
                 cartOpen: false,
+                cartBump: false,
+                cartSyncing: false,
+                cartSyncUrl: @json(route('website.cart.sync')),
                 checkoutOpen: false,
                 mobileOpen: false,
                 mobileCatsOpen: false,
@@ -187,7 +190,7 @@
                 toastMessage: '',
                 toastVisible: false,
                 isLoggedIn: @json((bool) $storefrontUser),
-                currency: @json($settings->currency_symbol ?? '$'),
+                currency: @json($settings->currency_symbol ?? '৳'),
                 deliveryConfig: @json($deliveryConfig),
                 checkout: {
                     name: @json(data_get($storefrontUser, 'name', '')),
@@ -236,37 +239,175 @@
                     };
                 },
                 get wishlistCount() { return this.wishlist.length; },
-                save() { localStorage.setItem('gaget_cart', JSON.stringify(this.cart)); },
+                init() {
+                    this.syncCart({ silent: true });
+                    try {
+                        const params = new URLSearchParams(window.location.search);
+                        if (params.get('signin') === '1' || params.get('signin') === 'true') {
+                            const tab = params.get('tab') === 'register' ? 'register' : 'login';
+                            this.$nextTick(() => this.openSignIn(tab));
+                            params.delete('signin');
+                            params.delete('tab');
+                            const qs = params.toString();
+                            const next = window.location.pathname + (qs ? '?' + qs : '') + window.location.hash;
+                            window.history.replaceState({}, '', next);
+                        }
+                    } catch (e) {}
+                },
+                // Persist ids + qty only — display price/stock always come from /cart/sync.
+                save() {
+                    const slim = this.cart.map((item) => ({
+                        id: Number(item.id),
+                        qty: Math.max(1, Number(item.qty) || 1),
+                    })).filter((item) => item.id > 0);
+                    localStorage.setItem('gaget_cart', JSON.stringify(slim));
+                },
                 saveWishlist() { localStorage.setItem('gaget_wishlist', JSON.stringify(this.wishlist)); },
+                async syncCart({ silent = false } = {}) {
+                    if (this.cartSyncing) return;
+                    const payload = this.cart
+                        .map((item) => ({
+                            id: Number(item.id),
+                            qty: Math.max(1, Number(item.qty) || 1),
+                        }))
+                        .filter((item) => item.id > 0);
+
+                    if (!payload.length) {
+                        this.cart = [];
+                        this.save();
+                        return;
+                    }
+
+                    this.cartSyncing = true;
+                    try {
+                        const res = await this.csrfFetch(this.cartSyncUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ items: payload }),
+                        });
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                            if (!silent) this.flashToast(data.message || 'Could not refresh cart prices.');
+                            return;
+                        }
+                        this.cart = Array.isArray(data.items) ? data.items : [];
+                        this.save();
+                        if (!silent && Array.isArray(data.warnings) && data.warnings.length) {
+                            this.flashToast(data.warnings[0]);
+                        }
+                    } catch (e) {
+                        if (!silent) this.flashToast('Could not refresh cart. Please try again.');
+                    } finally {
+                        this.cartSyncing = false;
+                    }
+                },
                 addToCart(product, qty = 1, openDrawer = true) {
                     if (!product || product.id === undefined || product.id === null) return;
 
                     const id = Number(product.id);
                     const amount = Math.max(1, Number(qty) || 1);
+                    const stockCap = Number(product.stock);
                     const next = this.cart.map((item) => ({ ...item }));
                     const existing = next.find((item) => Number(item.id) === id);
+                    const currentQty = existing ? (Number(existing.qty) || 0) : 0;
+                    let desired = currentQty + amount;
+
+                    if (Number.isFinite(stockCap) && stockCap >= 0) {
+                        if (stockCap < 1) {
+                            this.flashToast('This item is out of stock.');
+                            return;
+                        }
+                        if (desired > stockCap) {
+                            desired = stockCap;
+                            this.flashToast('Only ' + stockCap + ' available.');
+                        }
+                    }
 
                     if (existing) {
-                        existing.qty = (Number(existing.qty) || 0) + amount;
+                        existing.qty = desired;
+                        if (Number.isFinite(stockCap)) existing.stock = stockCap;
+                        if (product.name) existing.name = product.name;
+                        if (product.image) existing.image = product.image;
+                        if (product.price !== undefined) existing.price = Number(product.price) || existing.price;
                     } else {
                         next.push({
                             id,
                             name: product.name || 'Product',
                             price: Number(product.price) || 0,
                             image: product.image || '',
-                            qty: amount,
+                            qty: desired,
+                            stock: Number.isFinite(stockCap) ? stockCap : undefined,
                         });
                     }
 
                     this.cart = next;
                     this.save();
-                    if (openDrawer) this.cartOpen = true;
+                    this.bumpCart();
+                    if (openDrawer) {
+                        this.openCart();
+                    } else {
+                        this.syncCart({ silent: true });
+                    }
+                },
+                bumpCart() {
+                    this.cartBump = false;
+                    this.$nextTick(() => {
+                        this.cartBump = true;
+                        clearTimeout(this._cartBumpTimer);
+                        this._cartBumpTimer = setTimeout(() => { this.cartBump = false; }, 700);
+                    });
+                },
+                async openCart() {
+                    await this.syncCart({ silent: false });
+                    this.cartOpen = true;
+                    this.$nextTick(() => {
+                        const shell = document.querySelector('.gaget-cart-shell');
+                        const panel = document.querySelector('.gaget-cart-panel');
+                        if (shell) shell.classList.remove('is-closing');
+                        if (!panel) return;
+                        panel.classList.remove('is-enter');
+                        void panel.offsetWidth;
+                        panel.classList.add('is-enter');
+                    });
+                },
+                closeCart() {
+                    if (!this.cartOpen) return;
+                    const shell = document.querySelector('.gaget-cart-shell');
+                    if (shell) {
+                        shell.classList.add('is-closing');
+                        clearTimeout(this._cartCloseTimer);
+                        this._cartCloseTimer = setTimeout(() => {
+                            this.cartOpen = false;
+                            shell.classList.remove('is-closing');
+                        }, 300);
+                        return;
+                    }
+                    this.cartOpen = false;
                 },
                 updateQty(i, d) {
                     const next = this.cart.map((item) => ({ ...item }));
-                    next[i].qty = (Number(next[i].qty) || 0) + d;
-                    this.cart = next[i].qty <= 0 ? next.filter((_, idx) => idx !== i) : next;
+                    const row = next[i];
+                    if (!row) return;
+                    const stockCap = Number(row.stock);
+                    let qty = (Number(row.qty) || 0) + d;
+                    if (qty <= 0) {
+                        this.cart = next.filter((_, idx) => idx !== i);
+                        this.save();
+                        this.syncCart({ silent: true });
+                        return;
+                    }
+                    if (Number.isFinite(stockCap) && stockCap >= 0 && qty > stockCap) {
+                        qty = stockCap;
+                        this.flashToast('Only ' + stockCap + ' available.');
+                    }
+                    row.qty = qty;
+                    this.cart = next;
                     this.save();
+                    clearTimeout(this._qtySyncTimer);
+                    this._qtySyncTimer = setTimeout(() => this.syncCart({ silent: true }), 350);
                 },
                 removeItem(i) {
                     this.cart = this.cart.filter((_, idx) => idx !== i);
@@ -305,6 +446,7 @@
                     } else if (cfg.cod_enabled) {
                         this.checkout.payment_method = 'cash_on_delivery';
                     }
+                    this.syncCart({ silent: true });
                     if (this.isLoggedIn) {
                         this.checkoutStep = 'order';
                     } else {
@@ -405,8 +547,27 @@
                     }
                 },
                 async placeOrder() {
-                    if (!this.checkout.name || !this.checkout.phone || !this.checkout.address) {
-                        this.orderMessage = 'Name, phone, and delivery address are required.';
+                    const name = String(this.checkout.name || '').trim();
+                    const phone = String(this.checkout.phone || '').trim();
+                    const address = String(this.checkout.address || '').trim().replace(/\s+/g, ' ');
+                    this.checkout.name = name;
+                    this.checkout.phone = phone;
+                    this.checkout.address = address;
+
+                    if (!name || !phone) {
+                        this.orderMessage = 'Full name and phone number are required.';
+                        this.orderSuccess = false;
+                        return;
+                    }
+                    if (!address || address.length < 20) {
+                        this.orderMessage = 'A complete delivery address is required (house/flat, road, and area).';
+                        this.orderSuccess = false;
+                        return;
+                    }
+                    const hasLetters = /[A-Za-z\u0980-\u09FF]{3,}/.test(address);
+                    const hasNumberOrArea = /\d|road|rd\.?|street|st\.?|lane|house|flat|apt|block|sector|area|bazar|goli|avenue/i.test(address);
+                    if (!hasLetters || !hasNumberOrArea) {
+                        this.orderMessage = 'Please enter a full address, e.g. House 12, Road 5, Gulshan, Dhaka.';
                         this.orderSuccess = false;
                         return;
                     }
@@ -426,9 +587,9 @@
                             method: 'POST',
                             body: JSON.stringify({
                                 cart: this.cart,
-                                customer_name: this.checkout.name,
-                                customer_phone: this.checkout.phone,
-                                customer_address: this.checkout.address,
+                                customer_name: name,
+                                customer_phone: phone,
+                                customer_address: address,
                                 delivery_zone: this.checkout.zone,
                                 payment_method: this.deliveryQuote.paymentMethod,
                             }),
@@ -445,6 +606,15 @@
                             this.checkoutStep = 'auth';
                             this.authTab = 'login';
                             this.authMessage = 'Please sign in to place your order.';
+                            return;
+                        }
+                        if (res.status === 422) {
+                            this.orderSuccess = false;
+                            this.orderMessage = data.errors?.customer_address?.[0]
+                                || data.errors?.customer_phone?.[0]
+                                || data.errors?.customer_name?.[0]
+                                || data.message
+                                || 'Please fill in a complete delivery address.';
                             return;
                         }
                         if (data.success) {
@@ -528,42 +698,95 @@
     <style>
         [x-cloak]{display:none!important}
         /* Critical first-paint loader (before Vite CSS) */
-        .gaget-page-loader{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(248,250,252,.94);transition:opacity .38s ease,visibility .38s ease}
-        .gaget-page-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none}
+        .gaget-page-loader{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#fff;opacity:1;visibility:visible;pointer-events:auto;transition:opacity .32s ease,visibility 0s linear 0s}
+        .gaget-page-loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .32s ease,visibility 0s linear .32s}
+        .gaget-page-loader__inner{display:flex;flex-direction:column;align-items:center;gap:14px}
+        .gaget-page-loader__mark{position:relative;width:64px;height:64px;display:grid;place-items:center}
+        .gaget-page-loader__ring{position:absolute;inset:0;border-radius:50%;border:2.5px solid #e2e8f0;border-top-color:#2563eb;animation:gaget-spin .75s linear infinite}
+        .gaget-page-loader__core{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#2563eb,#1d4ed8);color:#fff;font-weight:800;font-size:18px;letter-spacing:-.02em;box-shadow:0 8px 20px rgba(37,99,235,.28)}
+        .gaget-page-loader__text{margin:0;font-size:15px;font-weight:800;letter-spacing:.02em;color:#0f172a}
+        .gaget-page-loader__sub{margin:0;font-size:12px;font-weight:500;color:#64748b}
+        .gaget-page-loader__bar{position:absolute;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,#2563eb,#38bdf8)}
+        .gaget-page-loader.is-active:not(.is-hidden) .gaget-page-loader__bar{animation:gaget-bar-run 1.35s ease-in-out infinite}
+        @keyframes gaget-spin{to{transform:rotate(360deg)}}
+        @keyframes gaget-bar-run{0%{width:0;left:0}45%{width:55%;left:0}100%{width:0;left:100%}}
+
+        /* Critical cart fly + drawer animations (always available) */
+        .gaget-cart-flyer{position:fixed;z-index:100060;width:64px;height:64px;margin:0;padding:0;border:0;border-radius:18px;overflow:hidden;pointer-events:none;background:#fff;box-shadow:0 16px 36px rgba(15,23,42,.28),0 0 0 3px rgba(37,99,235,.25);opacity:1;will-change:left,top,transform,opacity}
+        .gaget-cart-flyer img{width:100%;height:100%;object-fit:cover;display:block}
+        .gaget-cart-flyer--plain{display:grid;place-items:center;background:linear-gradient(145deg,#3b82f6,#1d4ed8);color:#fff;font-size:22px;font-weight:800}
+        .gaget-cart-flyer.is-flying{animation:gaget-fly-cart .9s cubic-bezier(.22,1,.36,1) forwards}
+        @keyframes gaget-fly-cart{
+            0%{left:var(--fly-x0);top:var(--fly-y0);transform:scale(1) rotate(-8deg);opacity:1}
+            55%{left:var(--fly-x1);top:var(--fly-y1);transform:scale(.9) rotate(14deg);opacity:1}
+            100%{left:var(--fly-x2);top:var(--fly-y2);transform:scale(.18) rotate(-22deg);opacity:0}
+        }
+        .gaget-action-btn.is-cart-swing .gaget-cart-icon{animation:gaget-cart-swing .75s cubic-bezier(.34,1.45,.64,1);transform-origin:50% 10%}
+        .gaget-action-btn.is-cart-swing .gaget-cart-badge{animation:gaget-badge-pop .55s cubic-bezier(.34,1.45,.64,1)}
+        @keyframes gaget-cart-swing{0%{transform:rotate(0)}20%{transform:rotate(-22deg) scale(1.12)}45%{transform:rotate(16deg) scale(1.08)}70%{transform:rotate(-10deg)}100%{transform:rotate(0) scale(1)}}
+        @keyframes gaget-badge-pop{0%{transform:scale(.55)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
+        .gaget-cart-shell{position:fixed;inset:0;z-index:90;pointer-events:none}
+        .gaget-cart-shell.is-open{pointer-events:auto}
+        .gaget-cart-backdrop{position:absolute;inset:0;background:rgba(8,15,30,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
+        .gaget-cart-shell.is-open .gaget-cart-backdrop{opacity:1;visibility:visible;transition:opacity .35s ease,visibility 0s}
+        .gaget-cart-panel{position:absolute;top:14px;right:14px;bottom:14px;width:min(calc(100% - 28px),400px);background:#fff;display:flex;flex-direction:column;border-radius:24px;overflow:hidden;box-shadow:0 28px 80px rgba(15,23,42,.28);transform:translate3d(118%,0,0) scale(.94) rotate(4deg);opacity:0;transform-origin:100% 20%}
+        .gaget-cart-shell.is-open .gaget-cart-panel{animation:gaget-cart-sheet-in .58s cubic-bezier(.16,1,.3,1) forwards}
+        .gaget-cart-shell.is-closing .gaget-cart-panel{animation:gaget-cart-sheet-out .32s ease forwards}
+        @keyframes gaget-cart-sheet-in{0%{opacity:0;transform:translate3d(118%,0,0) scale(.94) rotate(4deg)}60%{opacity:1;transform:translate3d(-4%,0,0) scale(1.01) rotate(-1deg)}100%{opacity:1;transform:translate3d(0,0,0) scale(1) rotate(0)}}
+        @keyframes gaget-cart-sheet-out{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:0;transform:translate3d(110%,0,0) scale(.96) rotate(3deg)}}
+        .tn-product-add.is-adding,.gaget-btn-primary.is-adding,[data-add-to-cart].is-adding{animation:gaget-add-press .45s cubic-bezier(.34,1.45,.64,1)}
+        @keyframes gaget-add-press{0%{transform:scale(1)}35%{transform:scale(.92)}70%{transform:scale(1.04)}100%{transform:scale(1)}}
+        /* Fixed header — always on screen */
+        .gaget-sticky-header{position:fixed!important;top:0;left:0;right:0;width:100%;z-index:60;background:#fff;box-shadow:0 4px 18px rgba(15,23,42,.08)}
+        .gaget-header-spacer{display:block;width:100%;height:var(--g-header-h,132px);pointer-events:none}
+
         /* Safety: brand logos must never render at intrinsic SVG/PNG size */
-        .gaget-store .tn-brand-logo{height:40px!important;max-height:40px!important;max-width:112px!important;width:auto!important;object-fit:contain!important}
-        .gaget-store .tn-brand-logo-frame{height:44px!important;max-width:120px!important;overflow:hidden!important}
+        .gaget-store .tn-brand-logo{height:44px!important;max-height:44px!important;max-width:120px!important;width:auto!important;object-fit:contain!important}
+        .gaget-store .tn-brand-logo-frame{height:52px!important;max-width:140px!important;overflow:hidden!important}
         .gaget-store .pd-brand-logo{height:18px!important;max-height:18px!important;max-width:88px!important;width:auto!important;object-fit:contain!important}
         .tn-footer-credit{border-top:1px solid #eef2f7;padding:14px 16px 18px;text-align:center;background:#f8f9fc}
         .powered-by,.powered-by--footer{margin:0;font-size:12px;font-weight:500;letter-spacing:.02em;color:#94a3b8}
         .powered-by strong,.powered-by--footer strong{color:#0f172a;font-weight:800}
     </style>
 </head>
-<body class="gaget-store bg-white antialiased" id="storefront-root" x-data="storefrontCart()" @keydown.escape.window="cartOpen=false; checkoutOpen=false; mobileOpen=false; mobileCatsOpen=false; mobileBrandsOpen=false">
+<body class="gaget-store bg-white antialiased" id="storefront-root" x-data="storefrontCart()" @keydown.escape.window="cartOpen && closeCart(); checkoutOpen=false; mobileOpen=false; mobileCatsOpen=false; mobileBrandsOpen=false">
 
-{{-- Joyful full-page loader (shown on first paint + every navigation) --}}
+{{-- Simple branded page loader --}}
 <div id="gaget-page-loader" class="gaget-page-loader is-active" role="status" aria-live="polite" aria-busy="true" aria-label="Loading">
     <div class="gaget-page-loader__bar" aria-hidden="true"></div>
     <div class="gaget-page-loader__inner">
-        <div class="gaget-page-loader__stage" aria-hidden="true">
-            <div class="gaget-page-loader__orbit">
-                <span class="gaget-page-loader__spark"></span>
-                <span class="gaget-page-loader__spark"></span>
-                <span class="gaget-page-loader__spark"></span>
-            </div>
-            <div class="gaget-page-loader__bag"></div>
+        <div class="gaget-page-loader__mark" aria-hidden="true">
+            <span class="gaget-page-loader__ring"></span>
+            <span class="gaget-page-loader__core">M</span>
         </div>
-        <p class="gaget-page-loader__text">
-            {{ $settings->store_name ?? config('app.name', 'Akhi Telecom') }}
-            <span class="gaget-page-loader__dots" aria-hidden="true"><span></span><span></span><span></span></span>
-        </p>
-        <p class="gaget-page-loader__sub" id="gaget-loader-msg">Getting things ready</p>
+        <p class="gaget-page-loader__text">{{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}</p>
+        <p class="gaget-page-loader__sub" id="gaget-loader-msg">Loading</p>
     </div>
 </div>
 
 @include('website.partials.header')
+<script>
+(function () {
+    function syncHeaderHeight() {
+        var header = document.querySelector('.gaget-sticky-header');
+        var spacer = document.getElementById('gaget-header-spacer');
+        if (!header) return;
+        var h = Math.ceil(header.getBoundingClientRect().height);
+        if (h < 40) return;
+        document.documentElement.style.setProperty('--g-header-h', h + 'px');
+        if (spacer) spacer.style.height = h + 'px';
+    }
+    syncHeaderHeight();
+    window.addEventListener('load', syncHeaderHeight);
+    window.addEventListener('resize', syncHeaderHeight);
+    if (typeof ResizeObserver !== 'undefined') {
+        var header = document.querySelector('.gaget-sticky-header');
+        if (header) new ResizeObserver(syncHeaderHeight).observe(header);
+    }
+})();
+</script>
 
-@auth
+@auth('web')
     <form id="storefront-logout-form" method="POST" action="{{ route('website.account.logout') }}" class="hidden" aria-hidden="true">
         @csrf
     </form>
@@ -586,37 +809,72 @@
 
 @include('website.partials.footer')
 
-{{-- Cart drawer --}}
-<div x-show="cartOpen" x-cloak class="fixed inset-0 z-[70]">
-    <div class="absolute inset-0 bg-black/50" @click="cartOpen=false"></div>
-    <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col">
-        <div class="flex items-center justify-between p-5 border-b">
-            <h3 class="text-lg font-bold">Your Cart (<span x-text="cartCount"></span>)</h3>
-            <button @click="cartOpen=false" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+{{-- Animated cart drawer --}}
+<div class="gaget-cart-shell"
+     :class="{ 'is-open': cartOpen }"
+     :aria-hidden="cartOpen ? 'false' : 'true'">
+    <div class="gaget-cart-backdrop" @click="closeCart()"></div>
+    <aside class="gaget-cart-panel" role="dialog" aria-modal="true" aria-label="Shopping cart">
+        <div class="gaget-cart-panel__accent" aria-hidden="true"></div>
+        <div class="gaget-cart-panel__head">
+            <div class="gaget-cart-panel__head-text">
+                <p class="gaget-cart-panel__eyebrow">Shopping bag</p>
+                <h3 class="gaget-cart-panel__title">Your Cart</h3>
+                <p class="gaget-cart-panel__count"><span x-text="cartCount"></span> item(s)</p>
+            </div>
+            <button type="button" class="gaget-cart-panel__close" @click="closeCart()" aria-label="Close cart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
-        <div class="flex-1 overflow-y-auto p-5 space-y-4">
-            <template x-if="cart.length===0"><p class="text-gray-500 text-center py-10">Your cart is empty.</p></template>
-            <template x-for="(item,i) in cart" :key="item.id">
-                <div class="flex gap-3 border rounded-xl p-3">
-                    <img :src="item.image" class="w-16 h-16 object-cover rounded-lg bg-gray-50" alt="">
-                    <div class="flex-1">
-                        <p class="font-semibold text-sm" x-text="item.name"></p>
-                        <p class="text-blue-600 font-bold text-sm" x-text="currency+item.price.toFixed(2)"></p>
-                        <div class="flex items-center gap-2 mt-2">
-                            <button @click="updateQty(i,-1)" class="w-7 h-7 rounded bg-gray-100 font-bold">−</button>
-                            <span x-text="item.qty" class="text-sm font-medium w-6 text-center"></span>
-                            <button @click="updateQty(i,1)" class="w-7 h-7 rounded bg-gray-100 font-bold">+</button>
-                            <button @click="removeItem(i)" class="ml-auto text-red-500 text-xs font-semibold">Remove</button>
+
+        <div class="gaget-cart-panel__body">
+            <template x-if="cart.length === 0">
+                <div class="gaget-cart-empty">
+                    <div class="gaget-cart-empty__icon" aria-hidden="true">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <p class="gaget-cart-empty__title">Your cart is empty</p>
+                    <p class="gaget-cart-empty__text">Add something you love and it will land here.</p>
+                    <button type="button" class="gaget-btn-primary gaget-cart-empty__cta" @click="closeCart()">Continue shopping</button>
+                </div>
+            </template>
+
+            <template x-for="(item, i) in cart" :key="item.id">
+                <div class="gaget-cart-line" :style="'--line-i:' + i">
+                    <div class="gaget-cart-line__media">
+                        <img :src="item.image" class="gaget-cart-line__img" alt="" loading="lazy">
+                    </div>
+                    <div class="gaget-cart-line__meta">
+                        <p class="gaget-cart-line__name" x-text="item.name"></p>
+                        <p class="gaget-cart-line__price" x-text="currency + Number(item.price).toFixed(2)"></p>
+                        <div class="gaget-cart-line__actions">
+                            <div class="gaget-cart-qty">
+                                <button type="button" @click="updateQty(i, -1)" aria-label="Decrease quantity">−</button>
+                                <span x-text="item.qty"></span>
+                                <button type="button"
+                                        @click="updateQty(i, 1)"
+                                        :disabled="Number(item.stock) > 0 && Number(item.qty) >= Number(item.stock)"
+                                        :class="Number(item.stock) > 0 && Number(item.qty) >= Number(item.stock) && 'opacity-40 cursor-not-allowed'"
+                                        aria-label="Increase quantity">+</button>
+                            </div>
+                            <button type="button" class="gaget-cart-line__remove" @click="removeItem(i)">Remove</button>
                         </div>
                     </div>
                 </div>
             </template>
         </div>
-        <div class="border-t p-5" x-show="cart.length>0">
-            <div class="flex justify-between font-bold text-lg mb-3"><span>Total</span><span x-text="currency+cartTotal.toFixed(2)"></span></div>
-            <button @click="startCheckout()" class="w-full gaget-btn-primary text-center">Checkout</button>
+
+        <div class="gaget-cart-panel__foot" x-show="cart.length > 0" x-cloak>
+            <div class="gaget-cart-panel__total">
+                <span>Total</span>
+                <strong x-text="currency + cartTotal.toFixed(2)"></strong>
+            </div>
+            <button type="button" @click="startCheckout()" class="gaget-cart-panel__checkout">
+                Checkout
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </button>
         </div>
-    </div>
+    </aside>
 </div>
 
 {{-- Checkout: sign in / register / place order (one modal) --}}
@@ -664,9 +922,25 @@
             <p class="text-sm text-slate-500 mt-1 mb-4"><span x-text="cartCount"></span> item(s) · Subtotal <span class="font-semibold text-slate-800" x-text="currency+cartTotal.toFixed(2)"></span></p>
 
             <div class="space-y-3">
-                <input x-model="checkout.name" type="text" placeholder="Full name" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
-                <input x-model="checkout.phone" type="text" placeholder="Phone number" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
-                <textarea x-model="checkout.address" placeholder="Delivery address" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" rows="2"></textarea>
+                <div>
+                    <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Full name <span class="text-rose-500">*</span></label>
+                    <input x-model="checkout.name" type="text" required autocomplete="name" placeholder="Your full name" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Phone number <span class="text-rose-500">*</span></label>
+                    <input x-model="checkout.phone" type="tel" required autocomplete="tel" placeholder="01XXXXXXXXX" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
+                </div>
+                <div>
+                    <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Delivery address <span class="text-rose-500">*</span></label>
+                    <textarea x-model="checkout.address"
+                              required
+                              autocomplete="street-address"
+                              placeholder="House/Flat, Road, Area, City (required for delivery)"
+                              class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                              :class="(!checkout.address || String(checkout.address).trim().length < 20) && orderMessage && orderMessage.toLowerCase().includes('address') ? 'border-rose-400 ring-1 ring-rose-200' : ''"
+                              rows="3"></textarea>
+                    <p class="mt-1 text-[11px] text-slate-500">Must include house/flat, road, and area so the courier can find you.</p>
+                </div>
 
                 <div>
                     <p class="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">Delivery area</p>
@@ -784,10 +1058,99 @@ window.getStorefrontRoot = function () {
     }
 };
 
-window.addProductToCart = function (product, qty = 1, openDrawer = true) {
+window.gagetFlyToCart = function (options) {
+    const opts = options || {};
+    const product = opts.product || {};
+    const sourceEl = opts.sourceEl || null;
+    const onDone = typeof opts.onDone === 'function' ? opts.onDone : function () {};
+    const cartTarget = document.getElementById('gaget-cart-target')
+        || document.querySelector('[data-cart-target]');
+
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduceMotion || !cartTarget) {
+        onDone();
+        return;
+    }
+
+    const fromRect = (sourceEl && sourceEl.getBoundingClientRect)
+        ? sourceEl.getBoundingClientRect()
+        : { left: window.innerWidth * 0.45, top: window.innerHeight * 0.45, width: 64, height: 64 };
+    const toRect = cartTarget.getBoundingClientRect();
+    const size = 64;
+
+    const x0 = fromRect.left + (fromRect.width || size) / 2 - size / 2;
+    const y0 = fromRect.top + (fromRect.height || size) / 2 - size / 2;
+    const x2 = toRect.left + toRect.width / 2 - size / 2;
+    const y2 = toRect.top + toRect.height / 2 - size / 2;
+    const x1 = x0 + (x2 - x0) * 0.42;
+    const y1 = Math.min(y0, y2) - Math.max(100, Math.abs(y2 - y0) * 0.45);
+
+    const flyer = document.createElement('div');
+    flyer.className = 'gaget-cart-flyer';
+    flyer.setAttribute('aria-hidden', 'true');
+    flyer.style.setProperty('--fly-x0', x0 + 'px');
+    flyer.style.setProperty('--fly-y0', y0 + 'px');
+    flyer.style.setProperty('--fly-x1', x1 + 'px');
+    flyer.style.setProperty('--fly-y1', y1 + 'px');
+    flyer.style.setProperty('--fly-x2', x2 + 'px');
+    flyer.style.setProperty('--fly-y2', y2 + 'px');
+    flyer.style.left = x0 + 'px';
+    flyer.style.top = y0 + 'px';
+
+    if (product.image) {
+        const img = document.createElement('img');
+        img.src = product.image;
+        img.alt = '';
+        flyer.appendChild(img);
+    } else {
+        flyer.classList.add('gaget-cart-flyer--plain');
+        flyer.textContent = '+';
+    }
+
+    document.body.appendChild(flyer);
+
+    let done = false;
+    const finished = function () {
+        if (done) return;
+        done = true;
+        flyer.remove();
+        cartTarget.classList.remove('is-cart-swing');
+        void cartTarget.offsetWidth;
+        cartTarget.classList.add('is-cart-swing');
+        setTimeout(function () {
+            cartTarget.classList.remove('is-cart-swing');
+        }, 800);
+        onDone();
+    };
+
+    // Pure CSS keyframe animation (professional arc + swing)
+    requestAnimationFrame(function () {
+        flyer.classList.add('is-flying');
+    });
+    flyer.addEventListener('animationend', finished, { once: true });
+    setTimeout(finished, 1000); // safety fallback
+};
+
+window.addProductToCart = function (product, qty = 1, openDrawer = true, sourceEl = null) {
     const root = window.getStorefrontRoot();
     if (root && typeof root.addToCart === 'function') {
-        root.addToCart(product, qty, openDrawer);
+        root.addToCart(product, qty, false);
+        if (openDrawer) {
+            window.gagetFlyToCart({
+                product: product,
+                sourceEl: sourceEl,
+                onDone: function () {
+                    if (typeof root.openCart === 'function') root.openCart();
+                    else root.cartOpen = true;
+                },
+            });
+        } else {
+            const cartTarget = document.getElementById('gaget-cart-target');
+            if (cartTarget) {
+                cartTarget.classList.add('is-cart-swing');
+                setTimeout(function () { cartTarget.classList.remove('is-cart-swing'); }, 800);
+            }
+        }
         return true;
     }
     return false;
@@ -807,32 +1170,38 @@ document.addEventListener('click', function (event) {
         return;
     }
 
+    btn.classList.remove('is-adding');
+    void btn.offsetWidth;
+    btn.classList.add('is-adding');
+    setTimeout(function () { btn.classList.remove('is-adding'); }, 500);
+
     const qtyAttr = btn.getAttribute('data-qty');
-    const qty = Math.max(1, Number(qtyAttr || 1) || 1);
+    const qtyInput = document.querySelector('[data-product-qty], #pd-qty, input[name="qty"]');
+    const qtyFromInput = qtyInput ? Number(qtyInput.value) : NaN;
+    const qty = Math.max(1, Number(qtyAttr || qtyFromInput || 1) || 1);
     const openDrawer = btn.getAttribute('data-open-cart') !== '0';
     const goCheckout = btn.getAttribute('data-checkout') === '1';
 
-    const finish = function () {
-        if (goCheckout) {
-            const root = window.getStorefrontRoot();
-            if (root && typeof root.startCheckout === 'function') {
-                root.startCheckout();
-            }
-        }
+    const card = btn.closest('.tn-product-card, .tn-card, .gs-card, .pd-buy, [data-product-live-root], article, .product-card') || btn;
+    const img = card.querySelector('.tn-product-card img, .tn-product-media img, .pd-gallery img, .gs-card img, img');
+    const sourceEl = img || btn;
+
+    const finishCheckout = function () {
+        const root = window.getStorefrontRoot();
+        if (root && typeof root.startCheckout === 'function') root.startCheckout();
     };
 
-    if (window.addProductToCart(product, qty, goCheckout ? false : openDrawer)) {
-        finish();
+    if (window.addProductToCart(product, qty, goCheckout ? false : openDrawer, sourceEl)) {
+        if (goCheckout) finishCheckout();
         return;
     }
 
-    // Alpine not ready yet — wait and add once so the badge shows "1" immediately after boot.
     let tries = 0;
     const timer = setInterval(function () {
         tries += 1;
-        if (window.addProductToCart(product, qty, goCheckout ? false : openDrawer)) {
+        if (window.addProductToCart(product, qty, goCheckout ? false : openDrawer, sourceEl)) {
             clearInterval(timer);
-            finish();
+            if (goCheckout) finishCheckout();
         } else if (tries > 50) {
             clearInterval(timer);
         }
@@ -846,12 +1215,9 @@ document.addEventListener('click', function (event) {
     if (!el) return;
 
     const messages = [
-        'Getting things ready',
-        'Almost there',
-        'Finding great picks',
-        'Packing the goodies',
+        'Loading',
         'Just a moment',
-        'Making it snappy',
+        'Almost ready',
     ];
     let shownAt = Date.now();
     let msgTimer = null;
@@ -889,6 +1255,9 @@ document.addEventListener('click', function (event) {
         el.classList.add('is-active');
         el.classList.remove('is-hidden');
         el.setAttribute('aria-busy', 'true');
+        el.removeAttribute('aria-hidden');
+        // Force reflow so opacity/visibility transition runs when re-showing
+        void el.offsetWidth;
         if (message) setMessage(message);
         else startMessages();
     }
@@ -901,16 +1270,24 @@ document.addEventListener('click', function (event) {
             el.classList.add('is-hidden');
             el.classList.remove('is-active');
             el.setAttribute('aria-busy', 'false');
+            el.setAttribute('aria-hidden', 'true');
             hideTimer = null;
         }, wait);
     }
 
     window.GagetLoader = { show: show, hide: hide };
 
-    // First paint: hide after page is ready
+    // First paint: hide after page is ready (DOM + assets)
     function onReady() {
-        if (document.readyState === 'complete') hide();
-        else window.addEventListener('load', hide, { once: true });
+        if (document.readyState === 'complete') {
+            hide();
+            return;
+        }
+        window.addEventListener('load', hide, { once: true });
+        // Safety: never leave the overlay stuck if load is delayed/broken
+        setTimeout(function () {
+            if (!el.classList.contains('is-hidden')) hide();
+        }, 8000);
     }
     onReady();
 

@@ -18,7 +18,7 @@ class Product extends Model
         'cost_price', 'selling_price', 'original_price',
         'sale_price', 'sale_starts_at', 'sale_ends_at',
         'pos_discount_type', 'pos_discount_value',
-        'stock_quantity', 'availability', 'filter_attributes', 'alert_quantity', 'reorder_quantity',
+        'stock_quantity', 'reserved_stock', 'availability', 'filter_attributes', 'alert_quantity', 'reorder_quantity',
         'image', 'image_2', 'image_3',
         'short_description', 'brand_name', 'rating', 'review_count',
         'is_best_seller', 'is_featured', 'is_new_arrival', 'is_published',
@@ -39,7 +39,36 @@ class Product extends Model
         'is_published' => 'boolean',
         'requires_imei' => 'boolean',
         'filter_attributes' => 'array',
+        'reserved_stock' => 'integer',
     ];
+
+    /** Physical units on hand (warehouse/store). */
+    public function physicalStock(): int
+    {
+        return max(0, (int) $this->stock_quantity);
+    }
+
+    /** Units held for unpaid/packing web COD orders. */
+    public function reservedStock(): int
+    {
+        return max(0, (int) ($this->reserved_stock ?? 0));
+    }
+
+    /** Sellable units = physical − reserved. */
+    public function availableStock(): int
+    {
+        return max(0, $this->physicalStock() - $this->reservedStock());
+    }
+
+    public function scopeAvailableForSale($query)
+    {
+        return $query->whereRaw('stock_quantity > COALESCE(reserved_stock, 0)');
+    }
+
+    public function scopeInStockVisible($query)
+    {
+        return $query->availableForSale();
+    }
 
     /** Stored gallery paths (new table first, then legacy columns). */
     public function imagePaths(): array
@@ -321,7 +350,7 @@ class Product extends Model
             ->where(function ($q) {
                 $q->where('is_published', true)->orWhereNull('is_published');
             })
-            ->where('stock_quantity', '>', 0)
+            ->availableForSale()
             ->get();
     }
 

@@ -6,6 +6,7 @@ use App\Models\HeroSlide;
 use App\Models\Shop;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class HeroSlideSeeder extends Seeder
@@ -29,54 +30,59 @@ class HeroSlideSeeder extends Seeder
                 'learn_more_url' => '/shop',
                 'sort_order' => 1,
                 'file' => 'banner-smarthome.jpg',
+                'remote' => 'https://images.unsplash.com/photo-1558089687-f282ffcbc126?w=1920&h=640&fit=crop&q=80',
             ],
             [
                 'title' => 'iPhone 16 Pro Max',
                 'badge_text' => 'NEW ARRIVAL',
                 'description' => 'Titanium design. Pro camera. All-day battery.',
-                'price_from' => 1299,
+                'price_from' => 139900,
                 'button_text' => 'Shop Now',
                 'button_url' => '/shop?search=iphone',
                 'learn_more_text' => 'Learn More',
                 'learn_more_url' => '/shop?filter=new',
                 'sort_order' => 2,
                 'file' => 'banner-iphone.jpg',
+                'remote' => 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=1920&h=640&fit=crop&q=80',
             ],
             [
                 'title' => 'MacBook Air M3',
                 'badge_text' => 'BEST SELLER',
                 'description' => 'Impressively thin. Supercharged by Apple M3.',
-                'price_from' => 1099,
+                'price_from' => 119900,
                 'button_text' => 'Shop Laptops',
                 'button_url' => '/shop?search=macbook',
                 'learn_more_text' => 'Learn More',
                 'learn_more_url' => '/shop',
                 'sort_order' => 3,
                 'file' => 'banner-macbook.jpg',
+                'remote' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1920&h=640&fit=crop&q=80',
             ],
             [
                 'title' => 'Galaxy Watch Ultra',
                 'badge_text' => 'HOT DEAL',
                 'description' => 'Adventure-ready tracking with premium battery.',
-                'price_from' => 399,
+                'price_from' => 59900,
                 'button_text' => 'Shop Watches',
                 'button_url' => '/shop?search=watch',
                 'learn_more_text' => 'Learn More',
                 'learn_more_url' => '/shop?filter=deals',
                 'sort_order' => 4,
                 'file' => 'banner-watch.jpg',
+                'remote' => 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=1920&h=640&fit=crop&q=80',
             ],
             [
                 'title' => 'Premium Audio Sale',
-                'badge_text' => 'UP TO 40% OFF',
-                'description' => 'Headphones and earbuds from top brands.',
-                'price_from' => 79,
+                'badge_text' => 'UP TO 22% OFF',
+                'description' => 'Headphones and earbuds from top brands — check live deal prices in shop.',
+                'price_from' => 5900,
                 'button_text' => 'Shop Deals',
                 'button_url' => '/shop?filter=deals',
                 'learn_more_text' => 'Learn More',
                 'learn_more_url' => '/shop',
                 'sort_order' => 5,
                 'file' => 'banner-audio.jpg',
+                'remote' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1920&h=640&fit=crop&q=80',
             ],
         ];
 
@@ -84,7 +90,7 @@ class HeroSlideSeeder extends Seeder
 
         foreach ($banners as $banner) {
             $keepTitles[] = $banner['title'];
-            $imagePath = $this->storeSeedImage($banner['file']);
+            $imagePath = $this->storeSeedImage($banner['file'], $banner['remote'] ?? null);
 
             HeroSlide::updateOrCreate(
                 [
@@ -112,20 +118,40 @@ class HeroSlideSeeder extends Seeder
             ->delete();
     }
 
-    /** Copy exact 1920×640 (3:1) poster art into public storage. */
-    private function storeSeedImage(string $filename): ?string
+    /** Prefer local 1920×640 posters; fall back to a remote image for demos. */
+    private function storeSeedImage(string $filename, ?string $remoteUrl = null): ?string
     {
         $relative = 'cms/slides/'.$filename;
         $source = database_path('seeders/assets/slides/'.$filename);
 
-        if (! File::exists($source)) {
-            $this->command?->warn("Missing banner asset: {$source}");
+        if (File::exists($source)) {
+            Storage::disk('public')->put($relative, File::get($source));
 
-            return Storage::disk('public')->exists($relative) ? $relative : null;
+            return $relative;
         }
 
-        Storage::disk('public')->put($relative, File::get($source));
+        if (Storage::disk('public')->exists($relative) && Storage::disk('public')->size($relative) > 1000) {
+            return $relative;
+        }
 
-        return $relative;
+        if ($remoteUrl) {
+            try {
+                $response = Http::timeout(30)
+                    ->withHeaders(['User-Agent' => 'MaksGadgetHeroSlideSeeder/1.0'])
+                    ->get($remoteUrl);
+
+                if ($response->successful() && strlen($response->body()) > 500) {
+                    Storage::disk('public')->put($relative, $response->body());
+
+                    return $relative;
+                }
+            } catch (\Throwable $e) {
+                $this->command?->warn('Hero image download failed: '.$e->getMessage());
+            }
+        }
+
+        $this->command?->warn("Missing banner asset: {$source}");
+
+        return Storage::disk('public')->exists($relative) ? $relative : null;
     }
 }

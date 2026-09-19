@@ -25,18 +25,19 @@ Route::middleware('guest')->group(function () {
 });
 
 // Public staff self-registration is disabled — create staff from the admin panel.
-Route::match(['get', 'post'], 'register', fn () => redirect('/admin/login'))->name('register');
+Route::match(['get', 'post'], 'register', fn () => redirect()->route('admin.login'))->name('register');
 
 Route::prefix('admin')->group(function () {
-    Route::middleware('guest')->group(function () {
+    Route::middleware('guest:admin')->group(function () {
         Route::get('login', [AuthenticatedSessionController::class, 'create'])
-            ->name('login');
+            ->name('admin.login');
 
-        Route::post('login', [AuthenticatedSessionController::class, 'store']);
+        Route::post('login', [AuthenticatedSessionController::class, 'store'])
+            ->name('admin.login.store');
     });
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth:admin')->group(function () {
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 

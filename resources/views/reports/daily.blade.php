@@ -19,23 +19,23 @@
                         <div>
                             <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-[0.15em]">Payment totals</span>
                             <h2 class="text-lg font-bold text-white leading-tight">Cash · Card/Bank · bKash</h2>
-                            <p class="text-xs text-slate-500">See how much came in by payment method — today or any date range.</p>
+                            <p class="text-xs text-slate-300">See how much came in by payment method — today or any date range.</p>
                         </div>
                     </div>
 
                     {{-- Right: Date Filter --}}
                     <form action="{{ route('reports.daily') }}" method="GET" class="flex flex-wrap items-end gap-2">
                         <div>
-                            <label for="start_date" class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">From</label>
+                            <label for="start_date" class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1">From</label>
                             <input type="date" name="start_date" id="start_date"
                                    value="{{ request('start_date', $startDate->format('Y-m-d')) }}"
-                                   class="bg-white/[0.07] border border-white/[0.12] text-white text-xs rounded-xl px-3 py-2 font-medium [color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                   class="bg-white/10 border border-white/20 text-white text-xs rounded-xl px-3 py-2 font-medium [color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-indigo-500">
                         </div>
                         <div>
-                            <label for="end_date" class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">To</label>
+                            <label for="end_date" class="block text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-1">To</label>
                             <input type="date" name="end_date" id="end_date"
                                    value="{{ request('end_date', $endDate->format('Y-m-d')) }}"
-                                   class="bg-white/[0.07] border border-white/[0.12] text-white text-xs rounded-xl px-3 py-2 font-medium [color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                   class="bg-white/10 border border-white/20 text-white text-xs rounded-xl px-3 py-2 font-medium [color-scheme:dark] focus:outline-none focus:ring-1 focus:ring-indigo-500">
                         </div>
                         <button type="submit"
                                 class="inline-flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
@@ -49,12 +49,12 @@
                             Today
                         </a>
                         <a href="{{ route('reports.daily', ['all_time' => true]) }}"
-                           class="inline-flex items-center gap-1.5 bg-white/[0.07] hover:bg-white/[0.12] border border-white/[0.12] text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                           class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
                             All Time
                         </a>
                         @if(request('start_date') || request('all_time') || request('today'))
                             <a href="{{ route('reports.daily') }}"
-                               class="inline-flex items-center gap-1.5 bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.08] text-slate-400 hover:text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
+                               class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors">
                                 Clear
                             </a>
                         @endif
@@ -95,7 +95,7 @@
                             </div>
                         </div>
                         <p class="text-[22px] font-black text-white tracking-tight leading-none">৳{{ number_format($summary->total_revenue ?? 0, 2) }}</p>
-                        <p class="text-xs text-slate-500 mt-2">{{ $summary->total_orders ?? 0 }} orders placed</p>
+                        <p class="text-xs text-slate-300 mt-2">{{ $summary->total_orders ?? 0 }} orders placed</p>
                         <div class="mt-3 h-0.5 w-6 bg-indigo-500 rounded-full"></div>
                     </div>
                 </div>

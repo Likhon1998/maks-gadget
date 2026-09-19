@@ -129,7 +129,6 @@
         <div class="mb-3 pb-3 border-b border-slate-100 space-y-1.5">
             <div class="flex flex-wrap items-baseline gap-2">
                 <span class="text-2xl font-bold text-slate-900">{{ $ws->formatPrice($currentPrice, $settings) }}</span>
-                <span class="text-xs text-slate-500">(Cash Price)</span>
                 @if($compareAt)
                     <span class="text-sm text-slate-400 line-through">{{ $ws->formatPrice($compareAt, $settings) }}</span>
                     @if($discountPct > 0)
@@ -138,9 +137,10 @@
                 @endif
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                @if($product->stock_quantity > 0)
+                @if($product->availableStock() > 0)
                     <span class="text-slate-600">Availability:
                         <span class="font-semibold text-emerald-600">In Stock</span>
+                        <span class="text-slate-400">({{ $product->availableStock() }} available)</span>
                     </span>
                 @else
                     <span class="text-slate-600">Availability:
@@ -263,11 +263,13 @@
         @endif
 
         @php
+            $availableQty = max(0, (int) $product->availableStock());
             $cartItem = [
                 'id' => $product->id,
                 'name' => $displayName,
                 'price' => $currentPrice,
                 'image' => $img,
+                'stock' => $availableQty,
             ];
             $listItem = [
                 'id' => $product->id,
@@ -277,16 +279,21 @@
                 'url' => route('website.product', $product),
                 'category' => $product->category?->name ?? $product->brand_name ?? 'Electronics',
                 'rating' => (float) ($product->rating ?? 0),
+                'stock' => $availableQty,
             ];
         @endphp
 
         <div class="pd-cta">
-            @if($product->stock_quantity > 0)
+            @if($availableQty > 0)
                 <div class="pd-cta-top">
                     <div class="pd-qty">
                         <button type="button" @click="qty = Math.max(1, qty - 1)" aria-label="Decrease quantity">−</button>
                         <span x-text="qty"></span>
-                        <button type="button" @click="qty = Math.min({{ max(1, (int) $product->stock_quantity) }}, qty + 1)" aria-label="Increase quantity">+</button>
+                        <button type="button"
+                                @click="qty = Math.min({{ max(1, $availableQty) }}, qty + 1)"
+                                :disabled="qty >= {{ max(1, $availableQty) }}"
+                                :class="qty >= {{ max(1, $availableQty) }} && 'opacity-40 cursor-not-allowed'"
+                                aria-label="Increase quantity">+</button>
                     </div>
                     <button type="button"
                             data-add-to-cart='@json($cartItem)'

@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\AuthSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -20,24 +20,9 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        if ($request->user()->is_suspended) {
-            Auth::guard('web')->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            return redirect()->route('login')->withErrors([
-                'email' => 'You are suspended by admin. Please connect with admin.',
-            ]);
-        }
-
         $request->session()->regenerate();
 
-        $user = $request->user();
-
-        // Website shoppers stay on the storefront (intended URL or home).
-        if ($user->isStorefrontCustomer()) {
-            return redirect()->intended(route('home'));
-        }
+        $user = $request->user('admin');
 
         if ($user->requiresDailyOpeningBalance() && ! $user->hasTodayOpenSession()) {
             return redirect()->route('counters.sessions.open-today');
@@ -48,9 +33,8 @@ class AuthenticatedSessionController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect()->route('login');
+        AuthSession::logout($request, 'admin');
+
+        return redirect()->route('admin.login');
     }
 }

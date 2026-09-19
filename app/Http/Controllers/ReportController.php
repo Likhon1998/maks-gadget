@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Services\AnalyticsService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Order;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class ReportController extends Controller
 {
@@ -134,6 +135,59 @@ class ReportController extends Controller
             ->get();
 
         return view('reports.daily', compact('summary', 'employeeSales', 'counterSales', 'historicalSales', 'startDate', 'endDate'));
+    }
+
+    /**
+     * Daily / period sales by brand (POS + website completed orders).
+     */
+    public function dailySalesByBrand(Request $request, AnalyticsService $analytics)
+    {
+        $this->ensureAdmin();
+
+        $shopId = Auth::user()->shop_id;
+
+        if ($request->boolean('today')) {
+            $startDate = Carbon::today()->startOfDay();
+            $endDate = Carbon::today()->endOfDay();
+        } elseif ($request->has('all_time')) {
+            $firstOrder = Order::where('shop_id', $shopId)->min('created_at');
+            $startDate = $firstOrder ? Carbon::parse($firstOrder)->startOfDay() : now()->startOfMonth();
+            $endDate = now()->endOfDay();
+        } else {
+            $startDate = $request->input('start_date')
+                ? Carbon::parse($request->input('start_date'))->startOfDay()
+                : Carbon::today()->startOfDay();
+            $endDate = $request->input('end_date')
+                ? Carbon::parse($request->input('end_date'))->endOfDay()
+                : Carbon::today()->endOfDay();
+        }
+
+        $brandSales = $analytics->salesByBrand($shopId, $startDate, $endDate, null);
+        $dailyByBrand = $analytics->dailySalesByBrand($shopId, $startDate, $endDate);
+
+        $summary = (object) [
+            'total_revenue' => (float) $brandSales->sum('revenue'),
+            'total_cost' => (float) $brandSales->sum('cost'),
+            'total_profit' => (float) $brandSales->sum('profit'),
+            'total_units' => (int) $brandSales->sum('sold'),
+            'brand_count' => $brandSales->count(),
+            'pos_revenue' => (float) $brandSales->sum('pos_revenue'),
+            'web_revenue' => (float) $brandSales->sum('web_revenue'),
+            'pos_units' => (int) $brandSales->sum('pos_sold'),
+            'web_units' => (int) $brandSales->sum('web_sold'),
+            'orders_count' => (int) $brandSales->sum('orders_count'),
+        ];
+
+        $dailyGrouped = $dailyByBrand->groupBy('date');
+
+        return view('reports.daily-by-brand', compact(
+            'summary',
+            'brandSales',
+            'dailyByBrand',
+            'dailyGrouped',
+            'startDate',
+            'endDate'
+        ));
     }
 
     public function bestSellers(Request $request)

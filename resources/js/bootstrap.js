@@ -93,17 +93,30 @@ window.fetchJsonWithCsrf = async function fetchJsonWithCsrf(url, options = {}, r
     return res;
 };
 
-document.addEventListener('submit', () => {
+document.addEventListener('submit', (event) => {
+    // Keep hidden _token in sync with meta before the browser serializes the form.
+    // Never kick off an async CSRF refresh here — that races POST on php artisan serve.
     window.syncCsrfToken?.();
+
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    const meta = document.head.querySelector('meta[name="csrf-token"]')?.content;
+    const input = form.querySelector('input[name="_token"]');
+    if (meta && input && input.value !== meta) {
+        input.value = meta;
+    }
 }, true);
 
 document.addEventListener('visibilitychange', () => {
+    // Skip on guest/login pages — concurrent /csrf-token blocks the single-threaded PHP server.
+    if (document.body?.classList?.contains('neon-login')) return;
     if (document.visibilityState === 'visible' && typeof window.refreshCsrfToken === 'function') {
         window.refreshCsrfToken();
     }
 });
 
 window.addEventListener('pageshow', (event) => {
+    if (document.body?.classList?.contains('neon-login')) return;
     if (event.persisted && typeof window.refreshCsrfToken === 'function') {
         window.refreshCsrfToken();
     }

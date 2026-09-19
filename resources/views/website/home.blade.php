@@ -56,7 +56,7 @@
                 <div class="tn-container tn-hero-fallback-inner">
                     <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
                     <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                    <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Akhi Telecom') }}.</p>
+                    <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
                     <div class="tn-hero-actions">
                         <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
                         <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
@@ -182,75 +182,115 @@
 </section>
 @endif
 
-{{-- Trending Products --}}
+{{-- What's Trending Now --}}
 @if($trendingProducts->isNotEmpty())
-<section class="tn-section">
+@php
+    $trendingHeroImg = app(\App\Services\WebsiteService::class)->productImageUrl($trendingProducts->first());
+@endphp
+<section class="tn-trending" aria-labelledby="tn-trending-heading">
+    <div class="tn-trending-glow" aria-hidden="true"></div>
     <div class="tn-container">
-        <div class="tn-section-head">
-            <h2 class="tn-section-title">Trending Products</h2>
-            <a href="{{ route('website.shop', ['filter' => 'bestsellers']) }}" class="tn-section-link">View All Products &rarr;</a>
+        <div class="tn-trending-head">
+            <div class="tn-trending-copy">
+                <p class="tn-trending-kicker"><span aria-hidden="true"></span> Trending Now</p>
+                <h2 id="tn-trending-heading" class="tn-trending-title">
+                    What's <em>Trending Now</em>
+                    <svg class="tn-trending-flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2s3.2 3.1 3.2 6.1c0 1.7-1 3.1-2.4 3.9.4-1.5.1-3.1-1-4.3C10.6 9.2 9 11 9 13.2 9 16.5 11.2 19 14 19c3.3 0 5.5-2.6 5.5-5.8C19.5 8.4 15.8 5.2 12 2zM8.8 20.2C6.2 18.8 5 16.4 5 13.8c0-2.1.9-4 2.3-5.4-.2 3.2 1.1 5.1 2.7 6.4-2 .7-3.4 2.5-3.4 4.6 0 .3 0 .6.1.9 1-.5 1.5-.7 2.1-.1z"/></svg>
+                </h2>
+                <p class="tn-trending-sub">The most loved gadgets, top rated by customers. Discover what's trending right now.</p>
+            </div>
+            <a href="{{ route('website.shop', ['filter' => 'bestsellers']) }}" class="tn-trending-all">
+                View All
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6"/></svg>
+            </a>
+            <div class="tn-trending-hero" aria-hidden="true">
+                <img src="{{ $trendingHeroImg }}" alt="" loading="lazy" decoding="async">
+            </div>
         </div>
-        <div class="tn-product-grid">
+
+        <div class="tn-trending-grid">
             @foreach($trendingProducts as $product)
-                @include('website.partials.tn-product-card', ['product' => $product])
+                @include('website.partials.tn-trending-card', [
+                    'product' => $product,
+                    'trendingRank' => $loop->iteration,
+                ])
             @endforeach
         </div>
     </div>
 </section>
 @endif
 
-{{-- Trusted brands — mockup-identical panel, dynamic brand logos --}}
+{{-- Brands We Carry — partners card grid --}}
 @if($brands->isNotEmpty())
-<section class="tn-brands">
+@php
+    $brandTaglines = [
+        'apple' => 'iPhone · iPad · Mac · Watch',
+        'samsung' => 'Galaxy · Tablets · Watches',
+        'xiaomi' => 'Smartphones · IoT · Accessories',
+        'oneplus' => 'Phones · Buds · Accessories',
+        'realme' => 'Smartphones · AIoT · Accessories',
+        'jbl' => 'Audio · Headphones · Speakers',
+        'anker' => 'Chargers · Power Banks · Cables',
+        'logitech' => 'Accessories · Keyboards · Mice',
+        'baseus' => 'Chargers · Cables · Car Accessories',
+        'boat' => 'Audio · Wearables · Accessories',
+        'sony' => 'Audio · Cameras · Gaming',
+        'bose' => 'Headphones · Speakers · Audio',
+        'dell' => 'Laptops · Monitors · PCs',
+        'hp' => 'Laptops · Printers · PCs',
+        'asus' => 'Laptops · Gaming · Components',
+        'lenovo' => 'Laptops · Tablets · PCs',
+        'acer' => 'Laptops · Monitors · PCs',
+        'canon' => 'Cameras · Lenses · Printers',
+        'gopro' => 'Action Cams · Mounts · Accessories',
+        'google' => 'Pixel · Nest · Accessories',
+        'razer' => 'Gaming · Keyboards · Mice',
+        'nothing' => 'Phones · Audio · Accessories',
+        'microsoft' => 'Surface · Accessories · Software',
+    ];
+    $partnerBrands = $brands->take(10);
+@endphp
+<section class="tn-brands" aria-labelledby="tn-brands-heading">
+    <div class="tn-brands-decor tn-brands-decor--phone" aria-hidden="true"></div>
+    <div class="tn-brands-decor tn-brands-decor--buds" aria-hidden="true"></div>
+    <div class="tn-brands-decor tn-brands-decor--leaf" aria-hidden="true"></div>
+
     <div class="tn-container">
-        <div class="tn-brands-panel">
-            <div class="tn-brands-head">
-                <div class="tn-brands-eyebrow">
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6l7-3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                        <path d="M9.5 12.2l1.8 1.8 3.4-3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Trusted by
-                </div>
-                <h2 class="tn-brands-title">Gadget Lovers Across <em>Bangladesh</em></h2>
-                <p class="tn-brands-sub">We partner with the world's leading brands to bring you 100% authentic products and the best tech experience.</p>
-            </div>
+        <div class="tn-brands-head">
+            <p class="tn-brands-eyebrow">Partners</p>
+            <h2 id="tn-brands-heading" class="tn-brands-title">Brands We <em>Carry</em></h2>
+            <p class="tn-brands-sub">We bring you the best brands in the gadget world — trusted for quality, performance and innovation.</p>
+        </div>
 
-            <div class="tn-brands-grid">
-                @foreach($brands as $brand)
-                    @php
-                        $brandSlug = \Illuminate\Support\Str::slug($brand->name);
-                        $logoUrl = $brand->logo_url
-                            ?: ($brand->logo_path ? public_storage_url($brand->logo_path) : null);
-                    @endphp
-                    <a href="{{ route('website.brand', $brandSlug) }}"
-                       class="tn-brand-card"
-                       title="Shop {{ $brand->name }}">
-                        <span class="tn-brand-logo-frame">
-                            @if($logoUrl)
-                                <img src="{{ $logoUrl }}"
-                                     alt="{{ $brand->name }}"
-                                     class="tn-brand-logo"
-                                     loading="lazy"
-                                     decoding="async"
-                                     onerror="this.classList.add('is-broken'); this.nextElementSibling?.classList.add('is-visible');">
-                                <span class="tn-brand-fallback">{{ $brand->name }}</span>
-                            @else
-                                <span class="tn-brand-fallback is-visible">{{ $brand->name }}</span>
-                            @endif
-                        </span>
-                    </a>
-                @endforeach
-            </div>
-
-            <div class="tn-brands-foot">
-                <span class="tn-brands-foot-line" aria-hidden="true"></span>
-                <span class="tn-brands-foot-text">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6.7-4.35-9.33-8.1C.8 10.2 1.5 6.9 4.4 5.55 6.3 4.65 8.55 5.1 10 6.55L12 8.6l2-2.05c1.45-1.45 3.7-1.9 5.6-1 2.9 1.35 3.6 4.65 1.73 7.35C18.7 16.65 12 21 12 21z"/></svg>
-                    Thank you for choosing us
-                </span>
-                <span class="tn-brands-foot-line" aria-hidden="true"></span>
-            </div>
+        <div class="tn-brands-grid">
+            @foreach($partnerBrands as $brand)
+                @php
+                    $brandSlug = \Illuminate\Support\Str::slug($brand->name);
+                    $logoUrl = $brand->logo_url
+                        ?: ($brand->logo_path ? public_storage_url($brand->logo_path) : null);
+                    $tagline = $brandTaglines[$brandSlug] ?? 'Gadgets · Accessories';
+                @endphp
+                <a href="{{ route('website.brand', $brandSlug) }}"
+                   class="tn-brand-card"
+                   title="Shop {{ $brand->name }} at Maks Gadget">
+                    <span class="tn-brand-logo-frame">
+                        @if($logoUrl)
+                            <img src="{{ $logoUrl }}"
+                                 alt="{{ $brand->name }}"
+                                 class="tn-brand-logo"
+                                 loading="lazy"
+                                 decoding="async"
+                                 onerror="this.classList.add('is-broken'); this.nextElementSibling?.classList.add('is-visible');">
+                            <span class="tn-brand-fallback">{{ $brand->name }}</span>
+                        @else
+                            <span class="tn-brand-fallback is-visible">{{ $brand->name }}</span>
+                        @endif
+                    </span>
+                    <span class="tn-brand-name">{{ $brand->name }}</span>
+                    <span class="tn-brand-cats">{{ $tagline }}</span>
+                    <span class="tn-brand-accent" aria-hidden="true"></span>
+                </a>
+            @endforeach
         </div>
     </div>
 </section>
@@ -392,29 +432,65 @@
 </section>
 @endif
 
-{{-- Blog (CMS → Blog) --}}
+{{-- Latest from the Blog --}}
 @if(($latestBlogs ?? collect())->isNotEmpty())
-<section class="tn-section tn-section-muted">
+<section class="tn-blog" aria-labelledby="tn-blog-heading">
     <div class="tn-container">
-        <div class="tn-section-head">
-            <h2 class="tn-section-title">Latest from Blog</h2>
-            <a href="{{ route('website.blogs') }}" class="tn-section-link">View All Posts &rarr;</a>
+        <div class="tn-blog-head">
+            <p class="tn-blog-kicker">
+                <span class="tn-blog-kicker-line" aria-hidden="true"></span>
+                Latest from the Blog
+                <span class="tn-blog-kicker-line" aria-hidden="true"></span>
+            </p>
+            <div class="tn-blog-head-main">
+                <div class="tn-blog-head-copy">
+                    <h2 id="tn-blog-heading" class="tn-blog-heading">Latest from the <em>Blog</em></h2>
+                    <p class="tn-blog-sub">Stay ahead with gadget tips, reviews, guides and tech insights.</p>
+                </div>
+                <a href="{{ route('website.blogs') }}" class="tn-blog-all">
+                    View All Articles
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6"/></svg>
+                </a>
+            </div>
         </div>
+
         <div class="tn-blog-grid">
             @foreach($latestBlogs as $post)
-                <a href="{{ route('website.blog', $post->slug) }}" class="tn-blog-card">
-                    <img src="{{ $post->coverUrl() }}" alt="{{ $post->title }}" class="tn-blog-img">
+                @php
+                    $excerpt = trim((string) ($post->excerpt ?: \Illuminate\Support\Str::limit(strip_tags((string) $post->body), 120)));
+                @endphp
+                <article class="tn-blog-card">
+                    <a href="{{ route('website.blog', $post->slug) }}" class="tn-blog-media" tabindex="-1" aria-hidden="true">
+                        <img src="{{ $post->coverUrl() }}" alt="" class="tn-blog-img" loading="lazy" decoding="async">
+                    </a>
                     <div class="tn-blog-body">
                         @if($post->category)
                             <span class="tn-blog-tag">{{ $post->category->name }}</span>
                         @endif
-                        <h3 class="tn-blog-title">{{ $post->title }}</h3>
+                        <h3 class="tn-blog-title">
+                            <a href="{{ route('website.blog', $post->slug) }}">{{ $post->title }}</a>
+                        </h3>
                         <p class="tn-blog-meta">
-                            {{ optional($post->published_at)->format('M d, Y') }}
-                            &middot; {{ $post->readingTimeLabel() }}
+                            <span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path stroke-linecap="round" d="M8 3v4M16 3v4M3 10h18"/></svg>
+                                {{ optional($post->published_at)->format('M j, Y') ?: 'Recently' }}
+                            </span>
+                            <span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 2"/></svg>
+                                {{ $post->readingTimeLabel() }}
+                            </span>
                         </p>
+                        @if($excerpt !== '')
+                            <p class="tn-blog-excerpt">{{ $excerpt }}</p>
+                        @else
+                            <p class="tn-blog-excerpt tn-blog-excerpt--empty" aria-hidden="true">&nbsp;</p>
+                        @endif
+                        <a href="{{ route('website.blog', $post->slug) }}" class="tn-blog-read">
+                            Read Article
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6"/></svg>
+                        </a>
                     </div>
-                </a>
+                </article>
             @endforeach
         </div>
     </div>

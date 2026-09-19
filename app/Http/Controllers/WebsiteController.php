@@ -190,7 +190,7 @@ class WebsiteController extends Controller
             'price' => $product->currentPrice(),
             'image' => $this->website->productImageUrl($product),
             'url' => route('website.product', $product),
-            'in_stock' => $product->stock_quantity > 0,
+            'in_stock' => $product->availableStock() > 0,
         ]);
 
         return response()->json([
@@ -225,7 +225,7 @@ class WebsiteController extends Controller
             ->with(['category', 'brand']);
 
         if (! $showSidebar) {
-            $query->where('stock_quantity', '>', 0);
+            $query->availableForSale();
         }
 
         $this->applyCategoryFilters($query, $request, $filterConfig, $category);
@@ -283,7 +283,7 @@ class WebsiteController extends Controller
             ->orderBy('name')
             ->withCount(['products as published_count' => function ($q) use ($shopId) {
                 $q->where('shop_id', $shopId)
-                    ->where('stock_quantity', '>', 0)
+                    ->availableForSale()
                     ->where(function ($qq) {
                         $qq->where('is_published', true)->orWhereNull('is_published');
                     });
@@ -292,7 +292,7 @@ class WebsiteController extends Controller
 
         $visibleBrandProducts = function ($q) use ($shopId) {
             $q->where('shop_id', $shopId)
-                ->where('stock_quantity', '>', 0)
+                ->availableForSale()
                 ->where(function ($qq) {
                     $qq->where('is_published', true)->orWhereNull('is_published');
                 });
@@ -369,13 +369,13 @@ class WebsiteController extends Controller
                     foreach ($selected as $value) {
                         $q->orWhere(function ($inner) use ($value) {
                             if ($value === 'in_stock') {
-                                $inner->where('stock_quantity', '>', 0)
+                                $inner->whereRaw('stock_quantity > COALESCE(reserved_stock, 0)')
                                     ->where(function ($a) {
                                         $a->whereNull('availability')
                                             ->orWhere('availability', 'in_stock');
                                     });
                             } elseif ($value === 'out_of_stock') {
-                                $inner->where('stock_quantity', '<=', 0)
+                                $inner->whereRaw('stock_quantity <= COALESCE(reserved_stock, 0)')
                                     ->where(function ($a) {
                                         $a->whereNull('availability')
                                             ->orWhere('availability', 'out_of_stock')
@@ -496,7 +496,7 @@ class WebsiteController extends Controller
             })
             ->withCount(['products' => function ($q) use ($shopId) {
                 $q->where('shop_id', $shopId)
-                    ->where('stock_quantity', '>', 0)
+                    ->availableForSale()
                     ->where(function ($qq) {
                         $qq->where('is_published', true)->orWhereNull('is_published');
                     });
@@ -740,6 +740,79 @@ class WebsiteController extends Controller
         return view('website.wishlist', $this->website->homepageData());
     }
 
+    /**
+     * Re-price and stock-cap the storefront cart from the live catalog.
+     * Client may only send product ids + quantities — never trusted prices.
+     */
+    public function syncCart(Request $request)
+    {
+        $shopId = $this->website->shopId();
+        if (! $shopId) {
+            return response()->json(['items' => [], 'subtotal' => 0, 'warnings' => ['Store unavailable.']], 404);
+        }
+
+        $rawItems = collect((array) $request->input('items', $request->input('cart', [])));
+        $requested = $rawItems
+            ->map(function ($item) {
+                return [
+                    'id' => (int) (is_array($item) ? ($item['id'] ?? 0) : 0),
+                    'qty' => max(1, (int) (is_array($item) ? ($item['qty'] ?? 1) : 1)),
+                ];
+            })
+            ->filter(fn (array $item) => $item['id'] > 0)
+            ->values();
+
+        if ($requested->isEmpty()) {
+            return response()->json(['items' => [], 'subtotal' => 0.0, 'warnings' => []]);
+        }
+
+        $products = Product::query()
+            ->where('shop_id', $shopId)
+            ->whereIn('id', $requested->pluck('id')->all())
+            ->get()
+            ->keyBy('id');
+
+        $lines = [];
+        $subtotal = 0.0;
+        $warnings = [];
+
+        foreach ($requested as $item) {
+            $product = $products->get($item['id']);
+            if (! $product || $product->is_published === false) {
+                $warnings[] = 'A product was removed because it is no longer available.';
+                continue;
+            }
+
+            $stock = max(0, (int) $product->availableStock());
+            if ($stock < 1) {
+                $warnings[] = $product->storefrontDisplayName().' is out of stock and was removed.';
+                continue;
+            }
+
+            $qty = min($item['qty'], $stock);
+            if ($qty < $item['qty']) {
+                $warnings[] = $product->storefrontDisplayName().' quantity was limited to '.$stock.' available.';
+            }
+
+            $unitPrice = (float) $product->currentPrice();
+            $lines[] = [
+                'id' => $product->id,
+                'name' => $product->storefrontDisplayName(),
+                'price' => $unitPrice,
+                'image' => $this->website->productImageUrl($product),
+                'qty' => $qty,
+                'stock' => $stock,
+            ];
+            $subtotal += $unitPrice * $qty;
+        }
+
+        return response()->json([
+            'items' => $lines,
+            'subtotal' => round($subtotal, 2),
+            'warnings' => array_values(array_unique($warnings)),
+        ]);
+    }
+
     public function checkout(Request $request)
     {
         $user = $request->user();
@@ -753,12 +826,46 @@ class WebsiteController extends Controller
         }
 
         $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:20',
-            'customer_address' => 'required|string|max:1000',
+            'customer_name' => 'required|string|min:2|max:255',
+            'customer_phone' => 'required|string|min:8|max:20',
+            'customer_address' => [
+                'required',
+                'string',
+                'min:20',
+                'max:1000',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $address = trim(preg_replace('/\s+/u', ' ', (string) $value) ?? '');
+                    if (mb_strlen($address) < 20) {
+                        $fail('Please enter a complete delivery address (house/flat, road, and area).');
+
+                        return;
+                    }
+
+                    $lower = mb_strtolower($address);
+                    $blocked = ['n/a', 'na', 'none', 'test', 'asdf', 'xxx', 'address', 'dhaka only', 'home'];
+                    if (in_array($lower, $blocked, true)) {
+                        $fail('Please enter a real delivery address with house/flat, road, and area.');
+
+                        return;
+                    }
+
+                    // Need enough substance for a courier (letters + a number or area separator).
+                    $hasLetters = (bool) preg_match('/\p{L}{3,}/u', $address);
+                    $hasNumberOrArea = (bool) preg_match('/\d|road|rd\.?|street|st\.?|lane|ln\.?|house|flat|apt|block|sector|area|bazar|goli|avenue/i', $address);
+                    if (! $hasLetters || ! $hasNumberOrArea) {
+                        $fail('Delivery address must include house/flat details and area (e.g. House 12, Road 5, Gulshan, Dhaka).');
+                    }
+                },
+            ],
             'delivery_zone' => 'nullable|string|in:inside_dhaka,outside_dhaka',
             'payment_method' => 'nullable|string|in:cash_on_delivery,confirmation_charge',
+        ], [
+            'customer_address.required' => 'A complete delivery address is required to place your order.',
+            'customer_address.min' => 'Please enter a complete delivery address (at least 20 characters).',
         ]);
+
+        $deliveryAddress = trim(preg_replace('/\s+/u', ' ', (string) $request->customer_address) ?? '');
+        $request->merge(['customer_address' => $deliveryAddress]);
 
         $customer = Customer::where('shop_id', $shopId)
             ->where('user_id', $user->id)
@@ -802,10 +909,10 @@ class WebsiteController extends Controller
             if (! $product || $product->is_published === false) {
                 return response()->json(['success' => false, 'message' => 'A product in your cart is no longer available.']);
             }
-            if ($product->stock_quantity < $qty) {
+            if ($product->availableStock() < $qty) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Not enough stock for {$product->name}. Only {$product->stock_quantity} left.",
+                    'message' => "Not enough stock for {$product->name}. Only {$product->availableStock()} left.",
                 ]);
             }
 
@@ -856,7 +963,7 @@ class WebsiteController extends Controller
                 'confirmation_charge' => $confirmationCharge,
                 'paid_amount' => $paidNow,
                 'payment_method' => $paymentMethod,
-                'status' => 'pending',
+                'status' => 'pending_fulfillment',
                 'counter_id' => null,
             ]);
 
@@ -874,8 +981,9 @@ class WebsiteController extends Controller
                 ]);
             }
 
-            // Stock is committed when packing starts (processing), not at COD placement.
             $order->load('items.product');
+            // Hold inventory immediately so POS/website cannot oversell COD units.
+            $this->stock->reserveWebOrderStock($order, $fallbackUserId);
             $this->accounts->postWebSale($order);
             $this->tracking->logInitialPlacement($order);
 

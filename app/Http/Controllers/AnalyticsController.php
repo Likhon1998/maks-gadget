@@ -32,13 +32,14 @@ class AnalyticsController extends Controller
         $chart = $this->analytics->dailyRevenueChart($shopId, $start, $end);
         $prevChart = $this->analytics->dailyRevenueChart($shopId, $prevStart, $prevEnd);
         $categorySales = $this->analytics->salesByCategory($shopId, $start, $end);
+        $brandSales = $this->analytics->salesByBrand($shopId, $start, $end, 8);
         $topProducts = $this->analytics->topSellingProducts($shopId, $start, $end, 8);
 
         $orderSummary = [
             'total' => $this->analytics->orderCount($shopId, $start, $end),
             'pos' => $this->analytics->posOrders($shopId, $start, $end)->count(),
             'web' => $this->analytics->webOrders($shopId, $start, $end)->count(),
-            'pending' => $this->analytics->baseOrderQuery($shopId, $start, $end)->where('status', 'pending')->count(),
+            'pending' => $this->analytics->baseOrderQuery($shopId, $start, $end)->whereIn('status', ['pending', 'pending_fulfillment'])->count(),
             'completed' => $this->analytics->baseOrderQuery($shopId, $start, $end)->where('status', 'completed')->count(),
         ];
 
@@ -96,6 +97,7 @@ class AnalyticsController extends Controller
             'chart',
             'prevChart',
             'categorySales',
+            'brandSales',
             'topProducts',
             'orderSummary',
             'recentOrders',
@@ -264,6 +266,20 @@ class AnalyticsController extends Controller
         $rows[] = ['Category', 'Revenue', 'Units Sold'];
         foreach ($this->analytics->salesByCategory($shopId, $start, $end, 20) as $cat) {
             $rows[] = [$cat->category, number_format((float) $cat->revenue, 2, '.', ''), $cat->sold];
+        }
+
+        $rows[] = [];
+        $rows[] = ['Brand', 'Units', 'Purchase Cost', 'Selling Amount', 'Profit', 'POS Revenue', 'Web Revenue'];
+        foreach ($this->analytics->salesByBrand($shopId, $start, $end, 50) as $brand) {
+            $rows[] = [
+                $brand->brand,
+                $brand->sold,
+                number_format((float) $brand->cost, 2, '.', ''),
+                number_format((float) $brand->revenue, 2, '.', ''),
+                number_format((float) $brand->profit, 2, '.', ''),
+                number_format((float) $brand->pos_revenue, 2, '.', ''),
+                number_format((float) $brand->web_revenue, 2, '.', ''),
+            ];
         }
 
         return $rows;

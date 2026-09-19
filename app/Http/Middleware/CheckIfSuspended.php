@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\AuthSession;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,12 +12,12 @@ class CheckIfSuspended
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && Auth::user()->is_suspended) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        $user = Auth::guard('admin')->user() ?? $request->user('admin');
 
-            return redirect()->route('login')->withErrors([
+        if ($user && $user->is_suspended) {
+            AuthSession::logout($request, 'admin');
+
+            return redirect()->route('admin.login')->withErrors([
                 'email' => 'Your account is suspended. Please contact your shop owner.',
             ]);
         }

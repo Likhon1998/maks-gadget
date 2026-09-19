@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Akhi Telecom'),
+    'name' => env('APP_NAME', 'Maks Gadget'),
 
     /*
     |--------------------------------------------------------------------------
@@ -25,6 +25,7 @@ return [
     */
 
     'powered_by' => env('POWERED_BY', 'Bynnas'),
+    'powered_by_url' => env('POWERED_BY_URL', 'https://bynnas.com'),
 
     /*
     |--------------------------------------------------------------------------
