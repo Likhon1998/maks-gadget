@@ -6,7 +6,9 @@
     <form method="POST"
           action="{{ $slide->exists ? route('cms.slides.update', $slide) : route('cms.slides.store') }}"
           enctype="multipart/form-data"
-          class="max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+          class="max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4"
+          x-data="{ saving: false }"
+          @submit="saving = true">
         @csrf
         @if($slide->exists) @method('PUT') @endif
 
@@ -15,9 +17,9 @@
             <ul class="mt-2 list-disc pl-5 space-y-1 text-[13px]">
                 <li><strong>Best size:</strong> <strong>1920 × 640</strong> px (ratio <strong>3:1</strong>)</li>
                 <li><strong>Also good:</strong> 1536×512, 2400×800 (same 3:1 ratio)</li>
-                <li><strong>Format:</strong> JPG, PNG, or WebP</li>
+                <li><strong>Format:</strong> JPG or WebP (prefer JPG — large PNGs upload slowly)</li>
+                <li><strong>Target file size:</strong> under ~500 KB (auto-optimized on select)</li>
                 <li>Design text/layout inside the image — the site shows it edge-to-edge with no crop gaps.</li>
-                <li>Other ratios are centered and cover-filled (edges may crop slightly).</li>
             </ul>
         </div>
 
@@ -61,7 +63,10 @@
 
         <div class="flex justify-end gap-2 pt-2">
             <a href="{{ route('cms.slides.index') }}" class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600">Cancel</a>
-            <button class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white">Save poster</button>
+            <button type="submit" class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white disabled:opacity-60" :disabled="saving">
+                <span x-show="!saving">Save poster</span>
+                <span x-show="saving" x-cloak>Saving…</span>
+            </button>
         </div>
     </form>
 </x-cms-layout>

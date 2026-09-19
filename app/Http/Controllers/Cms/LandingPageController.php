@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PromoBanner;
 use App\Models\SiteFeature;
 use App\Models\SiteSetting;
+use App\Services\CmsImageStore;
 use App\Services\SiteLogoNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -165,6 +166,7 @@ class LandingPageController extends Controller
         $rows = $request->input('banners', []);
         $files = $request->file('banners', []);
         $keep = [];
+        $images = app(CmsImageStore::class);
 
         foreach ($rows as $i => $row) {
             if (blank($row['title'] ?? null)) {
@@ -194,7 +196,7 @@ class LandingPageController extends Controller
                 if ($banner?->image_path) {
                     Storage::disk('public')->delete($banner->image_path);
                 }
-                $payload['image_path'] = $files[$i]['image']->store('cms/banners', 'public');
+                $payload['image_path'] = $images->store($files[$i]['image'], 'cms/banners', 1920, 82);
             }
 
             if ($banner) {
