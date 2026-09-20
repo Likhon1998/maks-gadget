@@ -725,20 +725,24 @@
         .gaget-action-btn.is-cart-swing .gaget-cart-badge{animation:gaget-badge-pop .55s cubic-bezier(.34,1.45,.64,1)}
         @keyframes gaget-cart-swing{0%{transform:rotate(0)}20%{transform:rotate(-22deg) scale(1.12)}45%{transform:rotate(16deg) scale(1.08)}70%{transform:rotate(-10deg)}100%{transform:rotate(0) scale(1)}}
         @keyframes gaget-badge-pop{0%{transform:scale(.55)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
-        .gaget-cart-shell{position:fixed;inset:0;z-index:90;pointer-events:none}
+        .gaget-cart-shell{position:fixed;inset:0;z-index:120;pointer-events:none}
         .gaget-cart-shell.is-open{pointer-events:auto}
-        .gaget-cart-backdrop{position:absolute;inset:0;background:rgba(8,15,30,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
+        .gaget-cart-backdrop{position:absolute;inset:0;background:rgba(8,15,30,.58);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
         .gaget-cart-shell.is-open .gaget-cart-backdrop{opacity:1;visibility:visible;transition:opacity .35s ease,visibility 0s}
-        .gaget-cart-panel{position:absolute;top:14px;right:14px;bottom:14px;width:min(calc(100% - 28px),400px);background:#fff;display:flex;flex-direction:column;border-radius:24px;overflow:hidden;box-shadow:0 28px 80px rgba(15,23,42,.28);transform:translate3d(118%,0,0) scale(.94) rotate(4deg);opacity:0;transform-origin:100% 20%}
+        .gaget-cart-panel{position:absolute;top:14px;right:14px;bottom:14px;width:min(calc(100% - 28px),420px);background:#fff;display:flex;flex-direction:column;border-radius:24px;overflow:hidden;box-shadow:0 28px 80px rgba(15,23,42,.32);transform:translate3d(118%,0,0) scale(.94) rotate(4deg);opacity:0;transform-origin:100% 20%}
         .gaget-cart-shell.is-open .gaget-cart-panel{animation:gaget-cart-sheet-in .58s cubic-bezier(.16,1,.3,1) forwards}
         .gaget-cart-shell.is-closing .gaget-cart-panel{animation:gaget-cart-sheet-out .32s ease forwards}
+        .gaget-cart-line{opacity:1!important;transform:none}
+        .gaget-cart-panel__foot{opacity:1!important;transform:none}
+        .gaget-cart-line__img{width:100%!important;height:100%!important;object-fit:cover!important}
         @keyframes gaget-cart-sheet-in{0%{opacity:0;transform:translate3d(118%,0,0) scale(.94) rotate(4deg)}60%{opacity:1;transform:translate3d(-4%,0,0) scale(1.01) rotate(-1deg)}100%{opacity:1;transform:translate3d(0,0,0) scale(1) rotate(0)}}
         @keyframes gaget-cart-sheet-out{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:0;transform:translate3d(110%,0,0) scale(.96) rotate(3deg)}}
         .tn-product-add.is-adding,.gaget-btn-primary.is-adding,[data-add-to-cart].is-adding{animation:gaget-add-press .45s cubic-bezier(.34,1.45,.64,1)}
         @keyframes gaget-add-press{0%{transform:scale(1)}35%{transform:scale(.92)}70%{transform:scale(1.04)}100%{transform:scale(1)}}
-        /* Fixed header — always on screen */
-        .gaget-sticky-header{position:fixed!important;top:0;left:0;right:0;width:100%;z-index:60;background:#fff;box-shadow:0 4px 18px rgba(15,23,42,.08)}
-        .gaget-header-spacer{display:block;width:100%;height:var(--g-header-h,132px);pointer-events:none}
+        /* Fixed floating pill header — padding creates clearance above hero */
+        .gaget-sticky-header{position:fixed!important;top:0;left:0;right:0;width:100%;z-index:60;background:transparent!important;box-shadow:none!important;pointer-events:none;padding:12px 0 18px;box-sizing:border-box}
+        .gaget-sticky-header>*{pointer-events:auto}
+        .gaget-header-spacer{display:block;width:100%;height:var(--g-header-h,100px);pointer-events:none;background:#f1f5f9}
 
         /* Safety: brand logos must never render at intrinsic SVG/PNG size */
         .gaget-store .tn-brand-logo{height:44px!important;max-height:44px!important;max-width:120px!important;width:auto!important;object-fit:contain!important}

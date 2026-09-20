@@ -26,9 +26,11 @@ class LandingPageController extends Controller
         }
 
         $features = SiteFeature::where('shop_id', $this->shopId())->orderBy('sort_order')->orderBy('id')->get();
-        $banners = PromoBanner::where('shop_id', $this->shopId())->orderBy('sort_order')->orderBy('id')->get();
+        $allBanners = PromoBanner::where('shop_id', $this->shopId())->orderBy('sort_order')->orderBy('id')->get();
+        $banners = $allBanners->filter(fn ($b) => ($b->placement ?? 'deals') !== 'hero_side')->values();
+        $heroSide = $allBanners->filter(fn ($b) => ($b->placement ?? '') === 'hero_side')->values();
 
-        return view('cms.landing.edit', compact('settings', 'features', 'banners'));
+        return view('cms.landing.edit', compact('settings', 'features', 'banners', 'heroSide'));
     }
 
     public function update(Request $request)
@@ -79,6 +81,18 @@ class LandingPageController extends Controller
             'banners.*.sort_order' => 'nullable|integer|min:0',
             'banners.*.is_active' => 'nullable|boolean',
             'banners.*.image' => 'nullable|file|mimes:jpeg,jpg,png,webp,gif|max:5120',
+            'hero_side' => 'nullable|array|max:2',
+            'hero_side.*.id' => 'nullable|integer',
+            'hero_side.*.title' => 'nullable|string|max:255',
+            'hero_side.*.subtitle' => 'nullable|string|max:255',
+            'hero_side.*.badge_text' => 'nullable|string|max:60',
+            'hero_side.*.discount_badge' => 'nullable|string|max:20',
+            'hero_side.*.button_text' => 'nullable|string|max:100',
+            'hero_side.*.button_url' => 'nullable|string|max:255',
+            'hero_side.*.theme' => 'nullable|in:dark,light',
+            'hero_side.*.sort_order' => 'nullable|integer|min:0',
+            'hero_side.*.is_active' => 'nullable|boolean',
+            'hero_side.*.image' => 'nullable|file|mimes:jpeg,jpg,png,webp,gif|max:5120',
         ]);
 
         $website = app(\App\Services\WebsiteService::class);
@@ -163,15 +177,46 @@ class LandingPageController extends Controller
 
     private function syncBanners(Request $request): void
     {
-        $rows = $request->input('banners', []);
-        $files = $request->file('banners', []);
         $keep = [];
         $images = app(CmsImageStore::class);
+
+        $keep = array_merge(
+            $keep,
+            $this->persistBannerRows(
+                $request->input('hero_side', []),
+                $request->file('hero_side', []),
+                'hero_side',
+                $images,
+                2
+            )
+        );
+
+        $keep = array_merge(
+            $keep,
+            $this->persistBannerRows(
+                $request->input('banners', []),
+                $request->file('banners', []),
+                'deals',
+                $images
+            )
+        );
+
+        PromoBanner::where('shop_id', $this->shopId())->whereNotIn('id', $keep ?: [0])->delete();
+    }
+
+    private function persistBannerRows(array $rows, array $files, string $placement, CmsImageStore $images, ?int $limit = null): array
+    {
+        $keep = [];
+        $count = 0;
 
         foreach ($rows as $i => $row) {
             if (blank($row['title'] ?? null)) {
                 continue;
             }
+            if ($limit !== null && $count >= $limit) {
+                break;
+            }
+
             $payload = [
                 'shop_id' => $this->shopId(),
                 'title' => $row['title'],
@@ -183,7 +228,8 @@ class LandingPageController extends Controller
                 'button_text' => $row['button_text'] ?: 'Shop Now',
                 'button_url' => $row['button_url'] ?? null,
                 'theme' => $row['theme'] ?? 'dark',
-                'sort_order' => (int) ($row['sort_order'] ?? 0),
+                'placement' => $placement,
+                'sort_order' => (int) ($row['sort_order'] ?? $count),
                 'is_active' => !empty($row['is_active']),
             ];
 
@@ -205,8 +251,10 @@ class LandingPageController extends Controller
             } else {
                 $keep[] = PromoBanner::create($payload)->id;
             }
+
+            $count++;
         }
 
-        PromoBanner::where('shop_id', $this->shopId())->whereNotIn('id', $keep ?: [0])->delete();
+        return $keep;
     }
 }

@@ -3,117 +3,181 @@
 
 @section('content')
 
-{{-- Hero posters (CMS → Home Posters) — smooth crossfade + ken burns --}}
-<section
-    class="tn-hero"
-    @if($heroSlides->count() > 1)
-        x-data="{
-            slide: 0,
-            total: {{ $heroSlides->count() }},
-            timer: null,
-            paused: false,
-            go(i) { this.slide = ((i % this.total) + this.total) % this.total; this.restart(); },
-            next() { this.go(this.slide + 1); },
-            prev() { this.go(this.slide - 1); },
-            restart() {
-                clearInterval(this.timer);
-                if (this.paused || this.total < 2) return;
-                this.timer = setInterval(() => { if (!this.paused) this.slide = (this.slide + 1) % this.total; }, 5500);
-            },
-            init() { this.restart(); }
-        }"
-        @mouseenter="paused = true; clearInterval(timer)"
-        @mouseleave="paused = false; restart()"
-        @focusin="paused = true; clearInterval(timer)"
-        @focusout="paused = false; restart()"
-    @else
-        x-data="{ slide: 0, total: 1 }"
-    @endif
->
-    @if($heroSlides->count() > 1)
-        <button type="button" @click="prev()" class="tn-hero-arrow left" aria-label="Previous">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <button type="button" @click="next()" class="tn-hero-arrow right" aria-label="Next">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        </button>
-    @endif
-    <div class="tn-hero-track">
-        @forelse($heroSlides as $i => $slide)
-            @php
-                $posterUrl = $slide->image_path ? public_storage_url($slide->image_path) : null;
-                if ($posterUrl && $slide->image_path) {
-                    $full = public_storage_path($slide->image_path);
-                    $posterUrl .= '?v='.(is_file($full) ? filemtime($full) : time());
-                }
-                $link = $slide->button_url ?: route('website.shop');
-            @endphp
+{{-- Hero: 3 portions — main slider + 2 CMS side cards --}}
+@php
+    $heroSideCards = ($heroSideCards ?? collect())->take(2)->map(function ($banner) {
+        return (object) [
+            'title' => $banner->title,
+            'sub' => $banner->subtitle ?: ($banner->badge_text ?: ''),
+            'url' => $banner->button_url ?: route('website.shop'),
+            'cta' => $banner->button_text ?: 'Shop',
+            'badge' => $banner->discount_badge ?: $banner->badge_text,
+            'image' => $banner->image_path ? public_storage_url($banner->image_path) : null,
+            'tone' => $banner->theme === 'light' ? 'light' : 'dark',
+        ];
+    });
+
+    // Keep 3-portion layout visible until CMS cards are added
+    if ($heroSideCards->isEmpty()) {
+        $heroSideCards = collect([
+            (object) [
+                'title' => 'New Arrivals',
+                'sub' => 'Fresh tech, just landed',
+                'url' => route('website.shop', ['filter' => 'new']),
+                'cta' => 'See new',
+                'badge' => 'New',
+                'image' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=640&q=80',
+                'tone' => 'dark',
+            ],
+            (object) [
+                'title' => 'Best Sellers',
+                'sub' => 'Most loved gadgets',
+                'url' => route('website.shop'),
+                'cta' => 'Shop',
+                'badge' => 'Hot',
+                'image' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=640&q=80',
+                'tone' => 'light',
+            ],
+        ]);
+    }
+@endphp
+<section class="mg-hero3">
+    <div class="tn-container">
+        <div class="mg-hero3-grid">
             <div
-                class="tn-hero-slide{{ $i === 0 ? ' is-active' : '' }}"
-                :class="{ 'is-active': slide === {{ $i }} }"
-                x-bind:aria-hidden="slide !== {{ $i }}"
-            >
-                @if($posterUrl)
-                    <a href="{{ $link }}" class="tn-hero-poster" aria-label="{{ $slide->title }}" x-bind:tabindex="slide === {{ $i }} ? 0 : -1">
-                        <img
-                            src="{{ $posterUrl }}"
-                            alt="{{ $slide->title }}"
-                            class="tn-hero-img"
-                            width="1920"
-                            height="640"
-                            decoding="async"
-                            @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
-                        >
-                    </a>
+                class="mg-hero3-slider tn-hero"
+                @if($heroSlides->count() > 1)
+                    x-data="{
+                        slide: 0,
+                        total: {{ $heroSlides->count() }},
+                        timer: null,
+                        paused: false,
+                        go(i) { this.slide = ((i % this.total) + this.total) % this.total; this.restart(); },
+                        next() { this.go(this.slide + 1); },
+                        prev() { this.go(this.slide - 1); },
+                        restart() {
+                            clearInterval(this.timer);
+                            if (this.paused || this.total < 2) return;
+                            this.timer = setInterval(() => { if (!this.paused) this.slide = (this.slide + 1) % this.total; }, 5500);
+                        },
+                        init() { this.restart(); }
+                    }"
+                    @mouseenter="paused = true; clearInterval(timer)"
+                    @mouseleave="paused = false; restart()"
+                    @focusin="paused = true; clearInterval(timer)"
+                    @focusout="paused = false; restart()"
                 @else
-                    <div class="tn-hero-fallback">
-                        <div class="tn-container tn-hero-fallback-inner">
-                            <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
-                            <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                            <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? 'our store' }}.</p>
-                            <div class="tn-hero-actions">
-                                <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
-                                <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
+                    x-data="{ slide: 0, total: 1 }"
+                @endif
+            >
+                @if($heroSlides->count() > 1)
+                    <button type="button" @click="prev()" class="tn-hero-arrow left" aria-label="Previous">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button type="button" @click="next()" class="tn-hero-arrow right" aria-label="Next">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                @endif
+                <div class="tn-hero-track">
+                    @forelse($heroSlides as $i => $slide)
+                        @php
+                            $posterUrl = $slide->image_path ? public_storage_url($slide->image_path) : null;
+                            if ($posterUrl && $slide->image_path) {
+                                $full = public_storage_path($slide->image_path);
+                                $posterUrl .= '?v='.(is_file($full) ? filemtime($full) : time());
+                            }
+                            $link = $slide->button_url ?: route('website.shop');
+                        @endphp
+                        <div
+                            class="tn-hero-slide{{ $i === 0 ? ' is-active' : '' }}"
+                            :class="{ 'is-active': slide === {{ $i }} }"
+                            x-bind:aria-hidden="slide !== {{ $i }}"
+                        >
+                            @if($posterUrl)
+                                <a href="{{ $link }}" class="tn-hero-poster" aria-label="{{ $slide->title }}" x-bind:tabindex="slide === {{ $i }} ? 0 : -1">
+                                    <img
+                                        src="{{ $posterUrl }}"
+                                        alt="{{ $slide->title }}"
+                                        class="tn-hero-img"
+                                        width="1920"
+                                        height="640"
+                                        decoding="async"
+                                        @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
+                                    >
+                                </a>
+                            @else
+                                <div class="tn-hero-fallback">
+                                    <div class="tn-hero-fallback-inner">
+                                        <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
+                                        <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
+                                        <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? 'our store' }}.</p>
+                                        <div class="tn-hero-actions">
+                                            <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
+                                            <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @empty
+                        <div class="tn-hero-slide is-active">
+                            <div class="tn-hero-fallback">
+                                <div class="tn-hero-fallback-inner">
+                                    <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
+                                    <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
+                                    <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
+                                    <div class="tn-hero-actions">
+                                        <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
+                                        <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    @endforelse
+                </div>
+                @if($heroSlides->count() > 1)
+                    <div class="tn-hero-dots" role="tablist" aria-label="Hero slides">
+                        @foreach($heroSlides as $di => $ds)
+                            <button
+                                type="button"
+                                class="tn-hero-dot"
+                                :class="{ 'is-active': slide === {{ $di }} }"
+                                @click="go({{ $di }})"
+                                role="tab"
+                                :aria-selected="slide === {{ $di }}"
+                                aria-label="Slide {{ $di + 1 }}"
+                            >
+                                <template x-if="slide === {{ $di }}">
+                                    <span class="tn-hero-dot-fill"></span>
+                                </template>
+                            </button>
+                        @endforeach
                     </div>
                 @endif
             </div>
-        @empty
-            <div class="tn-hero-slide is-active">
-                <div class="tn-hero-fallback">
-                    <div class="tn-container tn-hero-fallback-inner">
-                        <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
-                        <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                        <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
-                        <div class="tn-hero-actions">
-                            <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
-                            <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        @endforelse
-    </div>
-    @if($heroSlides->count() > 1)
-        <div class="tn-hero-dots" role="tablist" aria-label="Hero slides">
-            @foreach($heroSlides as $di => $ds)
-                <button
-                    type="button"
-                    class="tn-hero-dot"
-                    :class="{ 'is-active': slide === {{ $di }} }"
-                    @click="go({{ $di }})"
-                    role="tab"
-                    :aria-selected="slide === {{ $di }}"
-                    aria-label="Slide {{ $di + 1 }}"
-                >
-                    <template x-if="slide === {{ $di }}">
-                        <span class="tn-hero-dot-fill"></span>
-                    </template>
-                </button>
-            @endforeach
+
+            <aside class="mg-hero3-side" aria-label="Featured offers">
+                @foreach($heroSideCards->take(2) as $side)
+                    <a href="{{ $side->url }}" class="mg-hero3-card is-{{ $side->tone }}">
+                        @if($side->image)
+                            <img src="{{ $side->image }}" alt="" class="mg-hero3-card-img" loading="lazy" decoding="async">
+                        @endif
+                        <span class="mg-hero3-card-veil" aria-hidden="true"></span>
+                        <span class="mg-hero3-card-body">
+                            @if($side->badge)
+                                <span class="mg-hero3-card-badge">{{ $side->badge }}</span>
+                            @endif
+                            <span class="mg-hero3-card-title">{{ $side->title }}</span>
+                            @if(($side->sub ?? '') !== '')
+                                <span class="mg-hero3-card-sub">{{ $side->sub }}</span>
+                            @endif
+                            <span class="mg-hero3-card-cta">{{ $side->cta }} <i aria-hidden="true">→</i></span>
+                        </span>
+                    </a>
+                @endforeach
+            </aside>
         </div>
-    @endif
+    </div>
 </section>
 
 {{-- Service features — premium strip under hero --}}
@@ -137,25 +201,215 @@
 </section>
 @endif
 
-{{-- Shop by Category — colorful icon strip --}}
+{{-- Shop by Category — 3D coverflow with scroll / swipe / click --}}
 @if($categories->isNotEmpty())
-<section class="tn-section tn-section-cats">
+@php
+    $catTaglines = [
+        'smartphones' => 'Power in your pocket.',
+        'phones' => 'Power in your pocket.',
+        'laptops' => 'Create. Work. Win.',
+        'tablets' => 'Light. Fast. Ready.',
+        'headphones' => 'Immersive sound.',
+        'earbuds' => 'Pure sound. Zero limits.',
+        'earphones' => 'Pure sound. Zero limits.',
+        'smartwatches' => 'Smarter. Healthier. You.',
+        'watches' => 'Smarter. Healthier. You.',
+        'cameras' => 'Capture every moment.',
+        'gaming' => 'Play without limits.',
+        'speakers' => 'Fill the room.',
+        'chargers-cables' => 'Power that lasts.',
+        'accessories' => 'Finish the look.',
+        'monitors' => 'See every detail.',
+        'drones' => 'Sky is the limit.',
+    ];
+    $catFallbacks = [
+        'phone' => 'https://images.unsplash.com/photo-1592890288564-766794220d53?w=900&q=85',
+        'laptop' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=85',
+        'tablet' => 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=900&q=85',
+        'headphones' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=900&q=85',
+        'earbuds' => 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=900&q=85',
+        'watch' => 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=900&q=85',
+        'camera' => 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=900&q=85',
+        'game' => 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=900&q=85',
+        'speaker' => 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=900&q=85',
+        'drone' => 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=900&q=85',
+        'monitor' => 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=900&q=85',
+        'mouse' => 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=900&q=85',
+        'plug' => 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=900&q=85',
+    ];
+    $catThemes = ['is-ink', 'is-graphite', 'is-midnight', 'is-steel', 'is-ink', 'is-graphite', 'is-midnight', 'is-steel'];
+    $coverCats = $categories->values();
+    $coverTotal = $coverCats->count();
+    $coverStart = $coverTotal > 1 ? min(1, $coverTotal - 1) : 0;
+@endphp
+<section
+    class="mg-cover"
+    x-data="{
+        active: {{ $coverStart }},
+        total: {{ $coverTotal }},
+        dragging: false,
+        startX: 0,
+        lastWheel: 0,
+        go(i) {
+            if (this.total < 1) return;
+            this.active = ((i % this.total) + this.total) % this.total;
+        },
+        next() { this.go(this.active + 1); },
+        prev() { this.go(this.active - 1); },
+        delta(i) {
+            const n = this.total;
+            if (n < 2) return 0;
+            let d = ((i - this.active) % n + n) % n;
+            if (d > n / 2) d -= n;
+            return d;
+        },
+        onWheel(e) {
+            const now = Date.now();
+            if (now - this.lastWheel < 380) return;
+            this.lastWheel = now;
+            (e.deltaY > 0 || e.deltaX > 0) ? this.next() : this.prev();
+        },
+        styleFor(i) {
+            const d = this.delta(i);
+            const abs = Math.abs(d);
+            if (abs > 3) {
+                return 'opacity:0; visibility:hidden; pointer-events:none; transform: translate(-50%, -50%) scale(0.58);';
+            }
+            const x = d * 54;
+            const y = abs * 2.5;
+            const rot = d * -22;
+            const scale = Math.max(0.72, 1 - abs * 0.1);
+            const z = 50 - abs;
+            const opacity = abs === 0 ? 1 : (abs === 1 ? 0.92 : (abs === 2 ? 0.7 : 0.42));
+            return `transform: translate(-50%, -50%) translateX(${x}%) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:${opacity};`;
+        },
+        onPointerDown(e) {
+            this.dragging = true;
+            this.startX = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
+        },
+        onPointerUp(e) {
+            if (!this.dragging) return;
+            const endX = e.clientX ?? (e.changedTouches && e.changedTouches[0]?.clientX) ?? this.startX;
+            const dx = endX - this.startX;
+            this.dragging = false;
+            if (Math.abs(dx) < 40) return;
+            dx < 0 ? this.next() : this.prev();
+        }
+    }"
+    @keydown.left.window="prev()"
+    @keydown.right.window="next()"
+>
     <div class="tn-container">
-        <div class="tn-section-head">
-            <h2 class="tn-section-title">Shop by Category</h2>
-            <a href="{{ route('website.shop') }}" class="tn-section-link">View All Categories &rarr;</a>
+        <div class="mg-cover-head">
+            <div class="mg-cover-copy">
+                <p class="mg-cover-eyebrow">Curated collections</p>
+                <h2 class="mg-cover-title">Shop by <span>Category</span></h2>
+                <p class="mg-cover-sub">Premium gadgets, sorted for how you live — scroll to explore.</p>
+            </div>
+
+            <div class="mg-cover-marquee" aria-label="Categories preview">
+                <div class="mg-cover-marquee-fade mg-cover-marquee-fade--left" aria-hidden="true"></div>
+                <div class="mg-cover-marquee-fade mg-cover-marquee-fade--right" aria-hidden="true"></div>
+                <div class="mg-cover-marquee-track">
+                    @foreach([0, 1] as $loopPass)
+                        @foreach($coverCats as $i => $category)
+                            @php
+                                $iconMeta = $category->iconMeta();
+                                $count = (int) ($category->products_count ?? 0);
+                                $countLabel = $count > 0 ? ($count >= 100 ? '100+' : $count.'+') : 'New';
+                            @endphp
+                            <button
+                                type="button"
+                                class="mg-cover-marquee-item"
+                                :class="{ 'is-active': active === {{ $i }} }"
+                                @click="go({{ $i }})"
+                                tabindex="{{ $loopPass === 0 ? 0 : -1 }}"
+                                aria-hidden="{{ $loopPass === 0 ? 'false' : 'true' }}"
+                            >
+                                <span class="mg-cover-marquee-ico">
+                                    @include('website.partials.category-icon-svg', ['icon' => $iconMeta['key'], 'class' => 'mg-cover-marquee-svg'])
+                                </span>
+                                <span class="mg-cover-marquee-text">
+                                    <span class="mg-cover-marquee-name">{{ $category->name }}</span>
+                                    <span class="mg-cover-marquee-count">{{ $countLabel }}</span>
+                                </span>
+                            </button>
+                        @endforeach
+                    @endforeach
+                </div>
+            </div>
+
+            <a href="{{ route('website.shop') }}" class="mg-cover-all">View all <span aria-hidden="true">→</span></a>
         </div>
-        <div class="tn-cat-grid">
-            @foreach($categories as $category)
-                @php $iconMeta = $category->iconMeta(); @endphp
-                <a href="{{ route('website.category', $category->slug ?? $category->id) }}" class="tn-cat-card">
-                    <div class="tn-cat-icon" style="--cat-bg: {{ $iconMeta['bg'] }}; --cat-color: {{ $iconMeta['color'] }};">
-                        @include('website.partials.category-icon-svg', ['icon' => $iconMeta['key']])
+    </div>
+
+    <div
+        class="mg-cover-stage"
+        @wheel.prevent="onWheel($event)"
+        @pointerdown="onPointerDown($event)"
+        @pointerup="onPointerUp($event)"
+        @pointercancel="dragging=false"
+        @touchstart.passive="onPointerDown($event)"
+        @touchend.passive="onPointerUp($event)"
+    >
+        <div class="mg-cover-track" aria-live="polite">
+            @foreach($coverCats as $i => $category)
+                @php
+                    $iconMeta = $category->iconMeta();
+                    $slug = $category->slug ?? \Illuminate\Support\Str::slug($category->name);
+                    $img = $ws->categoryImageUrl($category) ?: ($catFallbacks[$iconMeta['key']] ?? $catFallbacks['phone']);
+                    $tagline = $catTaglines[$slug] ?? ($catTaglines[$iconMeta['key']] ?? 'Explore the collection.');
+                    $count = (int) ($category->products_count ?? 0);
+                    $countLabel = $category->product_count_label
+                        ?: ($count > 0 ? ($count >= 100 ? '100+ products' : $count.' products') : 'Shop now');
+                    $theme = $catThemes[$i % count($catThemes)];
+                    $url = route('website.category', $category->slug ?? $category->id);
+                @endphp
+                <article
+                    class="mg-cover-card {{ $theme }}"
+                    :class="{ 'is-active': active === {{ $i }} }"
+                    :style="styleFor({{ $i }})"
+                    @click="active === {{ $i }} ? (window.location.href = @js($url)) : go({{ $i }})"
+                    role="button"
+                    tabindex="0"
+                    @keydown.enter.prevent="active === {{ $i }} ? (window.location.href = @js($url)) : go({{ $i }})"
+                    aria-label="{{ $category->name }}"
+                >
+                    <div class="mg-cover-media">
+                        <img src="{{ $img }}" alt="{{ $category->name }}" class="mg-cover-img" loading="lazy" decoding="async">
                     </div>
-                    <span class="tn-cat-name">{{ $category->name }}</span>
-                </a>
+                    <div class="mg-cover-veil" aria-hidden="true"></div>
+                    <div class="mg-cover-shine" aria-hidden="true"></div>
+                    <div class="mg-cover-chip">
+                        <span class="mg-cover-chip-icon" style="--cat-color: {{ $iconMeta['color'] }};">
+                            @include('website.partials.category-icon-svg', ['icon' => $iconMeta['key'], 'class' => 'mg-cover-chip-svg'])
+                        </span>
+                        <span>{{ $countLabel }}</span>
+                    </div>
+                    <div class="mg-cover-foot">
+                        <div class="mg-cover-foot-text">
+                            <h3 class="mg-cover-name">{{ $category->name }}</h3>
+                            <p class="mg-cover-tagline">{{ $tagline }}</p>
+                        </div>
+                        <a href="{{ $url }}" class="mg-cover-cta" @click.stop aria-label="Shop {{ $category->name }}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                        </a>
+                    </div>
+                    <div class="mg-cover-pager" x-show="active === {{ $i }}" x-cloak>
+                        <span x-text="String(active + 1).padStart(2,'0')"></span>
+                        <i aria-hidden="true"></i>
+                        <span x-text="String(total).padStart(2,'0')"></span>
+                    </div>
+                </article>
             @endforeach
         </div>
+
+        <button type="button" class="mg-cover-arrow left" @click="prev()" aria-label="Previous category">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button type="button" class="mg-cover-arrow right" @click="next()" aria-label="Next category">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
     </div>
 </section>
 @endif
@@ -195,7 +449,7 @@
             <a href="{{ route('website.shop', ['filter' => 'deals']) }}" class="tn-flash-link">View All Deals &rarr;</a>
         </div>
 
-        <div class="tn-flash-grid">
+        <div class="tn-flash-grid tn-flash-grid--8">
             @foreach($flashSaleProducts as $product)
                 @include('website.partials.tn-product-card', ['product' => $product, 'flash' => true])
             @endforeach
@@ -215,7 +469,7 @@
             </div>
             <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-section-link">View All New Arrivals &rarr;</a>
         </div>
-        <div class="tn-flash-grid">
+        <div class="tn-flash-grid tn-flash-grid--8">
             @foreach($newArrivals as $product)
                 @include('website.partials.tn-product-card', ['product' => $product])
             @endforeach
@@ -226,28 +480,17 @@
 
 {{-- What's Trending Now --}}
 @if($trendingProducts->isNotEmpty())
-@php
-    $trendingHeroImg = app(\App\Services\WebsiteService::class)->productImageUrl($trendingProducts->first());
-@endphp
 <section class="tn-trending" aria-labelledby="tn-trending-heading">
-    <div class="tn-trending-glow" aria-hidden="true"></div>
     <div class="tn-container">
         <div class="tn-trending-head">
             <div class="tn-trending-copy">
-                <p class="tn-trending-kicker"><span aria-hidden="true"></span> Trending Now</p>
-                <h2 id="tn-trending-heading" class="tn-trending-title">
-                    What's <em>Trending Now</em>
-                    <svg class="tn-trending-flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2s3.2 3.1 3.2 6.1c0 1.7-1 3.1-2.4 3.9.4-1.5.1-3.1-1-4.3C10.6 9.2 9 11 9 13.2 9 16.5 11.2 19 14 19c3.3 0 5.5-2.6 5.5-5.8C19.5 8.4 15.8 5.2 12 2zM8.8 20.2C6.2 18.8 5 16.4 5 13.8c0-2.1.9-4 2.3-5.4-.2 3.2 1.1 5.1 2.7 6.4-2 .7-3.4 2.5-3.4 4.6 0 .3 0 .6.1.9 1-.5 1.5-.7 2.1-.1z"/></svg>
-                </h2>
-                <p class="tn-trending-sub">The most loved gadgets, top rated by customers. Discover what's trending right now.</p>
+                <p class="tn-trending-kicker">Most loved</p>
+                <h2 id="tn-trending-heading" class="tn-trending-title">What's <span>Trending</span></h2>
+                <p class="tn-trending-sub">Customer favorites — grab them before they sell out.</p>
             </div>
             <a href="{{ route('website.shop', ['filter' => 'bestsellers']) }}" class="tn-trending-all">
-                View All
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6l6 6-6 6"/></svg>
+                View all <span aria-hidden="true">→</span>
             </a>
-            <div class="tn-trending-hero" aria-hidden="true">
-                <img src="{{ $trendingHeroImg }}" alt="" loading="lazy" decoding="async">
-            </div>
         </div>
 
         <div class="tn-trending-grid">
@@ -262,7 +505,7 @@
 </section>
 @endif
 
-{{-- Brands We Carry — partners card grid --}}
+{{-- Brands We Carry — continuous slow marquee --}}
 @if($brands->isNotEmpty())
 @php
     $brandTaglines = [
@@ -290,48 +533,51 @@
         'nothing' => 'Phones · Audio · Accessories',
         'microsoft' => 'Surface · Accessories · Software',
     ];
-    $partnerBrands = $brands->take(10);
+    $partnerBrands = $brands->values();
 @endphp
 <section class="tn-brands" aria-labelledby="tn-brands-heading">
-    <div class="tn-brands-decor tn-brands-decor--phone" aria-hidden="true"></div>
-    <div class="tn-brands-decor tn-brands-decor--buds" aria-hidden="true"></div>
-    <div class="tn-brands-decor tn-brands-decor--leaf" aria-hidden="true"></div>
-
     <div class="tn-container">
         <div class="tn-brands-head">
-            <p class="tn-brands-eyebrow">Partners</p>
-            <h2 id="tn-brands-heading" class="tn-brands-title">Brands We <em>Carry</em></h2>
-            <p class="tn-brands-sub">We bring you the best brands in the gadget world — trusted for quality, performance and innovation.</p>
+            <div class="tn-brands-copy">
+                <p class="tn-brands-eyebrow">Partners</p>
+                <h2 id="tn-brands-heading" class="tn-brands-title">Brands We <span>Carry</span></h2>
+                <p class="tn-brands-sub">Trusted names in gadgets — quality, performance, and innovation.</p>
+            </div>
         </div>
+    </div>
 
-        <div class="tn-brands-grid">
-            @foreach($partnerBrands as $brand)
-                @php
-                    $brandSlug = \Illuminate\Support\Str::slug($brand->name);
-                    $logoUrl = $brand->logo_url
-                        ?: ($brand->logo_path ? public_storage_url($brand->logo_path) : null);
-                    $tagline = $brandTaglines[$brandSlug] ?? 'Gadgets · Accessories';
-                @endphp
-                <a href="{{ route('website.brand', $brandSlug) }}"
-                   class="tn-brand-card"
-                   title="Shop {{ $brand->name }} at Maks Gadget">
-                    <span class="tn-brand-logo-frame">
-                        @if($logoUrl)
-                            <img src="{{ $logoUrl }}"
-                                 alt="{{ $brand->name }}"
-                                 class="tn-brand-logo"
-                                 loading="lazy"
-                                 decoding="async"
-                                 onerror="this.classList.add('is-broken'); this.nextElementSibling?.classList.add('is-visible');">
-                            <span class="tn-brand-fallback">{{ $brand->name }}</span>
-                        @else
-                            <span class="tn-brand-fallback is-visible">{{ $brand->name }}</span>
-                        @endif
-                    </span>
-                    <span class="tn-brand-name">{{ $brand->name }}</span>
-                    <span class="tn-brand-cats">{{ $tagline }}</span>
-                    <span class="tn-brand-accent" aria-hidden="true"></span>
-                </a>
+    <div class="tn-brands-marquee" aria-label="Brand partners">
+        <div class="tn-brands-track">
+            @foreach([0, 1] as $loopPass)
+                @foreach($partnerBrands as $brand)
+                    @php
+                        $brandSlug = \Illuminate\Support\Str::slug($brand->name);
+                        $logoUrl = $brand->logo_url
+                            ?: ($brand->logo_path ? public_storage_url($brand->logo_path) : null);
+                        $tagline = $brandTaglines[$brandSlug] ?? 'Gadgets · Accessories';
+                    @endphp
+                    <a href="{{ route('website.brand', $brandSlug) }}"
+                       class="tn-brand-card"
+                       title="Shop {{ $brand->name }}"
+                       tabindex="{{ $loopPass === 0 ? 0 : -1 }}"
+                       aria-hidden="{{ $loopPass === 0 ? 'false' : 'true' }}">
+                        <span class="tn-brand-logo-frame">
+                            @if($logoUrl)
+                                <img src="{{ $logoUrl }}"
+                                     alt="{{ $brand->name }}"
+                                     class="tn-brand-logo"
+                                     loading="lazy"
+                                     decoding="async"
+                                     onerror="this.classList.add('is-broken'); this.nextElementSibling?.classList.add('is-visible');">
+                                <span class="tn-brand-fallback">{{ $brand->name }}</span>
+                            @else
+                                <span class="tn-brand-fallback is-visible">{{ $brand->name }}</span>
+                            @endif
+                        </span>
+                        <span class="tn-brand-name">{{ $brand->name }}</span>
+                        <span class="tn-brand-cats">{{ $tagline }}</span>
+                    </a>
+                @endforeach
             @endforeach
         </div>
     </div>

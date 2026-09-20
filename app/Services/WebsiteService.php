@@ -130,7 +130,7 @@ class WebsiteService
             ->whereHas('products', $visibleProducts)
             ->withCount(['products' => $visibleProducts])
             ->orderBy('name')
-            ->take(10)
+            ->take(12)
             ->get();
 
         $bestSellers = $this->dedupeVariantCollection(
@@ -149,9 +149,9 @@ class WebsiteService
                 ->with(['category', 'brand'])
                 ->onSale()
                 ->orderByRaw('(selling_price - sale_price) / NULLIF(selling_price, 0) DESC')
-                ->take(20)
+                ->take(32)
                 ->get(),
-            5
+            8
         );
 
         $flashSaleEndsAt = $flashSaleProducts
@@ -165,9 +165,9 @@ class WebsiteService
                 ->with(['category', 'brand'])
                 ->newArrivals()
                 ->latest('id')
-                ->take(20)
+                ->take(32)
                 ->get(),
-            5
+            8
         );
 
         $trendingProducts = $this->dedupeVariantCollection(
@@ -210,7 +210,21 @@ class WebsiteService
                 ->withCount(['products' => fn ($q) => $q->availableForSale()])
                 ->orderBy('name')
                 ->get(),
-            'promoBanners' => PromoBanner::where('shop_id', $shopId)->where('is_active', true)->orderBy('sort_order')->orderBy('id')->get(),
+            'promoBanners' => PromoBanner::where('shop_id', $shopId)
+                ->where('is_active', true)
+                ->where(function ($q) {
+                    $q->where('placement', 'deals')->orWhereNull('placement')->orWhere('placement', '');
+                })
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get(),
+            'heroSideCards' => PromoBanner::where('shop_id', $shopId)
+                ->where('is_active', true)
+                ->where('placement', 'hero_side')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->take(2)
+                ->get(),
             'bestSellers' => $bestSellers,
             'flashSaleProducts' => $flashSaleProducts,
             'flashSaleEndsAt' => $flashSaleEndsAt,
@@ -236,6 +250,7 @@ class WebsiteService
             'categories' => collect(),
             'allCategories' => collect(),
             'promoBanners' => collect(),
+            'heroSideCards' => collect(),
             'bestSellers' => collect(),
             'flashSaleProducts' => collect(),
             'flashSaleEndsAt' => null,

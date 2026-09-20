@@ -22,8 +22,26 @@
                 'image_path'=>$b->image_path,
                 'preview'=> $b->image_path ? public_storage_url($b->image_path) : null,
             ])->values()),
+            heroSide: @js(($heroSide ?? collect())->map(fn($b)=>[
+                'id'=>$b->id,
+                'title'=>$b->title,
+                'subtitle'=>$b->subtitle,
+                'badge_text'=>$b->badge_text,
+                'discount_badge'=>$b->discount_badge,
+                'button_text'=>$b->button_text,
+                'button_url'=>$b->button_url,
+                'theme'=>$b->theme ?: 'dark',
+                'sort_order'=>$b->sort_order,
+                'is_active'=>$b->is_active,
+                'image_path'=>$b->image_path,
+                'preview'=> $b->image_path ? public_storage_url($b->image_path) : null,
+            ])->values()),
             addFeature(){ this.features.push({id:null,icon:'truck',title:'',subtitle:'',sort_order:this.features.length,is_active:true}) },
-            addBanner(){ this.banners.push({id:null,title:'',subtitle:'',badge_text:'',highlight_text:'',discount_badge:'',price_from:'',button_text:'Shop Now',button_url:'/shop',theme:'dark',sort_order:this.banners.length,is_active:true,image_path:null,preview:null}) }
+            addBanner(){ this.banners.push({id:null,title:'',subtitle:'',badge_text:'',highlight_text:'',discount_badge:'',price_from:'',button_text:'Shop Now',button_url:'/shop',theme:'dark',sort_order:this.banners.length,is_active:true,image_path:null,preview:null}) },
+            addHeroSide(){
+                if (this.heroSide.length >= 2) return;
+                this.heroSide.push({id:null,title:'',subtitle:'',badge_text:'',discount_badge:'',button_text:'Shop',button_url:'/shop',theme:'dark',sort_order:this.heroSide.length,is_active:true,image_path:null,preview:null});
+            }
           }">
         @csrf
         @method('PUT')
@@ -182,6 +200,60 @@
                     </div>
                 </template>
                 <p x-show="features.length === 0" class="text-sm text-slate-400 py-2" x-cloak>No features yet. Click “+ Feature” to add items for the homepage trust bar.</p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Hero side cards</h3>
+                    <p class="text-sm text-slate-500">Two fixed cards beside the homepage hero slider. Max 2. Upload image, title, link — shown next to posters.</p>
+                </div>
+                <button type="button" @click="addHeroSide()" x-bind:disabled="heroSide.length >= 2" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">+ Side card</button>
+            </div>
+            <div class="mt-4 space-y-4">
+                <template x-for="(b, i) in heroSide" :key="'hs-'+i">
+                    <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4 space-y-3">
+                        <input type="hidden" :name="'hero_side['+i+'][id]'" :value="b.id || ''">
+                        <div class="grid gap-2 md:grid-cols-2">
+                            <input :name="'hero_side['+i+'][title]'" x-model="b.title" placeholder="Title" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'hero_side['+i+'][subtitle]'" x-model="b.subtitle" placeholder="Short subtitle" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'hero_side['+i+'][badge_text]'" x-model="b.badge_text" placeholder="Badge (optional)" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'hero_side['+i+'][discount_badge]'" x-model="b.discount_badge" placeholder="Corner label (optional)" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'hero_side['+i+'][button_url]'" x-model="b.button_url" placeholder="Link URL" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'hero_side['+i+'][button_text]'" x-model="b.button_text" placeholder="CTA text" class="rounded-lg border-slate-200 text-sm">
+                            <select :name="'hero_side['+i+'][theme]'" x-model="b.theme" class="rounded-lg border-slate-200 text-sm">
+                                <option value="dark">Dark card</option>
+                                <option value="light">Light card</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <template x-if="b.preview">
+                                    <img :src="b.preview" alt="" class="h-14 w-14 rounded-lg object-cover border border-slate-200 bg-white">
+                                </template>
+                                <div>
+                                    <label class="text-[11px] font-bold uppercase text-slate-500">Card image</label>
+                                    <input type="file" :name="'hero_side['+i+'][image]'" accept="image/jpeg,image/png,image/webp,image/gif" class="mt-1 block text-sm"
+                                           @change="
+                                                const file = $event.target.files && $event.target.files[0];
+                                                if (b._blob) { URL.revokeObjectURL(b._blob); b._blob = null; }
+                                                if (file) {
+                                                    b._blob = URL.createObjectURL(file);
+                                                    b.preview = b._blob;
+                                                }
+                                           ">
+                                </div>
+                            </div>
+                            <input type="number" :name="'hero_side['+i+'][sort_order]'" x-model="b.sort_order" class="w-20 rounded-lg border-slate-200 text-sm" title="Sort order">
+                            <label class="flex items-center gap-1 text-xs font-semibold text-slate-600">
+                                <input type="checkbox" :name="'hero_side['+i+'][is_active]'" value="1" x-model="b.is_active" class="rounded border-slate-300"> Active
+                            </label>
+                            <button type="button" @click="heroSide.splice(i,1)" class="text-xs font-bold text-rose-600">Remove</button>
+                        </div>
+                    </div>
+                </template>
+                <p x-show="heroSide.length === 0" class="text-sm text-slate-400 py-2" x-cloak>No hero side cards yet. Add up to 2 cards for the homepage hero.</p>
             </div>
         </div>
 
