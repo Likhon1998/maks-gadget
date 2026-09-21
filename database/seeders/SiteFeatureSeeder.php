@@ -18,26 +18,26 @@ class SiteFeatureSeeder extends Seeder
         $features = [
             [
                 'icon' => 'truck',
-                'title' => 'Free Shipping',
-                'subtitle' => 'On orders over ৳10,000',
+                'title' => 'Free Delivery',
+                'subtitle' => 'Orders over ৳10,000',
                 'sort_order' => 1,
             ],
             [
                 'icon' => 'return',
-                'title' => '30-Day Returns',
-                'subtitle' => 'Hassle-free returns',
+                'title' => 'Easy Returns',
+                'subtitle' => '30-day unused policy',
                 'sort_order' => 2,
             ],
             [
                 'icon' => 'lock',
                 'title' => 'Cash on Delivery',
-                'subtitle' => 'Pay when you receive',
+                'subtitle' => 'Pay when you unbox',
                 'sort_order' => 3,
             ],
             [
                 'icon' => 'shield',
-                'title' => 'Official Warranty',
-                'subtitle' => 'On eligible products',
+                'title' => 'Genuine Warranty',
+                'subtitle' => 'Sealed gadgets only',
                 'sort_order' => 4,
             ],
         ];

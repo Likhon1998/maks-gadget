@@ -20,11 +20,11 @@ class HeroSlideSeeder extends Seeder
 
         $banners = [
             [
-                'title' => 'The Future of Home Is Now',
-                'badge_text' => 'SMART HOME',
-                'description' => 'Smarter Living. Seamlessly Connected.',
+                'title' => 'Upgrade Your Digital Life',
+                'badge_text' => 'MAKS GADGET',
+                'description' => 'Phones, laptops, audio & more — sealed and ready to ship.',
                 'price_from' => null,
-                'button_text' => 'Explore the Future',
+                'button_text' => 'Shop Gadgets',
                 'button_url' => '/shop',
                 'learn_more_text' => 'Learn More',
                 'learn_more_url' => '/shop',
@@ -34,10 +34,10 @@ class HeroSlideSeeder extends Seeder
             ],
             [
                 'title' => 'iPhone 16 Pro Max',
-                'badge_text' => 'NEW ARRIVAL',
-                'description' => 'Titanium design. Pro camera. All-day battery.',
+                'badge_text' => 'FLAGSHIP',
+                'description' => 'Titanium. Pro camera. All-day battery.',
                 'price_from' => 139900,
-                'button_text' => 'Shop Now',
+                'button_text' => 'Shop iPhone',
                 'button_url' => '/shop?search=iphone',
                 'learn_more_text' => 'Learn More',
                 'learn_more_url' => '/shop?filter=new',
@@ -48,7 +48,7 @@ class HeroSlideSeeder extends Seeder
             [
                 'title' => 'MacBook Air M3',
                 'badge_text' => 'BEST SELLER',
-                'description' => 'Impressively thin. Supercharged by Apple M3.',
+                'description' => 'Impressively thin. Supercharged for work & play.',
                 'price_from' => 119900,
                 'button_text' => 'Shop Laptops',
                 'button_url' => '/shop?search=macbook',
@@ -60,7 +60,7 @@ class HeroSlideSeeder extends Seeder
             ],
             [
                 'title' => 'Galaxy Watch Ultra',
-                'badge_text' => 'HOT DEAL',
+                'badge_text' => 'WEARABLES',
                 'description' => 'Adventure-ready tracking with premium battery.',
                 'price_from' => 59900,
                 'button_text' => 'Shop Watches',
@@ -74,9 +74,9 @@ class HeroSlideSeeder extends Seeder
             [
                 'title' => 'Premium Audio Sale',
                 'badge_text' => 'UP TO 22% OFF',
-                'description' => 'Headphones and earbuds from top brands — check live deal prices in shop.',
+                'description' => 'Sony, Bose & JBL headphones — live deal prices in shop.',
                 'price_from' => 5900,
-                'button_text' => 'Shop Deals',
+                'button_text' => 'Shop Audio Deals',
                 'button_url' => '/shop?filter=deals',
                 'learn_more_text' => 'Learn More',
                 'learn_more_url' => '/shop',

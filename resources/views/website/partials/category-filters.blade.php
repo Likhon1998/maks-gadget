@@ -1,5 +1,13 @@
-<form method="GET" action="{{ route('website.category', $activeCategory->slug ?? $activeCategory->id) }}" class="gaget-filter-sidebar" data-gs-sidebar-slot x-data="{ open: true }">
-    <div class="gaget-filter-sidebar-pin" data-gs-sidebar-pin>
+<aside class="gs-sidebar gaget-filter-sidebar-wrap" data-gs-sidebar-slot x-data="{ filtersOpen: {{ request()->hasAny(['brands', 'storage', 'ram', 'min_price', 'max_price', 'color']) ? 'true' : 'false' }} }" :class="{ 'is-open': filtersOpen }">
+    <button type="button"
+            class="gs-filters-toggle"
+            @click="filtersOpen = !filtersOpen"
+            :aria-expanded="filtersOpen.toString()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 12h12M10 20h4"/></svg>
+        <span x-text="filtersOpen ? 'Hide filters' : 'Filters'"></span>
+    </button>
+<form method="GET" action="{{ route('website.category', $activeCategory->slug ?? $activeCategory->id) }}" class="gaget-filter-sidebar gs-sidebar-pin" data-gs-sidebar-pin data-shop-filters>
+    <div class="gaget-filter-sidebar-pin">
     @if(request('sort'))
         <input type="hidden" name="sort" value="{{ request('sort') }}">
     @endif
@@ -59,3 +67,4 @@
     </div>
     </div>
 </form>
+</aside>

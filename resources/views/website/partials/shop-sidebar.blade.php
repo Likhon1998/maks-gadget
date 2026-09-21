@@ -17,7 +17,14 @@
     $visibleBrands = 5;
 @endphp
 
-<aside class="gs-sidebar" data-gs-sidebar-slot>
+<aside class="gs-sidebar" data-gs-sidebar-slot x-data="{ filtersOpen: {{ request()->hasAny(['brands', 'storage', 'ram', 'min_price', 'max_price', 'category']) ? 'true' : 'false' }} }" :class="{ 'is-open': filtersOpen }">
+    <button type="button"
+            class="gs-filters-toggle"
+            @click="filtersOpen = !filtersOpen"
+            :aria-expanded="filtersOpen.toString()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 12h12M10 20h4"/></svg>
+        <span x-text="filtersOpen ? 'Hide filters' : 'Filters & categories'"></span>
+    </button>
     <div class="gs-sidebar-pin" data-gs-sidebar-pin>
     <form method="GET"
           action="{{ route('website.shop') }}"

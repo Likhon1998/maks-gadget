@@ -245,9 +245,14 @@
         active: {{ $coverStart }},
         total: {{ $coverTotal }},
         timer: null,
+        dragging: false,
+        dragMoved: false,
+        dragStartX: 0,
+        dragDelta: 0,
         go(i) {
             if (this.total < 1) return;
             this.active = ((i % this.total) + this.total) % this.total;
+            this.arm();
         },
         next() { this.go(this.active + 1); },
         prev() { this.go(this.active - 1); },
@@ -270,12 +275,57 @@
             const scale = Math.max(0.72, 1 - abs * 0.1);
             const z = 50 - abs;
             const opacity = abs === 0 ? 1 : (abs === 1 ? 0.92 : (abs === 2 ? 0.7 : 0.42));
-            return `transform: translate(-50%, -50%) translateX(${x}%) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:${opacity};`;
+            const dragNudge = this.dragging ? (this.dragDelta * 0.12) : 0;
+            return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:${opacity};`;
         },
         arm() {
             clearInterval(this.timer);
+            if (this.total < 2 || this.dragging) return;
+            this.timer = setInterval(() => { this.next(); }, 4200);
+        },
+        onPointerDown(e) {
             if (this.total < 2) return;
-            this.timer = setInterval(() => { this.next(); }, 3200);
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            this.dragging = true;
+            this.dragMoved = false;
+            this.dragStartX = e.clientX;
+            this.dragDelta = 0;
+            clearInterval(this.timer);
+            try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
+        },
+        onPointerMove(e) {
+            if (!this.dragging) return;
+            this.dragDelta = e.clientX - this.dragStartX;
+            if (Math.abs(this.dragDelta) > 10) this.dragMoved = true;
+        },
+        onPointerUp(e) {
+            if (!this.dragging) return;
+            this.dragging = false;
+            const threshold = Math.min(72, Math.max(40, window.innerWidth * 0.12));
+            if (this.dragDelta <= -threshold) this.next();
+            else if (this.dragDelta >= threshold) this.prev();
+            else this.arm();
+            this.dragDelta = 0;
+            try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
+            // Keep dragMoved true briefly so card click does not navigate after a swipe
+            if (this.dragMoved) {
+                setTimeout(() => { this.dragMoved = false; }, 80);
+            }
+        },
+        openCategory(url) {
+            if (this.dragMoved || this.dragging) return;
+            window.location.href = url;
+        },
+        onWheel(e) {
+            if (this.total < 2) return;
+            const dominant = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+            if (!dominant) return;
+            e.preventDefault();
+            if (this._wheelLock) return;
+            this._wheelLock = true;
+            if (dominant > 0) this.next();
+            else this.prev();
+            setTimeout(() => { this._wheelLock = false; }, 420);
         }
     }"
     x-init="arm()"
@@ -324,7 +374,17 @@
         </div>
     </div>
 
-    <div class="mg-cover-stage">
+    <div
+        class="mg-cover-stage"
+        :class="{ 'is-dragging': dragging }"
+        @pointerdown="onPointerDown($event)"
+        @pointermove="onPointerMove($event)"
+        @pointerup="onPointerUp($event)"
+        @pointercancel="onPointerUp($event)"
+        @wheel="onWheel($event)"
+        role="region"
+        aria-label="Swipe or drag categories"
+    >
         <div class="mg-cover-track" aria-live="polite">
             @foreach($coverCats as $i => $category)
                 @php
@@ -341,16 +401,16 @@
                 @endphp
                 <article
                     class="mg-cover-card {{ $theme }}"
-                    :class="{ 'is-active': active === {{ $i }} }"
+                    :class="{ 'is-active': active === {{ $i }}, 'is-dragging': dragging }"
                     :style="styleFor({{ $i }})"
-                    @click="window.location.href = @js($url)"
+                    @click="openCategory(@js($url))"
                     role="link"
                     tabindex="0"
-                    @keydown.enter.prevent="window.location.href = @js($url)"
+                    @keydown.enter.prevent="openCategory(@js($url))"
                     aria-label="{{ $category->name }}"
                 >
                     <div class="mg-cover-media">
-                        <img src="{{ $img }}" alt="{{ $category->name }}" class="mg-cover-img" loading="lazy" decoding="async">
+                        <img src="{{ $img }}" alt="{{ $category->name }}" class="mg-cover-img" loading="lazy" decoding="async" draggable="false">
                     </div>
                     <div class="mg-cover-veil" aria-hidden="true"></div>
                     <div class="mg-cover-shine" aria-hidden="true"></div>
@@ -374,6 +434,7 @@
                 </article>
             @endforeach
         </div>
+        <p class="mg-cover-hint" aria-hidden="true">Drag or swipe</p>
     </div>
 </section>
 @endif

@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\CmsFaq;
+use App\Models\CmsFaqCategory;
 use App\Models\CmsPage;
 use App\Models\CmsReview;
 use App\Models\Product;
@@ -22,6 +24,7 @@ class DemoStorefrontSeeder extends Seeder
         $this->seedReviews($shop->id);
         $this->seedPages($shop->id);
         app(WebsiteService::class)->faqCategories();
+        $this->seedFaqs($shop->id);
 
         $this->command?->info('Demo storefront extras ready (sales, reviews, pages, FAQs).');
     }
@@ -187,6 +190,48 @@ class DemoStorefrontSeeder extends Seeder
                     'show_in_footer' => true,
                     'is_published' => true,
                 ])
+            );
+        }
+    }
+
+    private function seedFaqs(int $shopId): void
+    {
+        $categories = CmsFaqCategory::where('shop_id', $shopId)->get()->keyBy('slug');
+        if ($categories->isEmpty()) {
+            return;
+        }
+
+        $faqs = [
+            ['slug' => 'orders-payments', 'q' => 'Do you offer Cash on Delivery (COD)?', 'a' => 'Yes. Most orders across our Bangladesh delivery area support Cash on Delivery. You pay when the parcel arrives and you verify the sealed package.', 'sort' => 1],
+            ['slug' => 'orders-payments', 'q' => 'Can I reserve a phone or laptop before paying?', 'a' => 'Online COD orders reserve stock until packed or cancelled. For high-demand flagships, contact support to confirm live stock before placing the order.', 'sort' => 2],
+            ['slug' => 'shipping-delivery', 'q' => 'How long does delivery take in Dhaka?', 'a' => 'Most Dhaka orders placed before 4 PM are prepared the same day and typically arrive within 1–2 working days, depending on your area and courier schedule.', 'sort' => 1],
+            ['slug' => 'shipping-delivery', 'q' => 'Is delivery free?', 'a' => 'Delivery is free on eligible orders over ৳10,000. Smaller orders show zone-based delivery charges at checkout before you confirm.', 'sort' => 2],
+            ['slug' => 'returns-refunds', 'q' => 'What is your return policy on gadgets?', 'a' => 'Unused products in original sealed packaging can usually be returned within 30 days. Opened earbuds, software, and special-order items may be excluded — details are listed on each product page.', 'sort' => 1],
+            ['slug' => 'products-warranty', 'q' => 'Are your gadgets original with warranty?', 'a' => 'Yes. We sell sealed, authentic devices. Manufacturer or store warranty details appear on the product page. Keep your invoice for any warranty claim.', 'sort' => 1],
+            ['slug' => 'products-warranty', 'q' => 'Can I check IMEI / serial before buying?', 'a' => 'For phones and laptops, our team can help you verify authenticity after purchase. Contact support with your Order ID if you need assistance.', 'sort' => 2],
+            ['slug' => 'promotions-discounts', 'q' => 'How do flash sales work?', 'a' => 'Flash sale prices are time-limited and shown on the product card while the deal is active. Stock is limited — once it ends, the regular price returns.', 'sort' => 1],
+            ['slug' => 'account-security', 'q' => 'Do I need an account to order?', 'a' => 'You can browse without an account. Creating an account helps you track orders faster and save delivery details for next time.', 'sort' => 1],
+            ['slug' => 'others', 'q' => 'Do you help choose the right gadget?', 'a' => 'Absolutely. Tell us your budget and use-case (gaming, study, photography, office) via WhatsApp or the contact form — we will recommend suitable models in stock.', 'sort' => 1],
+        ];
+
+        foreach ($faqs as $faq) {
+            $category = $categories->get($faq['slug']);
+            if (! $category) {
+                continue;
+            }
+
+            CmsFaq::updateOrCreate(
+                [
+                    'shop_id' => $shopId,
+                    'question' => $faq['q'],
+                ],
+                [
+                    'category_id' => $category->id,
+                    'category' => $category->name,
+                    'answer' => $faq['a'],
+                    'sort_order' => $faq['sort'],
+                    'is_published' => true,
+                ]
             );
         }
     }
