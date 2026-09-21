@@ -20,8 +20,8 @@
                         <td class="px-5 py-3 font-semibold text-gray-900">{{ $row->customer?->name ?? 'Unknown' }}</td>
                         <td class="px-5 py-3 text-gray-500">{{ $row->customer?->phone ?? '—' }}</td>
                         <td class="px-5 py-3 text-right font-medium">{{ $row->orders }}</td>
-                        <td class="px-5 py-3 text-right font-bold text-indigo-600">৳{{ number_format($row->revenue, 2) }}</td>
-                        <td class="px-5 py-3 text-right text-amber-600 font-medium">৳{{ number_format($row->discounts, 2) }}</td>
+                        <td class="px-5 py-3 text-right font-bold text-indigo-600">{{ format_taka($row->revenue) }}</td>
+                        <td class="px-5 py-3 text-right text-amber-600 font-medium">{{ format_taka($row->discounts) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="5" class="px-5 py-10 text-center text-gray-400">No customer sales in this period.</td></tr>

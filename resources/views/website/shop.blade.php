@@ -211,6 +211,33 @@ document.addEventListener('click', function (event) {
         root._x_dataStack[0].setCategory(cat.dataset.category || '');
     }
 }, true);
+
+window.bindShopProductScroll = function () {
+    const main = document.querySelector('.gs-main');
+    if (!main || main.dataset.scrollBound === '1') return;
+    main.dataset.scrollBound = '1';
+
+    main.addEventListener('wheel', function (e) {
+        if (window.innerWidth <= 900) return;
+
+        const canScroll = main.scrollHeight > main.clientHeight + 2;
+        if (!canScroll) return;
+
+        const delta = e.deltaY;
+        const atTop = main.scrollTop <= 0;
+        const atBottom = main.scrollTop + main.clientHeight >= main.scrollHeight - 2;
+
+        // Still have product content to scroll — keep page locked
+        if ((delta > 0 && !atBottom) || (delta < 0 && !atTop)) {
+            e.preventDefault();
+            main.scrollTop += delta;
+        }
+        // At end/start in that direction — allow page scroll so footer can appear
+    }, { passive: false });
+};
+
+document.addEventListener('DOMContentLoaded', window.bindShopProductScroll);
+requestAnimationFrame(window.bindShopProductScroll);
 </script>
 
 <div class="gs-shop"

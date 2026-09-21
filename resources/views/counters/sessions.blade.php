@@ -75,12 +75,12 @@
                         <div class="min-w-0">
                             <p class="font-bold text-slate-900">{{ $session->counter->name }}</p>
                             <p class="text-[11px] text-slate-500 mt-0.5">
-                                {{ $session->opened_at->format('M j, g:i A') }} · {{ $session->opener->name ?? '—' }} · Start ৳{{ number_format($session->opening_cash, 2) }}
+                                {{ $session->opened_at->format('M j, g:i A') }} · {{ $session->opener->name ?? '—' }} · Start {{ format_taka($session->opening_cash) }}
                             </p>
                             <div class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
-                                <span class="font-semibold text-slate-700">Sales ৳{{ number_format($stats['total_sales'], 2) }}</span>
+                                <span class="font-semibold text-slate-700">Sales {{ format_taka($stats['total_sales']) }}</span>
                                 <span class="text-slate-500">{{ $stats['order_count'] }} orders</span>
-                                <span class="text-emerald-700 font-semibold">Expected ৳{{ number_format($expected, 2) }}</span>
+                                <span class="text-emerald-700 font-semibold">Expected {{ format_taka($expected) }}</span>
                             </div>
                         </div>
                         <a href="{{ route('counters.sessions.close-form', $session) }}"
@@ -108,7 +108,7 @@
                     <select name="from_counter_id" required class="w-full text-sm rounded-lg border-slate-200 py-1.5">
                         @foreach($openSessions as $session)
                             <option value="{{ $session->counter_id }}" @selected(old('from_counter_id') == $session->counter_id)>
-                                {{ $session->counter->name }} (≈ ৳{{ number_format($live[$session->counter_id]['expected'] ?? $session->opening_cash, 2) }})
+                                {{ $session->counter->name }} (≈ {{ format_taka($live[$session->counter_id]['expected'] ?? $session->opening_cash) }})
                             </option>
                         @endforeach
                     </select>
@@ -169,21 +169,21 @@
                                 </td>
                                 <td class="px-2 py-2 text-right font-semibold">
                                     @if($session->status === 'closed')
-                                        ৳{{ number_format($session->total_sales, 2) }}
+                                        {{ format_taka($session->total_sales) }}
                                         <span class="block text-[10px] text-slate-400 font-medium">{{ $session->order_count }} orders</span>
                                     @else
                                         —
                                     @endif
                                 </td>
                                 <td class="px-2 py-2 text-right text-xs text-slate-600">
-                                    ৳{{ number_format($session->opening_cash, 2) }}
+                                    {{ format_taka($session->opening_cash) }}
                                     @if($session->status === 'closed')
-                                        → ৳{{ number_format($session->closing_cash, 2) }}
+                                        → {{ format_taka($session->closing_cash) }}
                                     @endif
                                 </td>
                                 <td class="px-2 py-2 text-right font-semibold {{ ($session->variance ?? 0) < 0 ? 'text-red-600' : (($session->variance ?? 0) > 0 ? 'text-emerald-600' : 'text-slate-500') }}">
                                     @if($session->status === 'closed')
-                                        ৳{{ number_format($session->variance, 2) }}
+                                        {{ format_taka($session->variance) }}
                                     @else
                                         —
                                     @endif

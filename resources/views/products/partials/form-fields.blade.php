@@ -383,8 +383,8 @@
                             Offer ≈
                             <span class="font-bold text-rose-700"
                                   x-text="'Tk ' + (dtype === 'percent'
-                                    ? Math.max(0, Number(selling) * (1 - Number(dval)/100)).toFixed(2)
-                                    : Math.max(0, Number(selling) - Number(dval)).toFixed(2))"></span>
+                                    ? Math.round(Math.max(0, Number(selling) * (1 - Number(dval)/100))).toLocaleString()
+                                    : Math.round(Math.max(0, Number(selling) - Number(dval))).toLocaleString())"></span>
                         </p>
                     </div>
                 </div>

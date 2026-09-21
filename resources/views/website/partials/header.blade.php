@@ -6,10 +6,20 @@
         ? (@filemtime(public_storage_path($headerIconPath)) ?: time())
         : time();
     $navLinks = $mainNav ?? collect();
+    $topLinks = $topBarNav ?? collect();
     $offerText = $settings->special_offer_text ?? 'Special Offer!';
 @endphp
 
-<div class="gaget-sticky-header">
+<div class="gaget-sticky-header{{ $topLinks->isNotEmpty() ? ' has-topbar' : '' }}">
+    @if($topLinks->isNotEmpty())
+        <div class="gaget-topbar">
+            <div class="gaget-topbar-inner">
+                @foreach($topLinks as $link)
+                    <a href="{{ $link->url }}">{{ $link->label }}</a>
+                @endforeach
+            </div>
+        </div>
+    @endif
     <div class="gaget-floatbar-shell">
         <div class="gaget-floatbar">
             {{-- Brand --}}
@@ -46,21 +56,23 @@
                         @php $navLabel = trim((string) $link->label); @endphp
                         @if(strcasecmp($navLabel, 'Categories') === 0 || strcasecmp($navLabel, 'Category') === 0)
                             <div class="gaget-nav-dropdown"
-                                 x-data="{ open: false }"
+                                 x-data="navDropdown()"
                                  :class="{ 'is-open': open }"
-                                 @mouseenter="open = true"
-                                 @mouseleave="open = false"
-                                 @keydown.escape.window="open = false"
-                                 @click.outside="open = false">
+                                 @mouseenter="show()"
+                                 @mouseleave="hide()"
+                                 @focusin="show()"
+                                 @focusout="onFocusOut($event)"
+                                 @keydown.escape.window="close()"
+                                 @click.outside="close()">
                                 <button type="button"
                                         class="gaget-nav-link gaget-nav-link--dropdown"
-                                        @click="open = !open"
+                                        @click="toggle()"
                                         :aria-expanded="open"
                                         aria-haspopup="true">
                                     {{ $link->label }}
                                     <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                <div class="gaget-nav-dropdown-menu" x-show="open" style="display: none;">
+                                <div class="gaget-nav-dropdown-menu" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
                                     <a href="{{ $link->url ?: route('website.shop') }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all">
                                         <span>All categories</span>
                                     </a>
@@ -76,21 +88,23 @@
                             </div>
                         @elseif(strcasecmp($navLabel, 'Brands') === 0 || strcasecmp($navLabel, 'Brand') === 0)
                             <div class="gaget-nav-dropdown"
-                                 x-data="{ open: false }"
+                                 x-data="navDropdown()"
                                  :class="{ 'is-open': open }"
-                                 @mouseenter="open = true"
-                                 @mouseleave="open = false"
-                                 @keydown.escape.window="open = false"
-                                 @click.outside="open = false">
+                                 @mouseenter="show()"
+                                 @mouseleave="hide()"
+                                 @focusin="show()"
+                                 @focusout="onFocusOut($event)"
+                                 @keydown.escape.window="close()"
+                                 @click.outside="close()">
                                 <button type="button"
                                         class="gaget-nav-link gaget-nav-link--dropdown"
-                                        @click="open = !open"
+                                        @click="toggle()"
                                         :aria-expanded="open"
                                         aria-haspopup="true">
                                     {{ $link->label }}
                                     <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                <div class="gaget-nav-dropdown-menu" x-show="open" style="display: none;">
+                                <div class="gaget-nav-dropdown-menu gaget-nav-dropdown-menu--end" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
                                     <a href="{{ $link->url ?: route('home').'#brands' }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all">
                                         <span>All brands</span>
                                     </a>
@@ -106,25 +120,27 @@
                             </div>
                         @elseif(strcasecmp($navLabel, 'Shop') === 0)
                             <div class="gaget-nav-dropdown"
-                                 x-data="{ open: false }"
+                                 x-data="navDropdown()"
                                  :class="{ 'is-open': open }"
-                                 @mouseenter="open = true"
-                                 @mouseleave="open = false"
-                                 @keydown.escape.window="open = false"
-                                 @click.outside="open = false">
+                                 @mouseenter="show()"
+                                 @mouseleave="hide()"
+                                 @focusin="show()"
+                                 @focusout="onFocusOut($event)"
+                                 @keydown.escape.window="close()"
+                                 @click.outside="close()">
                                 <button type="button"
                                         class="gaget-nav-link gaget-nav-link--dropdown {{ request()->routeIs('website.shop') ? 'is-active' : '' }}"
-                                        @click="open = !open"
+                                        @click="toggle()"
                                         :aria-expanded="open"
                                         aria-haspopup="true">
                                     Shop
                                     <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                <div class="gaget-nav-dropdown-menu" x-show="open" style="display: none;">
+                                <div class="gaget-nav-dropdown-menu" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
                                     <a href="{{ route('website.shop') }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all"><span>All products</span></a>
                                     <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-nav-dropdown-item"><span>Deals</span></a>
                                     <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-nav-dropdown-item"><span>New arrivals</span></a>
-                                    <a href="{{ route('website.shop', ['filter'=>'best']) }}" class="gaget-nav-dropdown-item"><span>Best sellers</span></a>
+                                    <a href="{{ route('website.shop', ['filter'=>'bestsellers']) }}" class="gaget-nav-dropdown-item"><span>Best sellers</span></a>
                                 </div>
                             </div>
                         @else
@@ -138,44 +154,48 @@
                         <a href="{{ route('home') }}" class="gaget-nav-link {{ request()->routeIs('home') ? 'is-active' : '' }}">Home</a>
 
                         <div class="gaget-nav-dropdown"
-                             x-data="{ open: false }"
-                             :class="{ 'is-open': open }"
-                             @mouseenter="open = true"
-                             @mouseleave="open = false"
-                             @keydown.escape.window="open = false"
-                             @click.outside="open = false">
+                             x-data="navDropdown()"
+                                 :class="{ 'is-open': open }"
+                                 @mouseenter="show()"
+                                 @mouseleave="hide()"
+                                 @focusin="show()"
+                                 @focusout="onFocusOut($event)"
+                                 @keydown.escape.window="close()"
+                                 @click.outside="close()">
                             <button type="button"
                                     class="gaget-nav-link gaget-nav-link--dropdown {{ request()->routeIs('website.shop') ? 'is-active' : '' }}"
-                                    @click="open = !open"
+                                    @click="toggle()"
                                     :aria-expanded="open"
                                     aria-haspopup="true">
                                 Shop
                                 <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
-                            <div class="gaget-nav-dropdown-menu" x-show="open" style="display: none;">
+                            <div class="gaget-nav-dropdown-menu" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
                                 <a href="{{ route('website.shop') }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all"><span>All products</span></a>
                                 <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-nav-dropdown-item"><span>Deals</span></a>
                                 <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-nav-dropdown-item"><span>New arrivals</span></a>
-                                <a href="{{ route('website.shop', ['filter'=>'best']) }}" class="gaget-nav-dropdown-item"><span>Best sellers</span></a>
+                                <a href="{{ route('website.shop', ['filter'=>'bestsellers']) }}" class="gaget-nav-dropdown-item"><span>Best sellers</span></a>
                             </div>
                         </div>
 
                         <div class="gaget-nav-dropdown"
-                             x-data="{ open: false }"
-                             :class="{ 'is-open': open }"
-                             @mouseenter="open = true"
-                             @mouseleave="open = false"
-                             @keydown.escape.window="open = false"
-                             @click.outside="open = false">
+                             x-data="navDropdown()"
+                                 :class="{ 'is-open': open }"
+                                 @mouseenter="show()"
+                                 @mouseleave="hide()"
+                                 @focusin="show()"
+                                 @focusout="onFocusOut($event)"
+                                 @keydown.escape.window="close()"
+                                 @click.outside="close()">
                             <button type="button"
                                     class="gaget-nav-link gaget-nav-link--dropdown"
-                                    @click="open = !open"
+                                    @click="toggle()"
                                     :aria-expanded="open"
                                     aria-haspopup="true">
                                 Categories
                                 <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
-                            <div class="gaget-nav-dropdown-menu" x-show="open" style="display: none;">
+                            <div class="gaget-nav-dropdown-menu" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
                                 <a href="{{ route('website.shop') }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all"><span>All categories</span></a>
                                 @forelse($allCategories ?? [] as $cat)
                                     <a href="{{ route('website.category', $cat->slug) }}" class="gaget-nav-dropdown-item">
@@ -192,21 +212,23 @@
                         <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-nav-link">New Arrivals</a>
 
                         <div class="gaget-nav-dropdown"
-                             x-data="{ open: false }"
-                             :class="{ 'is-open': open }"
-                             @mouseenter="open = true"
-                             @mouseleave="open = false"
-                             @keydown.escape.window="open = false"
-                             @click.outside="open = false">
+                             x-data="navDropdown()"
+                                 :class="{ 'is-open': open }"
+                                 @mouseenter="show()"
+                                 @mouseleave="hide()"
+                                 @focusin="show()"
+                                 @focusout="onFocusOut($event)"
+                                 @keydown.escape.window="close()"
+                                 @click.outside="close()">
                             <button type="button"
                                     class="gaget-nav-link gaget-nav-link--dropdown"
-                                    @click="open = !open"
+                                    @click="toggle()"
                                     :aria-expanded="open"
                                     aria-haspopup="true">
                                 Brands
                                 <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
-                            <div class="gaget-nav-dropdown-menu" x-show="open" style="display: none;">
+                            <div class="gaget-nav-dropdown-menu gaget-nav-dropdown-menu--end" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
                                 <a href="{{ route('home') }}#brands" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all"><span>All brands</span></a>
                                 @forelse($brands ?? [] as $brand)
                                     <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}" class="gaget-nav-dropdown-item">
@@ -271,7 +293,7 @@
                                         <p class="gaget-search-suggest__name" x-text="item.name"></p>
                                         <p class="gaget-search-suggest__meta" x-text="item.brand || 'Product'"></p>
                                     </div>
-                                    <strong class="gaget-search-suggest__price" x-text="currency + Number(item.price).toFixed(2)"></strong>
+                                    <strong class="gaget-search-suggest__price" x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></strong>
                                 </a>
                             </template>
                         </div>
@@ -304,7 +326,7 @@
                                     <img :src="item.image" :alt="item.name">
                                     <div>
                                         <p x-text="item.name"></p>
-                                        <span x-text="currency + Number(item.price).toFixed(2)"></span>
+                                        <span x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></span>
                                     </div>
                                 </a>
                             </template>
@@ -343,7 +365,7 @@
                                     <img :src="item.image" :alt="item.name">
                                     <div>
                                         <p x-text="item.name"></p>
-                                        <span x-text="item.qty + ' × ' + currency + Number(item.price).toFixed(2)"></span>
+                                        <span x-text="item.qty + ' × ' + currency + Math.round(Number(item.price) || 0).toLocaleString()"></span>
                                     </div>
                                 </div>
                             </template>
@@ -351,7 +373,7 @@
                         <div class="gaget-hover-panel__foot" x-show="cart.length > 0">
                             <div class="gaget-hover-panel__total">
                                 <span>Total</span>
-                                <strong x-text="currency + cartTotal.toFixed(2)"></strong>
+                                <strong x-text="currency + Math.round(Number(cartTotal) || 0).toLocaleString()"></strong>
                             </div>
                             <button type="button" class="gaget-hover-panel__cta" @click="open=false; openCart()">View cart</button>
                         </div>
@@ -469,7 +491,7 @@
                                     <p class="gaget-search-suggest__name" x-text="item.name"></p>
                                     <p class="gaget-search-suggest__meta" x-text="item.brand || 'Product'"></p>
                                 </div>
-                                <strong class="gaget-search-suggest__price" x-text="currency + Number(item.price).toFixed(2)"></strong>
+                                <strong class="gaget-search-suggest__price" x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></strong>
                             </a>
                         </template>
                     </div>
@@ -493,6 +515,64 @@
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
+            @forelse($navLinks as $link)
+                @php $navLabel = trim((string) $link->label); @endphp
+                @if(strcasecmp($navLabel, 'Categories') === 0 || strcasecmp($navLabel, 'Category') === 0)
+                    @if(($allCategories ?? collect())->isNotEmpty())
+                        <div class="gaget-mobile-accordion">
+                            <button type="button"
+                                    class="gaget-mobile-accordion-btn"
+                                    @click="mobileCatsOpen = !mobileCatsOpen; if (mobileCatsOpen) mobileBrandsOpen = false"
+                                    :aria-expanded="mobileCatsOpen"
+                                    :class="{ 'is-open': mobileCatsOpen }">
+                                <span>{{ $link->label }}</span>
+                                <svg class="gaget-mobile-accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="gaget-mobile-accordion-panel" x-show="mobileCatsOpen" x-cloak x-transition.opacity.duration.150ms>
+                                <a href="{{ $link->url ?: route('website.shop') }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All categories</a>
+                                @foreach(($allCategories ?? []) as $cat)
+                                    <a href="{{ route('website.category', $cat->slug) }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">
+                                        <span>{{ $cat->name }}</span>
+                                        @if(($cat->products_count ?? 0) > 0)
+                                            <span class="gaget-mobile-drawer-count">{{ $cat->products_count }}</span>
+                                        @endif
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ $link->url ?: route('website.shop') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
+                    @endif
+                @elseif(strcasecmp($navLabel, 'Brands') === 0 || strcasecmp($navLabel, 'Brand') === 0)
+                    @if(($brands ?? collect())->isNotEmpty())
+                        <div class="gaget-mobile-accordion">
+                            <button type="button"
+                                    class="gaget-mobile-accordion-btn"
+                                    @click="mobileBrandsOpen = !mobileBrandsOpen; if (mobileBrandsOpen) mobileCatsOpen = false"
+                                    :aria-expanded="mobileBrandsOpen"
+                                    :class="{ 'is-open': mobileBrandsOpen }">
+                                <span>{{ $link->label }}</span>
+                                <svg class="gaget-mobile-accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div class="gaget-mobile-accordion-panel" x-show="mobileBrandsOpen" x-cloak x-transition.opacity.duration.150ms>
+                                <a href="{{ $link->url ?: route('home').'#brands' }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
+                                @foreach(($brands ?? []) as $brand)
+                                    <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">
+                                        <span>{{ $brand->name }}</span>
+                                        @if(($brand->products_count ?? $brand->published_count ?? 0) > 0)
+                                            <span class="gaget-mobile-drawer-count">{{ $brand->products_count ?? $brand->published_count }}</span>
+                                        @endif
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @else
+                        <a href="{{ $link->url ?: route('home').'#brands' }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
+                    @endif
+                @else
+                    <a href="{{ $link->url }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
+                @endif
+            @empty
             <a href="{{ route('home') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Home</a>
             <a href="{{ route('website.shop') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Shop</a>
             <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Deals</a>
@@ -548,6 +628,7 @@
                     </div>
                 </div>
             @endif
+            @endforelse
 
             @auth('web')
                 @if(auth('web')->user()->isStorefrontCustomer())

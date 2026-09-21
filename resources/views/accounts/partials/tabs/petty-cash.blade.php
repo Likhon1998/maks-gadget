@@ -2,7 +2,7 @@
     <x-accounts.panel title="Petty Cash" subtitle="Record small expenses from the petty cash account.">
         <div class="px-6 py-5 border-b border-gray-100 bg-indigo-50/70">
             <p class="text-[10px] font-bold text-indigo-500 uppercase">Available Balance</p>
-            <p class="text-3xl font-black text-indigo-600 mt-1">৳{{ number_format($pettyBalance, 2) }}</p>
+            <p class="text-3xl font-black text-indigo-600 mt-1">{{ format_taka($pettyBalance) }}</p>
         </div>
 
         <form action="{{ route('accounts.petty-cash.store') }}" method="POST" class="p-6 space-y-4">

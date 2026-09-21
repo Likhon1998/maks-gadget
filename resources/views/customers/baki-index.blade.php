@@ -32,7 +32,7 @@
             <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 shadow-sm flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
                 <div>
                     <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Total outstanding</p>
-                    <p class="mt-1 text-3xl font-black text-amber-900">৳{{ number_format($totalOutstanding, 2) }}</p>
+                    <p class="mt-1 text-3xl font-black text-amber-900">{{ format_taka($totalOutstanding) }}</p>
                     <p class="mt-1 text-xs text-amber-700/80">{{ $customers->count() }} customer(s) with baki</p>
                 </div>
                 <p class="text-xs font-semibold text-amber-800/90 max-w-sm">
@@ -55,7 +55,7 @@
                             <tr class="hover:bg-slate-50/80">
                                 <td class="px-4 py-3 font-semibold text-slate-900">{{ $customer->name }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $customer->phone ?: '—' }}</td>
-                                <td class="px-4 py-3 text-right font-bold text-amber-700">৳{{ number_format((float) $customer->baki_balance, 2) }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-amber-700">{{ format_taka((float) $customer->baki_balance) }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="inline-flex items-center gap-2">
                                         <button type="button"

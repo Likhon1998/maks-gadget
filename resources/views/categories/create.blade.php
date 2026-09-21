@@ -10,12 +10,22 @@
             
             <div class="md:col-span-2">
                 <div class="bg-white p-6 shadow-sm sm:rounded-lg border border-gray-100">
-                    <form action="{{ route('categories.store') }}" method="POST">
+                    <form action="{{ route('categories.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div>
                             <x-input-label for="name" :value="__('Category Name')" />
                             <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name')" required autofocus placeholder="e.g. Battery, Smart Phone, Charger" />
                             <x-input-error class="mt-2" :messages="$errors->get('name')" />
+                        </div>
+
+                        <div class="mt-4">
+                            <x-input-label for="description" :value="__('Cover tagline (homepage)')" />
+                            <x-text-input id="description" name="description" type="text" class="mt-1 block w-full" :value="old('description')" placeholder="e.g. Power in your pocket." />
+                        </div>
+
+                        <div class="mt-4">
+                            <x-input-label for="image" :value="__('Cover image')" />
+                            <input id="image" name="image" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700">
                         </div>
 
                         @include('categories.partials.icon-picker')

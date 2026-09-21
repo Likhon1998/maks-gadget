@@ -11,79 +11,85 @@
         $pageIds = $products->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
     @endphp
 
-    <div class="w-full min-w-0 pb-6 text-[12px] leading-snug text-slate-700"
+    <div class="w-full min-w-0 pb-4 text-[12px] leading-snug text-slate-700"
          x-data="productSales(@js($pageIds), @js(route('products.barcodes.print')))"
          style="--pl-blue:#4F46E5;--pl-sale:#EF4444;--pl-green:#10B981;--pl-amber:#F59E0B;--pl-purple:#8B5CF6;--pl-sky:#3B82F6;">
 
-        {{-- Page header --}}
-        <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-3 mb-3.5">
-            <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-[var(--pl-blue)] shrink-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                        </svg>
-                    </span>
-                    <h1 class="text-[15px] font-semibold text-slate-900 tracking-tight">Product List</h1>
-                </div>
-                <p class="mt-1 text-[11px] text-slate-500 pl-9">Catalog for POS and the online store. Tick New / Trend to show products on those homepage sections.</p>
-            </div>
+        {{-- Compact top bar --}}
+        <div class="mb-2 flex flex-wrap items-center gap-1.5">
+            <h1 class="mr-1 text-[15px] font-semibold tracking-tight text-slate-900">Product List</h1>
 
-            <div class="flex flex-wrap items-center gap-1.5">
+            <a href="{{ route('products.create') }}"
+               class="inline-flex items-center gap-1 rounded-md bg-[var(--pl-blue)] px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm hover:bg-indigo-700">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
+                Add Product
+            </a>
+
+            <div class="ml-auto flex flex-wrap items-center gap-1">
                 <button type="button" @click="openBrandSale()"
-                        class="inline-flex items-center gap-1 rounded-lg border border-rose-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-[var(--pl-sale)] hover:bg-rose-50 transition">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
-                    </svg>
+                        class="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-white px-2 py-1 text-[11px] font-medium text-[var(--pl-sale)] hover:bg-rose-50">
                     Brand sale
                 </button>
                 <button type="button" @click="openBrandEndSale()"
-                        class="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 transition">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    End brand sale
+                        class="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50">
+                    End sale
                 </button>
                 <a href="{{ route('supply.opening-inventory.index') }}"
-                   class="inline-flex items-center gap-1 rounded-lg border border-emerald-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-emerald-600 hover:bg-emerald-50 transition">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                   class="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-white px-2 py-1 text-[11px] font-medium text-emerald-700 hover:bg-emerald-50">
                     Opening Stock
                 </a>
                 <a href="{{ route('supply.adjustments.index') }}"
-                   class="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-amber-600 hover:bg-amber-50 transition">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    Adjust Stock
+                   class="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-white px-2 py-1 text-[11px] font-medium text-amber-700 hover:bg-amber-50">
+                    Adjust
                 </a>
                 <a href="{{ route('products.barcodes') }}"
-                   class="inline-flex items-center gap-1 rounded-lg border border-sky-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-sky-600 hover:bg-sky-50 transition">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10M8 4v16M12 7v10M16 5v14M20 8v8"/></svg>
-                    Print Barcodes
+                   class="inline-flex items-center gap-1 rounded-md border border-sky-200 bg-white px-2 py-1 text-[11px] font-medium text-sky-700 hover:bg-sky-50">
+                    Barcodes
                 </a>
                 <a href="{{ route('products.import') }}"
-                   class="inline-flex items-center gap-1 rounded-lg border border-violet-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-violet-600 hover:bg-violet-50 transition">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                    Import CSV
+                   class="inline-flex items-center gap-1 rounded-md border border-violet-200 bg-white px-2 py-1 text-[11px] font-medium text-violet-700 hover:bg-violet-50">
+                    Import
                 </a>
             </div>
         </div>
 
-        <div class="mb-3.5">
-            <a href="{{ route('products.create') }}"
-               class="inline-flex items-center gap-1.5 rounded-lg bg-[var(--pl-blue)] text-white px-3 py-1.5 text-[12px] font-semibold hover:bg-indigo-700 transition shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 4v16m8-8H4"/></svg>
-                Add Product
-            </a>
+        {{-- Compact KPI strip --}}
+        <div class="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1.5 text-[11px] shadow-sm">
+            <span class="inline-flex items-center gap-1 text-slate-600">
+                <span class="font-medium text-slate-400">Products</span>
+                <span class="font-semibold tabular-nums text-slate-900">{{ number_format($stats['total_products']) }}</span>
+            </span>
+            <span class="hidden h-3 w-px bg-slate-200 sm:block" aria-hidden="true"></span>
+            <span class="inline-flex items-center gap-1 text-slate-600">
+                <span class="font-medium text-slate-400">Stock</span>
+                <span class="font-semibold tabular-nums text-slate-900">{{ number_format($stats['total_stock']) }}</span>
+            </span>
+            <span class="hidden h-3 w-px bg-slate-200 sm:block" aria-hidden="true"></span>
+            <span class="inline-flex items-center gap-1 text-slate-600">
+                <span class="font-medium text-slate-400">Value</span>
+                <span class="font-semibold tabular-nums text-slate-900">Tk {{ number_format($stats['total_value'], 0) }}</span>
+            </span>
+            <span class="hidden h-3 w-px bg-slate-200 sm:block" aria-hidden="true"></span>
+            <span class="inline-flex items-center gap-1 {{ $stats['out_of_stock'] > 0 ? 'text-[var(--pl-sale)]' : 'text-slate-600' }}">
+                <span class="font-medium text-slate-400">Out</span>
+                <span class="font-semibold tabular-nums">{{ number_format($stats['out_of_stock']) }}</span>
+            </span>
+            <span class="hidden h-3 w-px bg-slate-200 sm:block" aria-hidden="true"></span>
+            <span class="inline-flex items-center gap-1 {{ ($stats['on_sale'] ?? 0) > 0 ? 'text-[var(--pl-sale)]' : 'text-slate-600' }}">
+                <span class="font-medium text-slate-400">On sale</span>
+                <span class="font-semibold tabular-nums">{{ number_format($stats['on_sale'] ?? 0) }}</span>
+            </span>
         </div>
 
         @if (session('success'))
             <div data-admin-flash-banner x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-                 class="mb-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 flex items-center justify-between">
+                 class="mb-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 flex items-center justify-between">
                 <span class="text-[12px] font-medium text-emerald-800">{{ session('success') }}</span>
                 <button type="button" @click="show = false" class="text-emerald-600 text-sm leading-none">&times;</button>
             </div>
         @endif
         @if ($errors->any())
-            <div class="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-[12px] text-rose-800">
+            <div class="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-[12px] text-rose-800">
                 <ul class="list-disc pl-4 space-y-0.5">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -92,7 +98,7 @@
             </div>
         @endif
         @if(session('import_errors') && count(session('import_errors')))
-            <div class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
+            <div class="mb-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-[12px] text-amber-900">
                 <p class="font-semibold mb-1">Some CSV rows were skipped:</p>
                 <ul class="list-disc pl-4 space-y-0.5 text-[11px] max-h-36 overflow-y-auto">
                     @foreach(session('import_errors') as $err)
@@ -102,130 +108,42 @@
             </div>
         @endif
 
-        {{-- Summary cards --}}
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 mb-3.5">
-            <div class="rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm flex items-center justify-between gap-2">
-                <div>
-                    <p class="text-[10px] font-medium uppercase tracking-wide text-slate-400">Total Products</p>
-                    <p class="mt-0.5 text-[17px] font-semibold text-slate-900 tabular-nums leading-none">{{ number_format($stats['total_products']) }}</p>
-                </div>
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-violet-50 text-[var(--pl-purple)]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                </span>
-            </div>
-            <div class="rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm flex items-center justify-between gap-2">
-                <div>
-                    <p class="text-[10px] font-medium uppercase tracking-wide text-slate-400">Total Stock</p>
-                    <p class="mt-0.5 text-[17px] font-semibold text-slate-900 tabular-nums leading-none">{{ number_format($stats['total_stock']) }}</p>
-                </div>
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-[var(--pl-sky)]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4m16 0H4"/></svg>
-                </span>
-            </div>
-            <div class="rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm flex items-center justify-between gap-2">
-                <div>
-                    <p class="text-[10px] font-medium uppercase tracking-wide text-slate-400">Total Value</p>
-                    <p class="mt-0.5 text-[15px] font-semibold text-slate-900 tabular-nums leading-tight">Tk {{ number_format($stats['total_value'], 0) }}</p>
-                </div>
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-[var(--pl-green)]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
-            </div>
-            <div class="rounded-xl border border-slate-200/80 bg-white px-3 py-2.5 shadow-sm flex items-center justify-between gap-2">
-                <div>
-                    <p class="text-[10px] font-medium uppercase tracking-wide text-slate-400">Out of Stock</p>
-                    <p class="mt-0.5 text-[17px] font-semibold {{ $stats['out_of_stock'] > 0 ? 'text-[var(--pl-sale)]' : 'text-slate-900' }} tabular-nums leading-none">{{ number_format($stats['out_of_stock']) }}</p>
-                </div>
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[var(--pl-sale)]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-                </span>
-            </div>
-            <div class="rounded-xl border {{ ($stats['on_sale'] ?? 0) > 0 ? 'border-rose-200 bg-rose-50/40' : 'border-slate-200/80 bg-white' }} px-3 py-2.5 shadow-sm flex items-center justify-between gap-2">
-                <div>
-                    <p class="text-[10px] font-medium uppercase tracking-wide text-slate-400">On Sale Now</p>
-                    <p class="mt-0.5 text-[17px] font-semibold {{ ($stats['on_sale'] ?? 0) > 0 ? 'text-[var(--pl-sale)]' : 'text-slate-900' }} tabular-nums leading-none">{{ number_format($stats['on_sale'] ?? 0) }}</p>
-                </div>
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-[var(--pl-sale)]">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
-                </span>
-            </div>
-        </div>
-
         @if($activeBrandSales->isNotEmpty())
-            <div class="mb-3.5 rounded-xl border border-rose-200 bg-gradient-to-r from-rose-50 via-white to-orange-50 shadow-sm overflow-hidden">
-                <div class="px-3.5 py-2.5 border-b border-rose-100/80 flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 min-w-0">
-                        <span class="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500 text-white shrink-0">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
-                        </span>
-                        <div class="min-w-0">
-                            <p class="text-[12px] font-semibold text-rose-900">Active brand sales</p>
-                            <p class="text-[10.5px] text-rose-700/80">
-                                {{ $activeBrandSales->count() }} brand campaign{{ $activeBrandSales->count() === 1 ? '' : 's' }} running
-                                · {{ number_format($stats['on_sale'] ?? 0) }} product{{ ($stats['on_sale'] ?? 0) === 1 ? '' : 's' }} discounted
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-1.5">
+            <div class="mb-2 rounded-lg border border-rose-200 bg-rose-50/50 px-2.5 py-1.5">
+                <div class="flex flex-wrap items-center gap-2">
+                    <p class="text-[11px] font-semibold text-rose-800">
+                        {{ $activeBrandSales->count() }} brand sale{{ $activeBrandSales->count() === 1 ? '' : 's' }} active
+                        · {{ number_format($stats['on_sale'] ?? 0) }} product{{ ($stats['on_sale'] ?? 0) === 1 ? '' : 's' }}
+                    </p>
+                    <div class="ml-auto flex items-center gap-1">
                         <a href="{{ route('products.index', ['status' => 'sale']) }}"
                            data-no-progress
                            @click.prevent="softLoad(@js(route('products.index', ['status' => 'sale'])))"
-                           class="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-50">
-                            View sale products
+                           class="rounded-md border border-rose-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-rose-700 hover:bg-rose-50">
+                            View sale
                         </a>
                         <button type="button" @click="openBrandEndSale()"
-                                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50">
-                            End a brand sale
+                                class="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-medium text-slate-600 hover:bg-slate-50">
+                            End sale
                         </button>
                     </div>
                 </div>
-                <div class="p-2.5 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                <div class="mt-1.5 flex flex-wrap gap-1.5">
                     @foreach($activeBrandSales as $campaign)
                         @php
                             $endsAt = $campaign['ends_at'] ?? null;
                             $endsCarbon = $endsAt ? \Illuminate\Support\Carbon::parse($endsAt) : null;
                             $endsLabel = $endsCarbon
-                                ? $endsCarbon->timezone(config('app.display_timezone', config('app.timezone')))->format('d M Y, h:i A')
+                                ? $endsCarbon->timezone(config('app.display_timezone', config('app.timezone')))->format('d M')
                                 : '—';
-                            $daysLeft = $endsCarbon
-                                ? max(0, (int) floor(now()->diffInSeconds($endsCarbon, false) / 86400))
-                                : null;
                         @endphp
-                        <div class="rounded-lg border border-rose-100 bg-white/90 px-3 py-2.5 shadow-sm">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="min-w-0">
-                                    <p class="text-[12px] font-bold text-slate-900 truncate">{{ $campaign['brand_name'] }}</p>
-                                    <p class="mt-0.5 text-[10.5px] text-slate-500">
-                                        {{ number_format($campaign['product_count']) }} product{{ $campaign['product_count'] === 1 ? '' : 's' }}
-                                        @if($daysLeft !== null)
-                                            · {{ $daysLeft === 0 ? 'Ends today' : ($daysLeft.' day'.($daysLeft === 1 ? '' : 's').' left') }}
-                                        @endif
-                                    </p>
-                                </div>
-                                @if(($campaign['discount_percent'] ?? 0) > 0)
-                                    <span class="shrink-0 inline-flex items-center rounded-md bg-rose-500 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
-                                        −{{ $campaign['discount_percent'] }}%
-                                    </span>
-                                @else
-                                    <span class="shrink-0 inline-flex items-center rounded-md bg-rose-500 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white">
-                                        Sale
-                                    </span>
-                                @endif
-                            </div>
-                            <p class="mt-1.5 text-[10px] font-medium text-rose-700/90">
-                                Ends {{ $endsLabel }}
-                            </p>
-                            @if(!empty($campaign['brand_id']))
-                                <div class="mt-2 flex items-center gap-2">
-                                    <a href="{{ route('products.index', ['status' => 'sale', 'q' => $campaign['brand_name']]) }}"
-                                       data-no-progress
-                                       @click.prevent="softLoad(@js(route('products.index', ['status' => 'sale', 'q' => $campaign['brand_name']])))"
-                                       class="text-[10.5px] font-semibold text-indigo-600 hover:text-indigo-800">
-                                        Filter list →
-                                    </a>
-                                </div>
-                            @endif
-                        </div>
+                        <a href="{{ route('products.index', ['status' => 'sale', 'q' => $campaign['brand_name']]) }}"
+                           data-no-progress
+                           @click.prevent="softLoad(@js(route('products.index', ['status' => 'sale', 'q' => $campaign['brand_name']])))"
+                           class="inline-flex items-center gap-1 rounded-md border border-rose-100 bg-white px-2 py-0.5 text-[10px] text-slate-700 hover:border-rose-300">
+                            <span class="font-semibold">{{ $campaign['brand_name'] }}</span>
+                            <span class="text-slate-400">{{ number_format($campaign['product_count']) }} · ends {{ $endsLabel }}</span>
+                        </a>
                     @endforeach
                 </div>
             </div>
@@ -240,14 +158,15 @@
                   id="product-filters"
                   data-no-progress
                   @submit.prevent="softFilter($event.target)"
-                  class="px-3 py-2.5 border-b border-slate-100">
-                <div class="flex flex-col xl:flex-row xl:items-center gap-2">
+                  class="px-2.5 py-2 border-b border-slate-100">
+                <div class="flex flex-col xl:flex-row xl:items-center gap-1.5">
                     <div class="relative flex-1 min-w-0">
                         <svg class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z"/>
                         </svg>
                         <input type="search" name="q" value="{{ $search ?? request('q') }}"
-                               placeholder="Search by product name, brand, SKU..."
+                               placeholder="Search name, brand, SKU, barcode…"
+                               @input.debounce.350ms="softFilter($event.target.form)"
                                class="w-full rounded-lg border-slate-200 bg-slate-50/70 text-[12px] py-1.5 pl-8 pr-2.5 text-slate-700 placeholder:text-slate-400 focus:border-indigo-400 focus:ring-indigo-400 focus:bg-white">
                     </div>
                     <div class="flex flex-wrap items-center gap-1.5">
@@ -269,13 +188,6 @@
                             <option value="sale" @selected(($status ?? request('status')) === 'sale')>On sale</option>
                             <option value="hidden" @selected(($status ?? request('status')) === 'hidden')>Hidden</option>
                         </select>
-                        <button type="submit"
-                                class="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-50">
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
-                            </svg>
-                            Filters
-                        </button>
                         @if(filled($search ?? null) || request()->filled('category_id') || filled($status ?? null) || request()->filled('status') || request()->filled('q'))
                             <a href="{{ route('products.index') }}"
                                data-no-progress
@@ -285,7 +197,7 @@
                     </div>
                 </div>
                 @if(($status ?? request('status')) === 'sale')
-                    <p class="mt-2 text-[11px] text-rose-600 font-medium">Showing products with an active timed sale only.</p>
+                    <p class="mt-1.5 text-[11px] text-rose-600 font-medium">Showing products with an active timed sale only.</p>
                 @endif
             </form>
 
@@ -408,15 +320,15 @@
                                 </td>
                                 <td class="px-2.5 py-2.5 align-middle whitespace-nowrap">
                                     @if($onSale)
-                                        <div class="text-[12px] font-semibold text-[var(--pl-sale)] tabular-nums">Tk {{ number_format($product->currentPrice(), 2) }}</div>
-                                        <div class="text-[10px] text-slate-400 line-through tabular-nums">Tk {{ number_format($product->selling_price, 2) }}</div>
+                                        <div class="text-[12px] font-semibold text-[var(--pl-sale)] tabular-nums">{{ format_taka($product->currentPrice(), 'Tk ') }}</div>
+                                        <div class="text-[10px] text-slate-400 line-through tabular-nums">{{ format_taka($product->selling_price, 'Tk ') }}</div>
                                     @else
-                                        <div class="text-[12px] font-medium text-slate-900 tabular-nums">Tk {{ number_format($product->selling_price, 2) }}</div>
+                                        <div class="text-[12px] font-medium text-slate-900 tabular-nums">{{ format_taka($product->selling_price, 'Tk ') }}</div>
                                     @endif
                                 </td>
-                                <td class="px-2.5 py-2.5 align-middle whitespace-nowrap text-[11px] text-slate-500 tabular-nums">Tk {{ number_format($product->cost_price, 2) }}</td>
+                                <td class="px-2.5 py-2.5 align-middle whitespace-nowrap text-[11px] text-slate-500 tabular-nums">{{ format_taka($product->cost_price, 'Tk ') }}</td>
                                 <td class="px-2.5 py-2.5 align-middle whitespace-nowrap text-[12px] font-medium text-slate-800 tabular-nums">{{ $product->stock_quantity }}</td>
-                                <td class="px-2.5 py-2.5 align-middle whitespace-nowrap text-[11px] text-slate-700 tabular-nums">Tk {{ number_format($product->cost_price * $product->stock_quantity, 2) }}</td>
+                                <td class="px-2.5 py-2.5 align-middle whitespace-nowrap text-[11px] text-slate-700 tabular-nums">{{ format_taka($product->cost_price * $product->stock_quantity, 'Tk ') }}</td>
                                 <td class="px-2.5 py-2.5 align-middle text-center">
                                     <input type="checkbox"
                                            class="h-3.5 w-3.5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
@@ -493,7 +405,7 @@
                         <p class="text-slate-300 hidden sm:inline">·</p>
                         <p>
                             Page value
-                            <span class="font-semibold text-slate-800 tabular-nums">Tk {{ number_format($products->sum(fn ($p) => $p->cost_price * $p->stock_quantity), 2) }}</span>
+                            <span class="font-semibold text-slate-800 tabular-nums">{{ format_taka($products->sum(fn ($p) => $p->cost_price * $p->stock_quantity), 'Tk ') }}</span>
                         </p>
                     </div>
                     <div class="pl-products-pager text-[11px]">
@@ -543,7 +455,7 @@
                         <p class="mt-1 text-[10px] text-slate-400" x-show="saleProduct && saleForm.percent">
                             Offer ≈
                             <span class="font-semibold text-slate-700"
-                                  x-text="'Tk ' + Number(Math.max(0, Number(saleProduct.selling_price) * (1 - (Number(saleForm.percent || 0) / 100))).toFixed(2)).toLocaleString(undefined, {minimumFractionDigits: 2})"></span>
+                                  x-text="'Tk ' + Math.round(Math.max(0, Number(saleProduct.selling_price) * (1 - (Number(saleForm.percent || 0) / 100)))).toLocaleString()"></span>
                         </p>
                     </div>
                     <div x-show="saleForm.discount_type === 'tk'">

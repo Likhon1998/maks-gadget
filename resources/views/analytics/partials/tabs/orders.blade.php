@@ -47,7 +47,7 @@
                             </td>
                             <td class="px-5 py-3 capitalize text-gray-600">{{ $order->payment_method }}</td>
                             <td class="px-5 py-3 capitalize text-gray-600">{{ $order->status }}</td>
-                            <td class="px-5 py-3 text-right font-bold text-indigo-600">৳{{ number_format($order->total_amount, 2) }}</td>
+                            <td class="px-5 py-3 text-right font-bold text-indigo-600">{{ format_taka($order->total_amount) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="7" class="px-5 py-10 text-center text-gray-400">No orders in this period.</td></tr>

@@ -61,7 +61,7 @@
                     row.name,
                     row.type_label,
                     row.group,
-                    row.balance.toFixed(2),
+                    Math.round(Number(row.balance) || 0).toLocaleString(),
                     row.active ? 'Active' : 'Inactive',
                 ]);
                 const csv = [headers, ...lines].map(cols => cols.map(escape).join(',')).join('\n');

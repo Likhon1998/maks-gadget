@@ -26,7 +26,7 @@ class AutoCloseCounterSessions extends Command
                     '  - %s opened %s · expected ৳%s',
                     $session->counter->name ?? '#'.$session->id,
                     optional($session->opened_at)->timezone($tz)->format('d M Y H:i'),
-                    number_format($expected, 2)
+                    format_taka_number($expected)
                 ));
             }
 

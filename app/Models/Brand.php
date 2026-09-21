@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Brand extends Model
 {
     protected $fillable = [
-        'shop_id', 'name', 'logo_path', 'sort_order', 'is_active',
+        'shop_id', 'name', 'tagline', 'logo_path', 'sort_order', 'is_active',
     ];
 
     protected $casts = [

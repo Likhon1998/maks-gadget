@@ -31,7 +31,7 @@
                         </p>
                     </div>
                     <p class="font-black whitespace-nowrap {{ $row['direction'] === 'in' ? 'text-emerald-700' : 'text-amber-700' }}">
-                        {{ $row['direction'] === 'in' ? '+' : '−' }}৳{{ number_format($row['amount'], 2) }}
+                        {{ $row['direction'] === 'in' ? '+' : '−' }}{{ format_taka($row['amount']) }}
                     </p>
                 </div>
             @endforeach

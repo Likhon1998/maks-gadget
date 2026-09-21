@@ -125,7 +125,7 @@ class CounterSessionService
                 $note = sprintf(
                     'Auto-closed at midnight (%s) with expected drawer cash ৳%s.',
                     $at->timezone(config('app.display_timezone', 'Asia/Dhaka'))->format('d M Y, h:i A'),
-                    number_format($expected, 2)
+                    format_taka_number($expected)
                 );
 
                 $this->closeSession(
@@ -137,7 +137,7 @@ class CounterSessionService
                 );
 
                 $closed++;
-                $details[] = "{$label}: closed at ৳".number_format($expected, 2);
+                $details[] = "{$label}: closed at ৳".format_taka_number($expected);
             } catch (\Throwable $e) {
                 $failed++;
                 $details[] = "{$label}: FAILED — ".$e->getMessage();

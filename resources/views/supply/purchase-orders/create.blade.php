@@ -191,7 +191,7 @@
                     return this.rows.reduce((sum, row) => sum + this.lineTotal(row), 0);
                 },
                 formatMoney(n) {
-                    return '৳' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    return '৳' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                 }
             };
         }

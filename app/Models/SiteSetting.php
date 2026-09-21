@@ -26,6 +26,8 @@ class SiteSetting extends Model
         'contact_map_embed', 'contact_website_url',
         'contact_newsletter_title', 'contact_newsletter_text',
         'trusted_by_text',
+        'footer_tagline',
+        'home_copy',
         'deals_kicker', 'deals_title', 'deals_title_accent', 'deals_subtitle',
         'contact_email', 'contact_phone',
         'contact_address', 'social_links',
@@ -37,6 +39,7 @@ class SiteSetting extends Model
 
     protected $casts = [
         'social_links' => 'array',
+        'home_copy' => 'array',
         'delivery_inside_dhaka' => 'decimal:2',
         'delivery_outside_dhaka' => 'decimal:2',
         'delivery_free_enabled' => 'boolean',

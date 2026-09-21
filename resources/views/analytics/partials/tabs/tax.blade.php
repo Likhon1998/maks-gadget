@@ -2,11 +2,11 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <p class="text-[10px] font-bold text-gray-400 uppercase">Taxable Sales</p>
-            <p class="text-2xl font-black text-gray-900 mt-2">৳{{ number_format($kpis['revenue'], 2) }}</p>
+            <p class="text-2xl font-black text-gray-900 mt-2">{{ format_taka($kpis['revenue']) }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <p class="text-[10px] font-bold text-gray-400 uppercase">Tax Collected</p>
-            <p class="text-2xl font-black text-indigo-600 mt-2">৳{{ number_format($taxTotal, 2) }}</p>
+            <p class="text-2xl font-black text-indigo-600 mt-2">{{ format_taka($taxTotal) }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <p class="text-[10px] font-bold text-gray-400 uppercase">Tax Rate</p>

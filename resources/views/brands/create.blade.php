@@ -15,6 +15,12 @@
                     </div>
 
                     <div class="mt-4">
+                        <x-input-label for="tagline" :value="__('Homepage tagline')" />
+                        <x-text-input id="tagline" name="tagline" type="text" class="mt-1 block w-full" :value="old('tagline')" placeholder="e.g. Phones · Watches · Audio" />
+                        <p class="mt-1 text-xs text-gray-500">Shown under the brand name on the homepage strip.</p>
+                    </div>
+
+                    <div class="mt-4">
                         <x-input-label for="logo" :value="__('Brand Logo (optional)')" />
                         <x-image-file-preview
                             name="logo"

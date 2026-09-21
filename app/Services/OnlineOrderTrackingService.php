@@ -12,10 +12,10 @@ class OnlineOrderTrackingService
     public function statusLabels(): array
     {
         return [
-            'pending' => 'Order received',
-            'pending_fulfillment' => 'Order received',
-            'processing' => 'Packaging',
-            'shipped' => 'Out for delivery',
+            'pending' => 'Received',
+            'pending_fulfillment' => 'Received',
+            'processing' => 'Preparing',
+            'shipped' => 'In transit',
             'completed' => 'Delivered',
             'cancelled' => 'Cancelled',
             'returned' => 'Returned',
@@ -79,7 +79,7 @@ class OnlineOrderTrackingService
         return $this->log(
             $order,
             $order->status ?: 'pending_fulfillment',
-            'We received your order. Our team will confirm and start packing soon.',
+            'Your order has been received and is awaiting confirmation.',
         );
     }
 
@@ -125,10 +125,10 @@ class OnlineOrderTrackingService
                 'label' => $this->statusLabels()[$step],
                 'done' => $isDone || ($isActive && $flowCurrent === 'completed'),
                 'active' => $isActive,
-                'at' => $stepLog?->created_at?->format('d M Y, h:i A')
-                    ?? (($step === 'pending' && ($isDone || $isActive)) ? $order->created_at->format('d M Y, h:i A') : null),
+                'at' => $stepLog?->created_at?->format('d M, h:i A')
+                    ?? (($step === 'pending' && ($isDone || $isActive)) ? $order->created_at->format('d M, h:i A') : null),
                 'note' => $stepLog?->note
-                    ?? (($step === 'pending' && ($isDone || $isActive)) ? 'We received your order. Our team will confirm and start packing soon.' : null)
+                    ?? (($step === 'pending' && ($isDone || $isActive)) ? 'Your order has been received and is awaiting confirmation.' : null)
                     ?? ($isActive ? $this->defaultStatusNote($step) : null),
                 'courier' => $step === 'shipped' ? ($stepLog?->courier_name ?: $order->shipping_courier) : null,
                 'tracking' => $step === 'shipped' ? ($stepLog?->tracking_number ?: $order->shipping_tracking_no) : null,
@@ -141,10 +141,10 @@ class OnlineOrderTrackingService
     protected function defaultStatusNote(string $status): string
     {
         return match ($status) {
-            'pending' => 'We received your order and will start packaging soon.',
-            'processing' => 'Your items are being packed right now.',
-            'shipped' => 'Your package is on the way to your address.',
-            'completed' => 'Order delivered successfully.',
+            'pending' => 'Your order has been received and is awaiting confirmation.',
+            'processing' => 'Your items are being prepared for dispatch.',
+            'shipped' => 'Your package is on the way to the delivery address.',
+            'completed' => 'Delivery completed successfully.',
             default => '',
         };
     }
@@ -160,7 +160,8 @@ class OnlineOrderTrackingService
             'success' => true,
             'order_id' => $order->id,
             'invoice' => $order->invoice_no,
-            'status' => $order->status,
+            'status' => $this->normalizeFlowStatus($order->status),
+            'status_raw' => $order->status,
             'status_label' => $this->statusLabels()[$order->status] ?? ucfirst($order->status),
             'message' => 'Order found!',
             'date' => asian_datetime($order->created_at, 'd M Y, h:i A'),
@@ -169,11 +170,18 @@ class OnlineOrderTrackingService
             'customer_name' => $order->customer?->name,
             'courier' => $order->shipping_courier,
             'tracking_number' => $order->shipping_tracking_no,
-            'items' => $order->items->map(fn ($item) => [
-                'name' => $item->product?->name ?? 'Product',
-                'qty' => (int) $item->quantity,
-                'subtotal' => number_format((float) $item->subtotal, 2),
-            ])->values()->all(),
+            'items' => $order->items->map(function ($item) {
+                $product = $item->product;
+
+                return [
+                    'name' => $product?->name ?? 'Product',
+                    'qty' => (int) $item->quantity,
+                    'subtotal' => number_format((float) $item->subtotal, 2),
+                    'image' => $product
+                        ? app(WebsiteService::class)->productImageUrl($product)
+                        : '',
+                ];
+            })->values()->all(),
             'timeline' => $timeline,
             'updates' => $order->statusLogs->sortByDesc('created_at')->values()->map(fn ($log) => [
                 'status' => $log->status,
@@ -189,17 +197,20 @@ class OnlineOrderTrackingService
 
     protected function whereIsProductMessage(Order $order, ?array $activeStep): string
     {
-        return match ($order->status) {
-            'pending' => 'Your order is with our store team waiting to be confirmed.',
-            'processing' => 'Your order is in packaging — items are being packed at our warehouse.',
+        $status = $this->normalizeFlowStatus($order->status);
+
+        return match ($status) {
+            'pending' => 'We have received your order and will confirm it shortly.',
+            'processing' => 'Your order is being prepared for dispatch.',
             'shipped' => $order->shipping_courier
-                ? "Your package is with {$order->shipping_courier}".($order->shipping_tracking_no ? " (tracking: {$order->shipping_tracking_no})" : '').' and on the way to you.'
-                : 'Your package has left our store and is on the way to your address.',
-            'completed' => 'Your order was delivered. Thank you for shopping with us!',
-            'cancelled' => 'This order was cancelled and will not be delivered.',
-            'returned' => 'This order was returned to our store.',
-            'refunded' => 'This order was refunded.',
-            default => 'We are updating your order status.',
+                ? 'In transit with '.$order->shipping_courier.($order->shipping_tracking_no ? ' · '.$order->shipping_tracking_no : '').'.'
+                : 'Your package is in transit to the delivery address.',
+            'completed' => 'Delivered successfully. Thank you for your purchase.',
+            'cancelled' => 'This order has been cancelled.',
+            'returned' => 'This order has been returned.',
+            'refunded' => 'This order has been refunded.',
+            default => $activeStep['note']
+                ?? 'We have received your order and will share updates as it progresses.',
         };
     }
 

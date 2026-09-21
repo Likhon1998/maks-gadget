@@ -26,7 +26,7 @@
                                 {{ $order->status }}
                             </span>
                         </td>
-                        <td class="p-4">৳{{ number_format($order->total_amount, 2) }}</td>
+                        <td class="p-4">{{ format_taka($order->total_amount) }}</td>
                         <td class="p-4 text-right">
                             <a href="{{ route('supply.purchase-orders.show', $order) }}" class="text-indigo-600 font-bold">
                                 {{ in_array($order->status, ['ordered', 'partial']) ? 'View / Receive' : 'View' }}

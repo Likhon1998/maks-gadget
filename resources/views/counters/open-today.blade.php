@@ -94,11 +94,11 @@
                             <div class="grid grid-cols-2 gap-2 text-sm">
                                 <div class="rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
                                     <p class="text-[10px] font-bold text-slate-400 uppercase">Started with</p>
-                                    <p class="font-bold text-slate-800">৳{{ number_format($staleSession->opening_cash, 2) }}</p>
+                                    <p class="font-bold text-slate-800">{{ format_taka($staleSession->opening_cash) }}</p>
                                 </div>
                                 <div class="rounded-lg bg-slate-50 border border-slate-100 px-3 py-2">
                                     <p class="text-[10px] font-bold text-slate-400 uppercase">Expected now</p>
-                                    <p class="font-bold text-emerald-700">৳{{ number_format($expected, 2) }}</p>
+                                    <p class="font-bold text-emerald-700">{{ format_taka($expected) }}</p>
                                 </div>
                             </div>
                             <form method="POST" action="{{ route('counters.sessions.close', $staleSession) }}" class="space-y-3"

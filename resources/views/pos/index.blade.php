@@ -3848,7 +3848,7 @@ function posSystem() {
             return this.cart.some(i => i.qty >= i.max_stock);
         },
         formatNumber(n) {
-            return parseFloat(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            return Math.round(Number(n) || 0).toLocaleString('en-US');
         },
         getPaymentMethodString() {
             const methods = [];

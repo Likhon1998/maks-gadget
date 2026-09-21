@@ -145,7 +145,7 @@ class BakiService
 
             if ($amount > $balance + 0.009) {
                 throw new InvalidArgumentException(
-                    'Payment cannot exceed baki balance (৳'.number_format($balance, 2).').'
+                    'Payment cannot exceed baki balance (৳'.format_taka_number($balance).').'
                 );
             }
 

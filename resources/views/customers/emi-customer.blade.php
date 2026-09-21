@@ -3,7 +3,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $customer->name }} — EMI plans</h2>
-                <p class="mt-0.5 text-sm text-slate-500">{{ $customer->phone ?: 'No mobile' }} · Outstanding ৳{{ number_format((float) $customer->emi_balance, 2) }}</p>
+                <p class="mt-0.5 text-sm text-slate-500">{{ $customer->phone ?: 'No mobile' }} · Outstanding {{ format_taka((float) $customer->emi_balance) }}</p>
             </div>
             <a href="{{ route('customers.emi.index') }}" class="inline-flex rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-slate-700 shadow-sm hover:bg-slate-50">
                 All EMI
@@ -65,7 +65,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 align-top">{{ $plan->months }} mo</td>
-                                <td class="px-4 py-3 text-right font-bold text-indigo-700 align-top">৳{{ number_format((float) $plan->remaining_amount, 2) }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-indigo-700 align-top">{{ format_taka((float) $plan->remaining_amount) }}</td>
                                 <td class="px-4 py-3 uppercase text-xs font-bold align-top">{{ $plan->status }}</td>
                                 <td class="px-4 py-3 text-right align-top">
                                     <a href="{{ route('customers.emi.show', $plan) }}" class="text-indigo-600 font-semibold hover:underline">Open</a>

@@ -119,7 +119,7 @@
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-slate-500">Subtotal (shop)</dt>
-                            <dd class="font-semibold text-slate-800">Tk {{ number_format($order->shopCollectableAmount(), 2) }}</dd>
+                            <dd class="font-semibold text-slate-800">{{ format_taka($order->shopCollectableAmount(), 'Tk ') }}</dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-slate-500">Delivery (courier keeps)</dt>
@@ -128,27 +128,27 @@
                         @if(($order->confirmation_charge ?? 0) > 0)
                             <div class="flex justify-between gap-3">
                                 <dt class="text-slate-500">Confirmation (in shop)</dt>
-                                <dd class="font-semibold text-emerald-700">Tk {{ number_format((float) $order->confirmation_charge, 2) }}</dd>
+                                <dd class="font-semibold text-emerald-700">{{ format_taka((float) $order->confirmation_charge, 'Tk ') }}</dd>
                             </div>
                         @endif
                         <div class="flex justify-between gap-3 border-t border-slate-100 pt-2">
                             <dt class="font-bold text-slate-900">Customer total</dt>
-                            <dd class="text-[15px] font-extrabold text-slate-900">Tk {{ number_format((float) $order->total_amount, 2) }}</dd>
+                            <dd class="text-[15px] font-extrabold text-slate-900">{{ format_taka((float) $order->total_amount, 'Tk ') }}</dd>
                         </div>
                         <div class="flex justify-between gap-3">
                             <dt class="text-slate-500">Paid (recorded)</dt>
-                            <dd class="font-semibold text-slate-800">Tk {{ number_format((float) $order->paid_amount, 2) }}</dd>
+                            <dd class="font-semibold text-slate-800">{{ format_taka((float) $order->paid_amount, 'Tk ') }}</dd>
                         </div>
                         @if(($dueFromCourier ?? 0) > 0.009)
                             <div class="mt-2 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2.5">
                                 <p class="text-[10px] font-bold uppercase tracking-wide text-sky-600">Due from courier</p>
-                                <p class="text-lg font-black text-sky-900">Tk {{ number_format($dueFromCourier, 2) }}</p>
+                                <p class="text-lg font-black text-sky-900">{{ format_taka($dueFromCourier, 'Tk ') }}</p>
                                 <p class="text-[11px] text-sky-700">{{ $order->courierService?->name ?: ($order->shipping_courier ?: 'Courier') }} holds this product COD</p>
                             </div>
                         @elseif($order->courier_collected_at)
                             <div class="mt-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
                                 <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-600">Collected from courier</p>
-                                <p class="text-sm font-bold text-emerald-900">Tk {{ number_format((float) ($order->courier_collected_amount ?? 0), 2) }}</p>
+                                <p class="text-sm font-bold text-emerald-900">{{ format_taka((float) ($order->courier_collected_amount ?? 0), 'Tk ') }}</p>
                                 <p class="text-[11px] text-emerald-700">{{ $order->courier_collected_at->format('d M Y, h:i A') }}</p>
                             </div>
                         @endif
@@ -163,9 +163,9 @@
                         <div class="flex items-start justify-between gap-4 py-2.5 text-[13px]">
                             <div class="min-w-0">
                                 <p class="font-semibold text-slate-900">{{ $item->product->name ?? 'Unknown' }}</p>
-                                <p class="text-[11px] text-slate-500">Qty {{ $item->quantity }} × Tk {{ number_format((float) ($item->unit_price ?? 0), 2) }}</p>
+                                <p class="text-[11px] text-slate-500">Qty {{ $item->quantity }} × {{ format_taka((float) ($item->unit_price ?? 0), 'Tk ') }}</p>
                             </div>
-                            <p class="shrink-0 font-bold text-slate-900">Tk {{ number_format((float) $item->subtotal, 2) }}</p>
+                            <p class="shrink-0 font-bold text-slate-900">{{ format_taka((float) $item->subtotal, 'Tk ') }}</p>
                         </div>
                     @endforeach
                 </div>
@@ -211,11 +211,11 @@
                     <h3 class="text-[13px] font-bold text-sky-950">Collect cash from courier</h3>
                     <p class="mt-1 text-[12px] text-sky-800 leading-relaxed">
                         {{ $order->courierService?->name ?: 'Courier' }} should bring you
-                        <span class="font-extrabold">Tk {{ number_format($dueFromCourier, 2) }}</span>
+                        <span class="font-extrabold">{{ format_taka($dueFromCourier, 'Tk ') }}</span>
                         (products). Delivery fee stays with them.
                     </p>
                     <form method="POST" action="{{ route('online-orders.collect-from-courier', $order) }}" class="mt-3"
-                          data-confirm="Confirm you received Tk {{ number_format($dueFromCourier, 2) }} from the courier?"
+                          data-confirm="Confirm you received {{ format_taka($dueFromCourier, 'Tk ') }} from the courier?"
                           data-confirm-title="Collect from courier"
                           data-confirm-ok="Yes, cash received">
                         @csrf

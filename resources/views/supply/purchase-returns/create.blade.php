@@ -76,7 +76,7 @@
               },
               line(row) { return (Number(row.quantity)||0) * (Number(row.unit_cost)||0); },
               total() { return this.rows.reduce((s,r)=>s+this.line(r),0); },
-              money(n) { return '৳'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+              money(n) { return '৳'+Number(n||0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
           }"
           @if($suppliers->isEmpty() || $products->isEmpty()) onsubmit="return false" @endif>
         @csrf

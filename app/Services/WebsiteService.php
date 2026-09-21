@@ -38,6 +38,40 @@ class WebsiteService
         return $this->shop()?->id;
     }
 
+    public function homeCopyDefaults(?array $saved = null): array
+    {
+        $defaults = [
+            'categories_eyebrow' => 'Curated collections',
+            'categories_title' => 'Shop by',
+            'categories_title_accent' => 'Category',
+            'categories_subtitle' => 'Premium gadgets, sorted for how you live — browse the collection.',
+            'flash_eyebrow' => 'Limited time',
+            'flash_title' => 'Flash',
+            'flash_title_accent' => 'Sale',
+            'flash_subtitle' => 'Today’s best prices on selected gadgets — ends when the timer hits zero.',
+            'new_eyebrow' => 'Just landed',
+            'new_title' => 'New',
+            'new_title_accent' => 'Arrivals',
+            'new_subtitle' => 'Fresh gadgets added to the store — explore what’s new this week.',
+            'trending_eyebrow' => 'Most loved',
+            'trending_title' => "What's",
+            'trending_title_accent' => 'Trending',
+            'trending_subtitle' => 'Customer favorites — grab them before they sell out.',
+            'brands_eyebrow' => 'Partners',
+            'brands_title' => 'Brands We',
+            'brands_title_accent' => 'Carry',
+            'brands_subtitle' => 'Trusted names in tech — shop your favorites.',
+            'reviews_title' => 'What Our Customers Say',
+            'reviews_subtitle' => 'Real feedback from shoppers who bought with us.',
+            'blog_eyebrow' => 'From the journal',
+            'blog_title' => 'Latest from the',
+            'blog_title_accent' => 'Blog',
+            'blog_subtitle' => 'Guides, reviews, and tips from the Maks Gadget team.',
+        ];
+
+        return array_merge($defaults, array_filter($saved ?? [], fn ($v) => $v !== null && $v !== ''));
+    }
+
     public function settings(): object
     {
         $site = SiteSetting::current();
@@ -66,6 +100,8 @@ class WebsiteService
             'currency_symbol' => $currencySymbol,
             'special_offer_text' => $site->special_offer_text ?: 'Special Offer!',
             'trusted_by_text' => $site->trusted_by_text ?: 'Trusted by thousands of customers',
+            'footer_tagline' => $site->footer_tagline ?: 'Your one-stop shop for the latest tech gadgets and accessories.',
+            'home_copy' => $this->homeCopyDefaults($site->home_copy ?? []),
             'deals_kicker' => $site->deals_kicker ?: 'Special Offers',
             'deals_title' => $site->deals_title ?: "Deals You'll",
             'deals_title_accent' => $site->deals_title_accent ?: 'Love',
@@ -170,16 +206,8 @@ class WebsiteService
             8
         );
 
-        $trendingProducts = $this->dedupeVariantCollection(
-            $this->catalogQuery($shopId)
-                ->with(['category', 'brand'])
-                ->trending()
-                ->orderByDesc('review_count')
-                ->latest()
-                ->take(20)
-                ->get(),
-            5
-        );
+        // Trending = best sellers (same CMS product flags) — keep one source of truth
+        $trendingProducts = $bestSellers->take(5)->values();
 
         $this->linkOrphanProductsToBrands($shopId);
         $this->mergeDuplicateBrands($shopId);
@@ -225,6 +253,13 @@ class WebsiteService
                 ->orderBy('id')
                 ->take(2)
                 ->get(),
+            'midPromoBanners' => PromoBanner::where('shop_id', $shopId)
+                ->where('is_active', true)
+                ->where('placement', 'mid_promo')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->take(12)
+                ->get(),
             'bestSellers' => $bestSellers,
             'flashSaleProducts' => $flashSaleProducts,
             'flashSaleEndsAt' => $flashSaleEndsAt,
@@ -251,6 +286,7 @@ class WebsiteService
             'allCategories' => collect(),
             'promoBanners' => collect(),
             'heroSideCards' => collect(),
+            'midPromoBanners' => collect(),
             'bestSellers' => collect(),
             'flashSaleProducts' => collect(),
             'flashSaleEndsAt' => null,
@@ -358,29 +394,7 @@ class WebsiteService
             return;
         }
 
-        $samples = [
-            ['orders-payments', 'How do I place an order?', "Browse our store, add items to your cart, then sign in to checkout. Enter your delivery details and confirm — we currently accept cash on delivery (COD)."],
-            ['orders-payments', 'What payment methods do you accept?', 'Online orders are cash on delivery (COD) only. Pay the delivery agent when your package arrives.'],
-            ['orders-payments', 'Can I change or cancel my order after placing it?', 'Contact support as soon as possible with your order number. We can change or cancel orders that have not yet been prepared for shipping.'],
-            ['shipping-delivery', 'How can I track my order?', 'Use Track Order with your Order ID and phone number, or sign in and open My Orders for status updates.'],
-            ['shipping-delivery', 'Do you offer international shipping?', 'We currently deliver within our service area. Contact support if you need help with your location.'],
-            ['returns-refunds', 'What is your return policy?', 'Most products can be returned within 30 days if unused and in original packaging. Some items may be excluded — see the product page or contact support.'],
-            ['returns-refunds', 'How do I request a return or refund?', 'Go to Help Center or contact support with your order number and reason. Once approved, follow the return shipping instructions we send you.'],
-            ['products-warranty', 'Are your products covered by warranty?', 'Yes. Eligible gadgets include manufacturer or store warranty as shown on each product page. Keep your invoice for warranty claims.'],
-        ];
-
-        foreach ($samples as $i => [$slug, $question, $answer]) {
-            $cat = $created[$slug] ?? null;
-            CmsFaq::create([
-                'shop_id' => $shopId,
-                'category_id' => $cat?->id,
-                'category' => $cat?->name,
-                'question' => $question,
-                'answer' => $answer,
-                'sort_order' => $i + 1,
-                'is_published' => true,
-            ]);
-        }
+        // Categories only — sample Q&A is managed in CMS, not auto-seeded on the storefront.
     }
 
     public function faqPageData(?string $search = null, ?string $categorySlug = null): array
@@ -508,11 +522,7 @@ class WebsiteService
             $settings->currency_code ?? 'BDT'
         );
 
-        if ($amount === null) {
-            return $symbol.'0.00';
-        }
-
-        return $symbol.number_format((float) $amount, 2);
+        return format_taka($amount ?? 0, $symbol);
     }
 
     /**

@@ -24,7 +24,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-4 shadow-sm">
                     <p class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Total EMI outstanding</p>
-                    <p class="mt-1 text-3xl font-black text-indigo-950">৳{{ number_format($totalOutstanding, 2) }}</p>
+                    <p class="mt-1 text-3xl font-black text-indigo-950">{{ format_taka($totalOutstanding) }}</p>
                     <p class="mt-1 text-xs text-indigo-700/80">{{ $plans->count() }} active plan(s)</p>
                 </div>
                 <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 shadow-sm">
@@ -93,8 +93,8 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-slate-700 align-top">{{ $plan->months }} months</td>
-                                <td class="px-4 py-3 text-right font-semibold align-top">৳{{ number_format((float) $plan->installment_amount, 2) }}</td>
-                                <td class="px-4 py-3 text-right font-bold text-indigo-700 align-top">৳{{ number_format((float) $plan->remaining_amount, 2) }}</td>
+                                <td class="px-4 py-3 text-right font-semibold align-top">{{ format_taka((float) $plan->installment_amount) }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-indigo-700 align-top">{{ format_taka((float) $plan->remaining_amount) }}</td>
                                 <td class="px-4 py-3 text-right align-top">
                                     <a href="{{ route('customers.emi.show', $plan) }}"
                                        class="inline-flex rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-indigo-700">

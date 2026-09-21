@@ -10,7 +10,7 @@
                         <td class="p-4 font-bold">{{ $return->return_number }}</td>
                         <td class="p-4">{{ $return->supplier->name }}</td>
                         <td class="p-4 uppercase text-xs font-bold">{{ $return->status }}</td>
-                        <td class="p-4">৳{{ number_format($return->total_amount, 2) }}</td>
+                        <td class="p-4">{{ format_taka($return->total_amount) }}</td>
                         <td class="p-4">{{ $return->created_at->format('M d, Y') }}</td>
                     </tr>
                 @empty

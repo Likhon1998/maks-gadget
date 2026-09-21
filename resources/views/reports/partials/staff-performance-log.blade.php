@@ -36,7 +36,7 @@
                                 <span class="inline-flex rounded-lg bg-indigo-50 text-indigo-700 px-2.5 py-1 text-[10px] font-bold uppercase">{{ $row->counter->name ?? 'Unassigned' }}</span>
                             </td>
                             <td class="px-3 py-3.5 text-center font-bold">{{ $row->total_orders }}</td>
-                            <td class="px-3 py-3.5 text-right font-extrabold text-emerald-600">৳{{ number_format($row->total_revenue, 2) }}</td>
+                            <td class="px-3 py-3.5 text-right font-extrabold text-emerald-600">{{ format_taka($row->total_revenue) }}</td>
                             <td class="px-5 py-3.5 text-right">
                                 <button type="button"
                                         onclick="openDetailsModal('{{ $row->user_id }}', '{{ $row->sale_date }}', '{{ $row->counter_id }}')"

@@ -44,6 +44,7 @@ use App\Http\Controllers\Cms\ContactController as CmsContactController;
 use App\Http\Controllers\Cms\DeliverySettingsController;
 use App\Http\Controllers\Cms\CourierServiceController;
 use App\Http\Controllers\Cms\ReviewController as CmsReviewController;
+use App\Http\Controllers\Cms\NavigationController as CmsNavigationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -139,6 +140,7 @@ Route::middleware([
         Route::post('/contact/messages/{message}/read', [CmsContactController::class, 'markRead'])->name('contact.messages.read');
         Route::delete('/contact/messages/{message}', [CmsContactController::class, 'destroyMessage'])->name('contact.messages.destroy');
         Route::resource('reviews', CmsReviewController::class)->except(['show']);
+        Route::resource('navigation', CmsNavigationController::class)->except(['show', 'create', 'edit']);
     });
 
     Route::get('/global-search', GlobalSearchController::class)->name('global-search');

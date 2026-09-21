@@ -1,7 +1,8 @@
 @php
     $storeName = $settings->store_name ?? config('app.name', 'Maks Gadget');
     $storeLogo = !empty($settings->logo_path) ? public_storage_url($settings->logo_path) : null;
-    $tagline = 'Your one-stop shop for the latest tech gadgets and accessories.';
+    $tagline = $settings->footer_tagline
+        ?? 'Your one-stop shop for the latest tech gadgets and accessories.';
 
     $socialRaw = data_get($settings, 'social_links') ?: [];
     $socialMap = [
@@ -41,6 +42,16 @@
     $termsPage = $findPage(['terms', 'condition']);
     $shippingPage = $findPage(['shipping', 'delivery']);
     $returnsPage = $findPage(['return', 'refund']);
+    // Any other CMS pages marked “show in footer” that weren’t matched above
+    $extraFooterPages = $pages->filter(function ($p) use ($aboutPage, $privacyPage, $termsPage, $shippingPage, $returnsPage) {
+        foreach ([$aboutPage, $privacyPage, $termsPage, $shippingPage, $returnsPage] as $known) {
+            if ($known && (int) $known->id === (int) $p->id) {
+                return false;
+            }
+        }
+
+        return true;
+    });
 
     $accessoriesCategory = collect($allCategories ?? $categories ?? [])->first(
         fn ($c) => str_contains(strtolower($c->name ?? ''), 'accessor')
@@ -159,12 +170,6 @@
                             Returns
                         </a>
                     </li>
-                    <li>
-                        <a href="{{ route('website.track') }}">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s7-4.5 7-11a7 7 0 10-14 0c0 6.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-                            Track Order
-                        </a>
-                    </li>
                 </ul>
             </div>
 
@@ -195,6 +200,14 @@
                             Terms &amp; Conditions
                         </a>
                     </li>
+                    @foreach($extraFooterPages ?? [] as $extraPage)
+                        <li>
+                            <a href="{{ route('website.page', $extraPage->slug) }}">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3h7l5 5v11a2 2 0 01-2 2H8a2 2 0 01-2-2V5a2 2 0 012-2z"/><path stroke-linecap="round" d="M15 3v5h5"/></svg>
+                                {{ $extraPage->title }}
+                            </a>
+                        </li>
+                    @endforeach
                 </ul>
             </div>
         </div>

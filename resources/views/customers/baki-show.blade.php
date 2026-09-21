@@ -76,7 +76,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 shadow-sm">
                     <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Current baki</p>
-                    <p class="mt-1 text-3xl font-black text-amber-900">৳{{ number_format($balance, 2) }}</p>
+                    <p class="mt-1 text-3xl font-black text-amber-900">{{ format_taka($balance) }}</p>
                     <p class="mt-2 text-xs font-semibold text-amber-800/80">
                         Customer can pay any amount (e.g. ৳200). Rest stays as baki.
                     </p>
@@ -95,7 +95,7 @@
                                    class="w-full rounded-xl border-slate-200 text-sm font-semibold focus:border-emerald-500 focus:ring-emerald-500"
                                    placeholder="e.g. 200" required>
                             <p class="mt-1 text-[11px] text-slate-500">
-                                Max ৳{{ number_format($balance, 2) }} · Remaining after this payment:
+                                Max {{ format_taka($balance) }} · Remaining after this payment:
                                 <strong class="text-amber-700">৳<span x-text="fmt(remaining())"></span></strong>
                             </p>
                         </div>
@@ -180,7 +180,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-slate-500">{{ $entry->user->name ?? '—' }}</td>
                                 <td class="px-4 py-3 text-right font-bold {{ $isCredit ? 'text-amber-700' : 'text-emerald-700' }}">
-                                    {{ $isCredit ? '+' : '' }}৳{{ number_format($amt, 2) }}
+                                    {{ $isCredit ? '+' : '' }}{{ format_taka($amt) }}
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     @if($entry->type === 'payment')

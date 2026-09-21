@@ -28,7 +28,7 @@
                 </a>
                 <div class="p-4 flex flex-col flex-1">
                     <a :href="item.url" class="text-sm font-semibold text-slate-900 hover:text-blue-600 line-clamp-2" x-text="item.name"></a>
-                    <p class="mt-2 text-blue-600 font-bold text-sm" x-text="currency+Number(item.price).toFixed(2)"></p>
+                    <p class="mt-2 text-blue-600 font-bold text-sm" x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></p>
                     <div class="mt-auto pt-4 flex gap-2">
                         <button type="button" class="flex-1 rounded-lg bg-slate-900 text-white text-xs font-bold py-2.5 hover:bg-blue-600"
                                 :data-add-to-cart="JSON.stringify({id:item.id,name:item.name,price:item.price,image:item.image})"

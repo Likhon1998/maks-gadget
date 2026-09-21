@@ -21,7 +21,7 @@
                         <td class="px-5 py-3 font-semibold text-gray-900">{{ $row->product?->name ?? 'Unknown' }}</td>
                         <td class="px-5 py-3 text-gray-500">{{ $row->product?->category?->name ?? '—' }}</td>
                         <td class="px-5 py-3 text-right font-medium">{{ $row->sold }}</td>
-                        <td class="px-5 py-3 text-right font-bold text-indigo-600">৳{{ number_format($row->revenue ?? 0, 2) }}</td>
+                        <td class="px-5 py-3 text-right font-bold text-indigo-600">{{ format_taka($row->revenue ?? 0) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="5" class="px-5 py-10 text-center text-gray-400">No product sales in this period.</td></tr>

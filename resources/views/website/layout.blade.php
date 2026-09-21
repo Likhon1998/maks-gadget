@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
     <script>
         // Available before Vite loads — prevents CSRF mismatch on fast register/login/checkout.
         (function () {
@@ -693,6 +696,33 @@
             };
         }
         window.storefrontCart = storefrontCart;
+        window.navDropdown = function navDropdown() {
+            return {
+                open: false,
+                _timer: null,
+                show() {
+                    clearTimeout(this._timer);
+                    this.open = true;
+                },
+                hide() {
+                    clearTimeout(this._timer);
+                    this._timer = setTimeout(() => { this.open = false; }, 180);
+                },
+                close() {
+                    clearTimeout(this._timer);
+                    this.open = false;
+                },
+                toggle() {
+                    clearTimeout(this._timer);
+                    this.open = !this.open;
+                },
+                onFocusOut(event) {
+                    if (!this.$el.contains(event.relatedTarget)) {
+                        this.hide();
+                    }
+                },
+            };
+        };
     </script>
     @vite(['resources/css/app.css', 'resources/css/website.css', 'resources/js/app.js'])
     <style>
@@ -727,20 +757,20 @@
         @keyframes gaget-badge-pop{0%{transform:scale(.55)}60%{transform:scale(1.35)}100%{transform:scale(1)}}
         .gaget-cart-shell{position:fixed;inset:0;z-index:120;pointer-events:none}
         .gaget-cart-shell.is-open{pointer-events:auto}
-        .gaget-cart-backdrop{position:absolute;inset:0;background:rgba(8,15,30,.58);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
-        .gaget-cart-shell.is-open .gaget-cart-backdrop{opacity:1;visibility:visible;transition:opacity .35s ease,visibility 0s}
-        .gaget-cart-panel{position:absolute;top:14px;right:14px;bottom:14px;width:min(calc(100% - 28px),420px);background:#fff;display:flex;flex-direction:column;border-radius:24px;overflow:hidden;box-shadow:0 28px 80px rgba(15,23,42,.32);transform:translate3d(118%,0,0) scale(.94) rotate(4deg);opacity:0;transform-origin:100% 20%}
-        .gaget-cart-shell.is-open .gaget-cart-panel{animation:gaget-cart-sheet-in .58s cubic-bezier(.16,1,.3,1) forwards}
-        .gaget-cart-shell.is-closing .gaget-cart-panel{animation:gaget-cart-sheet-out .32s ease forwards}
+        .gaget-cart-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.42);opacity:0;visibility:hidden;transition:opacity .28s ease,visibility 0s linear .28s}
+        .gaget-cart-shell.is-open .gaget-cart-backdrop{opacity:1;visibility:visible;transition:opacity .28s ease,visibility 0s}
+        .gaget-cart-panel{position:absolute;top:0;right:0;bottom:0;width:min(100%,400px);background:#fff;display:flex;flex-direction:column;border-radius:0;overflow:hidden;border-left:1px solid #e2e8f0;box-shadow:-18px 0 48px rgba(15,23,42,.12);transform:translate3d(100%,0,0);opacity:1}
+        .gaget-cart-shell.is-open .gaget-cart-panel{animation:gaget-cart-sheet-in .38s cubic-bezier(.22,1,.36,1) forwards}
+        .gaget-cart-shell.is-closing .gaget-cart-panel{animation:gaget-cart-sheet-out .28s ease forwards}
         .gaget-cart-line{opacity:1!important;transform:none}
         .gaget-cart-panel__foot{opacity:1!important;transform:none}
         .gaget-cart-line__img{width:100%!important;height:100%!important;object-fit:cover!important}
-        @keyframes gaget-cart-sheet-in{0%{opacity:0;transform:translate3d(118%,0,0) scale(.94) rotate(4deg)}60%{opacity:1;transform:translate3d(-4%,0,0) scale(1.01) rotate(-1deg)}100%{opacity:1;transform:translate3d(0,0,0) scale(1) rotate(0)}}
-        @keyframes gaget-cart-sheet-out{0%{opacity:1;transform:translate3d(0,0,0) scale(1)}100%{opacity:0;transform:translate3d(110%,0,0) scale(.96) rotate(3deg)}}
+        @keyframes gaget-cart-sheet-in{0%{transform:translate3d(100%,0,0)}100%{transform:translate3d(0,0,0)}}
+        @keyframes gaget-cart-sheet-out{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(100%,0,0)}}
         .tn-product-add.is-adding,.gaget-btn-primary.is-adding,[data-add-to-cart].is-adding{animation:gaget-add-press .45s cubic-bezier(.34,1.45,.64,1)}
         @keyframes gaget-add-press{0%{transform:scale(1)}35%{transform:scale(.92)}70%{transform:scale(1.04)}100%{transform:scale(1)}}
         /* Fixed floating pill header — padding creates clearance above hero */
-        .gaget-sticky-header{position:fixed!important;top:0;left:0;right:0;width:100%;z-index:60;background:transparent!important;box-shadow:none!important;pointer-events:none;padding:12px 0 18px;box-sizing:border-box}
+        .gaget-sticky-header{position:fixed!important;top:0;left:0;right:0;width:100%;z-index:80;background:transparent!important;box-shadow:none!important;pointer-events:none;padding:12px 0 18px;box-sizing:border-box;overflow:visible!important}
         .gaget-sticky-header>*{pointer-events:auto}
         .gaget-header-spacer{display:block;width:100%;height:var(--g-header-h,100px);pointer-events:none;background:#f1f5f9}
 
@@ -813,18 +843,16 @@
 
 @include('website.partials.footer')
 
-{{-- Animated cart drawer --}}
+{{-- Cart drawer --}}
 <div class="gaget-cart-shell"
      :class="{ 'is-open': cartOpen }"
      :aria-hidden="cartOpen ? 'false' : 'true'">
     <div class="gaget-cart-backdrop" @click="closeCart()"></div>
     <aside class="gaget-cart-panel" role="dialog" aria-modal="true" aria-label="Shopping cart">
-        <div class="gaget-cart-panel__accent" aria-hidden="true"></div>
         <div class="gaget-cart-panel__head">
             <div class="gaget-cart-panel__head-text">
-                <p class="gaget-cart-panel__eyebrow">Shopping bag</p>
-                <h3 class="gaget-cart-panel__title">Your Cart</h3>
-                <p class="gaget-cart-panel__count"><span x-text="cartCount"></span> item(s)</p>
+                <h3 class="gaget-cart-panel__title">Cart</h3>
+                <p class="gaget-cart-panel__count"><span x-text="cartCount"></span> <span x-text="cartCount === 1 ? 'item' : 'items'"></span></p>
             </div>
             <button type="button" class="gaget-cart-panel__close" @click="closeCart()" aria-label="Close cart">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -838,7 +866,7 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
                     <p class="gaget-cart-empty__title">Your cart is empty</p>
-                    <p class="gaget-cart-empty__text">Add something you love and it will land here.</p>
+                    <p class="gaget-cart-empty__text">Browse the shop and add gadgets you like.</p>
                     <button type="button" class="gaget-btn-primary gaget-cart-empty__cta" @click="closeCart()">Continue shopping</button>
                 </div>
             </template>
@@ -849,8 +877,13 @@
                         <img :src="item.image" class="gaget-cart-line__img" alt="" loading="lazy">
                     </div>
                     <div class="gaget-cart-line__meta">
-                        <p class="gaget-cart-line__name" x-text="item.name"></p>
-                        <p class="gaget-cart-line__price" x-text="currency + Number(item.price).toFixed(2)"></p>
+                        <div class="gaget-cart-line__top">
+                            <p class="gaget-cart-line__name" x-text="item.name"></p>
+                            <button type="button" class="gaget-cart-line__remove" @click="removeItem(i)" aria-label="Remove item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0v12a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12zM10 11v6M14 11v6"/></svg>
+                            </button>
+                        </div>
+                        <p class="gaget-cart-line__price" x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></p>
                         <div class="gaget-cart-line__actions">
                             <div class="gaget-cart-qty">
                                 <button type="button" @click="updateQty(i, -1)" aria-label="Decrease quantity">−</button>
@@ -861,7 +894,7 @@
                                         :class="Number(item.stock) > 0 && Number(item.qty) >= Number(item.stock) && 'opacity-40 cursor-not-allowed'"
                                         aria-label="Increase quantity">+</button>
                             </div>
-                            <button type="button" class="gaget-cart-line__remove" @click="removeItem(i)">Remove</button>
+                            <p class="gaget-cart-line__line-total" x-text="currency + Math.round((Number(item.price) || 0) * (Number(item.qty) || 0)).toLocaleString()"></p>
                         </div>
                     </div>
                 </div>
@@ -869,9 +902,12 @@
         </div>
 
         <div class="gaget-cart-panel__foot" x-show="cart.length > 0" x-cloak>
-            <div class="gaget-cart-panel__total">
-                <span>Total</span>
-                <strong x-text="currency + cartTotal.toFixed(2)"></strong>
+            <div class="gaget-cart-panel__summary">
+                <div class="gaget-cart-panel__total">
+                    <span>Subtotal</span>
+                    <strong x-text="currency + Math.round(Number(cartTotal) || 0).toLocaleString()"></strong>
+                </div>
+                <p class="gaget-cart-panel__hint">Shipping &amp; taxes calculated at checkout</p>
             </div>
             <button type="button" @click="startCheckout()" class="gaget-cart-panel__checkout">
                 Checkout
@@ -923,7 +959,7 @@
         {{-- Order step --}}
         <div x-show="checkoutStep==='order'" x-cloak>
             <h3 class="text-xl font-bold text-slate-900 pr-8">Place order</h3>
-            <p class="text-sm text-slate-500 mt-1 mb-4"><span x-text="cartCount"></span> item(s) · Subtotal <span class="font-semibold text-slate-800" x-text="currency+cartTotal.toFixed(2)"></span></p>
+            <p class="text-sm text-slate-500 mt-1 mb-4"><span x-text="cartCount"></span> item(s) · Subtotal <span class="font-semibold text-slate-800" x-text="currency + Math.round(Number(cartTotal) || 0).toLocaleString()"></span></p>
 
             <div class="space-y-3">
                 <div>
@@ -965,16 +1001,16 @@
                 </div>
 
                 <div class="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-xs space-y-1.5">
-                    <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-semibold" x-text="currency+deliveryQuote.subtotal.toFixed(2)"></span></div>
+                    <div class="flex justify-between"><span class="text-slate-500">Subtotal</span><span class="font-semibold" x-text="currency + Math.round(Number(deliveryQuote.subtotal) || 0).toLocaleString()"></span></div>
                     <div class="flex justify-between">
                         <span class="text-slate-500">Delivery (<span x-text="deliveryQuote.zoneLabel"></span>)</span>
-                        <span class="font-semibold" x-text="deliveryQuote.isFree ? 'FREE' : (currency+deliveryQuote.deliveryFee.toFixed(2))"></span>
+                        <span class="font-semibold" x-text="deliveryQuote.isFree ? 'FREE' : (currency + Math.round(Number(deliveryQuote.deliveryFee) || 0).toLocaleString())"></span>
                     </div>
                     <p x-show="deliveryQuote.freeReason" x-text="deliveryQuote.freeReason" class="text-[11px] text-emerald-600 font-medium"></p>
                     <p x-show="!deliveryQuote.isFree && deliveryQuote.deliveryFee > 0" class="text-[11px] text-slate-500">Delivery is paid to the delivery person.</p>
                     <div class="flex justify-between border-t border-slate-200 pt-1.5 text-sm">
                         <span class="font-bold text-slate-800">Total</span>
-                        <span class="font-bold text-slate-900" x-text="currency+deliveryQuote.grandTotal.toFixed(2)"></span>
+                        <span class="font-bold text-slate-900" x-text="currency + Math.round(Number(deliveryQuote.grandTotal) || 0).toLocaleString()"></span>
                     </div>
                 </div>
 
@@ -996,7 +1032,7 @@
                                 <span class="block text-xs font-bold text-slate-900">Confirmation charge</span>
                                 <span class="block text-[11px] text-slate-500">
                                     Pay <span class="font-semibold" x-text="currency+Number(deliveryConfig.confirmation_amount||0).toFixed(0)"></span> now ·
-                                    balance <span class="font-semibold" x-text="currency+deliveryQuote.amountDueLater.toFixed(2)"></span> on delivery
+                                    balance <span class="font-semibold" x-text="currency + Math.round(Number(deliveryQuote.amountDueLater) || 0).toLocaleString()"></span> on delivery
                                 </span>
                             </span>
                         </label>

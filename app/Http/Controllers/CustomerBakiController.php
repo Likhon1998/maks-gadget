@@ -55,7 +55,7 @@ class CustomerBakiController extends Controller
         $balance = round((float) $customer->baki_balance, 2);
 
         if ($amount > $balance + 0.009) {
-            return back()->withInput()->with('error', 'Payment cannot exceed baki balance (৳'.number_format($balance, 2).').');
+            return back()->withInput()->with('error', 'Payment cannot exceed baki balance (৳'.format_taka_number($balance).').');
         }
 
         try {
@@ -73,7 +73,7 @@ class CustomerBakiController extends Controller
             $note = trim((string) ($validated['note'] ?? ''));
             if ($note === '') {
                 $note = $isPartial
-                    ? 'Partial baki payment ৳'.number_format($amount, 2)
+                    ? 'Partial baki payment ৳'.format_taka_number($amount)
                     : 'Full baki settlement';
             }
 
@@ -95,7 +95,7 @@ class CustomerBakiController extends Controller
 
         return redirect()
             ->to(url()->previous() ?: route('customers.baki.show', $customer))
-            ->with('success', 'Collected ৳'.number_format($amount, 2).'. Remaining baki: ৳'.number_format((float) $customer->fresh()->baki_balance, 2).'.')
+            ->with('success', 'Collected ৳'.format_taka_number($amount).'. Remaining baki: ৳'.format_taka_number((float) $customer->fresh()->baki_balance).'.')
             ->with('open_slip_url', route('customers.baki.slip', ['entry' => $entry, 'embed' => 1]))
             ->with('print_slip', true);
     }

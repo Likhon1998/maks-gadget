@@ -36,11 +36,31 @@
                 'image_path'=>$b->image_path,
                 'preview'=> $b->image_path ? public_storage_url($b->image_path) : null,
             ])->values()),
+            midPromo: @js(($midPromo ?? collect())->map(fn($b)=>[
+                'id'=>$b->id,
+                'title'=>$b->title,
+                'subtitle'=>$b->subtitle,
+                'badge_text'=>$b->badge_text,
+                'highlight_text'=>$b->highlight_text,
+                'discount_badge'=>$b->discount_badge,
+                'price_from'=>$b->price_from,
+                'button_text'=>$b->button_text,
+                'button_url'=>$b->button_url,
+                'theme'=>$b->theme ?: 'dark',
+                'sort_order'=>$b->sort_order,
+                'is_active'=>$b->is_active,
+                'image_path'=>$b->image_path,
+                'preview'=> $b->image_path ? public_storage_url($b->image_path) : null,
+            ])->values()),
             addFeature(){ this.features.push({id:null,icon:'truck',title:'',subtitle:'',sort_order:this.features.length,is_active:true}) },
             addBanner(){ this.banners.push({id:null,title:'',subtitle:'',badge_text:'',highlight_text:'',discount_badge:'',price_from:'',button_text:'Shop Now',button_url:'/shop',theme:'dark',sort_order:this.banners.length,is_active:true,image_path:null,preview:null}) },
             addHeroSide(){
                 if (this.heroSide.length >= 2) return;
                 this.heroSide.push({id:null,title:'',subtitle:'',badge_text:'',discount_badge:'',button_text:'Shop',button_url:'/shop',theme:'dark',sort_order:this.heroSide.length,is_active:true,image_path:null,preview:null});
+            },
+            addMidPromo(){
+                if (this.midPromo.length >= 12) return;
+                this.midPromo.push({id:null,title:'',subtitle:'',badge_text:'',highlight_text:'',discount_badge:'',price_from:'',button_text:'Shop Now',button_url:'/shop',theme:'dark',sort_order:this.midPromo.length,is_active:true,image_path:null,preview:null});
             }
           }">
         @csrf
@@ -134,36 +154,72 @@
                 </div>
                 <div>
                     <label class="text-xs font-bold uppercase text-slate-500">Trusted-by text</label>
-                    <input name="trusted_by_text" value="{{ old('trusted_by_text', $settings->trusted_by_text) }}" class="mt-1 w-full rounded-xl border-slate-200">
+                    <input name="trusted_by_text" value="{{ old('trusted_by_text', $settings->trusted_by_text) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Shown under homepage features">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="text-xs font-bold uppercase text-slate-500">Footer tagline</label>
+                    <input name="footer_tagline" value="{{ old('footer_tagline', $settings->footer_tagline) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Your one-stop shop for the latest tech gadgets…">
                 </div>
                 <div>
                     <label class="text-xs font-bold uppercase text-slate-500">Deals kicker</label>
-                    <input name="deals_kicker" value="{{ old('deals_kicker', $settings->deals_kicker) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="SPECIAL OFFERS">
+                    <input name="deals_kicker" value="{{ old('deals_kicker', $settings->deals_kicker) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="This week">
                 </div>
                 <div>
                     <label class="text-xs font-bold uppercase text-slate-500">Deals title</label>
-                    <input name="deals_title" value="{{ old('deals_title', $settings->deals_title) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Deals You'll">
+                    <input name="deals_title" value="{{ old('deals_title', $settings->deals_title) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Featured">
                 </div>
                 <div>
                     <label class="text-xs font-bold uppercase text-slate-500">Deals accent word</label>
-                    <input name="deals_title_accent" value="{{ old('deals_title_accent', $settings->deals_title_accent) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Love">
+                    <input name="deals_title_accent" value="{{ old('deals_title_accent', $settings->deals_title_accent) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Deals">
                 </div>
                 <div class="md:col-span-2">
                     <label class="text-xs font-bold uppercase text-slate-500">Deals subtitle</label>
-                    <input name="deals_subtitle" value="{{ old('deals_subtitle', $settings->deals_subtitle) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Grab the best deals on top-quality gadgets and accessories.">
+                    <input name="deals_subtitle" value="{{ old('deals_subtitle', $settings->deals_subtitle) }}" class="mt-1 w-full rounded-xl border-slate-200" placeholder="Premium gadgets at carefully chosen prices.">
                 </div>
-                <div>
-                    <label class="text-xs font-bold uppercase text-slate-500">Contact email</label>
-                    <input type="email" name="contact_email" value="{{ old('contact_email', $settings->contact_email) }}" class="mt-1 w-full rounded-xl border-slate-200">
+                <div class="md:col-span-2 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3 text-xs text-indigo-800">
+                    Contact email, phone &amp; address are managed under <a href="{{ route('cms.contact.index') }}" class="font-bold underline">CMS → Contact</a> so they stay in sync with the /contact page.
                 </div>
-                <div>
-                    <label class="text-xs font-bold uppercase text-slate-500">Contact phone</label>
-                    <input name="contact_phone" value="{{ old('contact_phone', $settings->contact_phone) }}" class="mt-1 w-full rounded-xl border-slate-200">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="text-xs font-bold uppercase text-slate-500">Address</label>
-                    <textarea name="contact_address" rows="2" class="mt-1 w-full rounded-xl border-slate-200">{{ old('contact_address', $settings->contact_address) }}</textarea>
-                </div>
+            </div>
+        </div>
+
+        @php $homeCopy = old('home_copy', $settings->home_copy ?? []); @endphp
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 class="text-base font-bold text-slate-900">Homepage section titles</h3>
+            <p class="text-sm text-slate-500 mt-0.5">Eyebrows, titles, and subtitles for Flash / New / Trending / Brands / Reviews / Blog / Categories.</p>
+            <div class="mt-4 grid gap-3 md:grid-cols-2">
+                @foreach([
+                    'categories_eyebrow' => 'Categories eyebrow',
+                    'categories_title' => 'Categories title',
+                    'categories_title_accent' => 'Categories accent',
+                    'categories_subtitle' => 'Categories subtitle',
+                    'flash_eyebrow' => 'Flash eyebrow',
+                    'flash_title' => 'Flash title',
+                    'flash_title_accent' => 'Flash accent',
+                    'flash_subtitle' => 'Flash subtitle',
+                    'new_eyebrow' => 'New arrivals eyebrow',
+                    'new_title' => 'New arrivals title',
+                    'new_title_accent' => 'New arrivals accent',
+                    'new_subtitle' => 'New arrivals subtitle',
+                    'trending_eyebrow' => 'Trending eyebrow',
+                    'trending_title' => 'Trending title',
+                    'trending_title_accent' => 'Trending accent',
+                    'trending_subtitle' => 'Trending subtitle',
+                    'brands_eyebrow' => 'Brands eyebrow',
+                    'brands_title' => 'Brands title',
+                    'brands_title_accent' => 'Brands accent',
+                    'brands_subtitle' => 'Brands subtitle',
+                    'reviews_title' => 'Reviews title',
+                    'reviews_subtitle' => 'Reviews subtitle',
+                    'blog_eyebrow' => 'Blog eyebrow',
+                    'blog_title' => 'Blog title',
+                    'blog_title_accent' => 'Blog accent',
+                    'blog_subtitle' => 'Blog subtitle',
+                ] as $key => $label)
+                    <div class="{{ str_ends_with($key, 'subtitle') ? 'md:col-span-2' : '' }}">
+                        <label class="text-[11px] font-bold uppercase text-slate-500">{{ $label }}</label>
+                        <input name="home_copy[{{ $key }}]" value="{{ old('home_copy.'.$key, $homeCopy[$key] ?? '') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                    </div>
+                @endforeach
             </div>
         </div>
 
@@ -254,6 +310,62 @@
                     </div>
                 </template>
                 <p x-show="heroSide.length === 0" class="text-sm text-slate-400 py-2" x-cloak>No hero side cards yet. Add up to 2 cards for the homepage hero.</p>
+            </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Mid promo banner</h3>
+                    <p class="text-sm text-slate-500">Small promo cards between Flash Sale and New Arrivals. Add up to 12 — three show at a time and the rest slide through. Image ≈ 900×500 works best.</p>
+                </div>
+                <button type="button" @click="addMidPromo()" x-bind:disabled="midPromo.length >= 12" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">+ Mid banner</button>
+            </div>
+            <div class="mt-4 space-y-4">
+                <template x-for="(b, i) in midPromo" :key="'mp-'+i">
+                    <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-4 space-y-3">
+                        <input type="hidden" :name="'mid_promo['+i+'][id]'" :value="b.id || ''">
+                        <div class="grid gap-2 md:grid-cols-2">
+                            <input :name="'mid_promo['+i+'][title]'" x-model="b.title" placeholder="Headline (required)" class="rounded-lg border-slate-200 text-sm md:col-span-2">
+                            <input :name="'mid_promo['+i+'][subtitle]'" x-model="b.subtitle" placeholder="Supporting line" class="rounded-lg border-slate-200 text-sm md:col-span-2">
+                            <input :name="'mid_promo['+i+'][badge_text]'" x-model="b.badge_text" placeholder="Badge (e.g. Limited drop)" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'mid_promo['+i+'][highlight_text]'" x-model="b.highlight_text" placeholder="Highlight in subtitle (optional)" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'mid_promo['+i+'][discount_badge]'" x-model="b.discount_badge" placeholder="Corner label (e.g. −40%)" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'mid_promo['+i+'][price_from]'" x-model="b.price_from" type="number" step="0.01" min="0" placeholder="From price (optional)" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'mid_promo['+i+'][button_url]'" x-model="b.button_url" placeholder="Link URL" class="rounded-lg border-slate-200 text-sm">
+                            <input :name="'mid_promo['+i+'][button_text]'" x-model="b.button_text" placeholder="CTA text" class="rounded-lg border-slate-200 text-sm">
+                            <select :name="'mid_promo['+i+'][theme]'" x-model="b.theme" class="rounded-lg border-slate-200 text-sm">
+                                <option value="dark">Dark overlay</option>
+                                <option value="light">Light overlay</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <template x-if="b.preview">
+                                    <img :src="b.preview" alt="" class="h-16 w-28 rounded-lg object-cover border border-slate-200 bg-white">
+                                </template>
+                                <div>
+                                    <label class="text-[11px] font-bold uppercase text-slate-500">Banner image</label>
+                                    <input type="file" :name="'mid_promo['+i+'][image]'" accept="image/jpeg,image/png,image/webp,image/gif" class="mt-1 block text-sm"
+                                           @change="
+                                                const file = $event.target.files && $event.target.files[0];
+                                                if (b._blob) { URL.revokeObjectURL(b._blob); b._blob = null; }
+                                                if (file) {
+                                                    b._blob = URL.createObjectURL(file);
+                                                    b.preview = b._blob;
+                                                }
+                                           ">
+                                </div>
+                            </div>
+                            <input type="number" :name="'mid_promo['+i+'][sort_order]'" x-model="b.sort_order" class="w-20 rounded-lg border-slate-200 text-sm" title="Sort order">
+                            <label class="flex items-center gap-1 text-xs font-semibold text-slate-600">
+                                <input type="checkbox" :name="'mid_promo['+i+'][is_active]'" value="1" x-model="b.is_active" class="rounded border-slate-300"> Active
+                            </label>
+                            <button type="button" @click="midPromo.splice(i,1)" class="text-xs font-bold text-rose-600">Remove</button>
+                        </div>
+                    </div>
+                </template>
+                <p x-show="midPromo.length === 0" class="text-sm text-slate-400 py-2" x-cloak>No mid promo yet. Add a banner to show between Flash Sale and New Arrivals on the homepage.</p>
             </div>
         </div>
 

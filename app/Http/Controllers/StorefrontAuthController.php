@@ -59,20 +59,33 @@ class StorefrontAuthController extends Controller
         $activeTracking = $activeOrder ? ($orderTracking[$activeOrder->id] ?? null) : null;
         $activeOrderSlides = $activeOrders->map(function ($order) use ($orderTracking, $customer) {
             $track = $orderTracking[$order->id] ?? null;
+            $website = app(\App\Services\WebsiteService::class);
+            $items = $order->items->map(function ($item) use ($website) {
+                $product = $item->product;
+
+                return [
+                    'name' => $product?->name ?? 'Product',
+                    'qty' => (int) $item->quantity,
+                    'image' => $product ? $website->productImageUrl($product) : '',
+                ];
+            })->values()->all();
 
             return [
                 'id' => $order->id,
                 'invoice' => $order->invoice_no,
                 'date' => $order->created_at->format('M j, Y'),
-                'status' => $order->status,
+                'status' => $order->status === 'pending_fulfillment' ? 'pending' : $order->status,
+                'status_raw' => $order->status,
                 'status_label' => $track['status_label'] ?? ucfirst($order->status),
                 'where' => $track['where_is_product'] ?? '',
                 'courier' => $order->shipping_courier ?: 'Our store / packing desk',
                 'tracking_no' => $order->shipping_tracking_no,
                 'address' => $customer?->address ?: 'No address saved yet.',
                 'timeline' => $track['timeline'] ?? [],
-                'item_name' => $order->items->first()?->product?->name ?? 'Order Item',
-                'extra_items' => max(0, $order->items->count() - 1),
+                'items' => $items,
+                'item_name' => $items[0]['name'] ?? 'Order Item',
+                'item_image' => $items[0]['image'] ?? '',
+                'extra_items' => max(0, count($items) - 1),
                 'qty' => (int) $order->items->sum('quantity'),
             ];
         })->values()->all();

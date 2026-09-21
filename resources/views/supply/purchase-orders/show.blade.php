@@ -14,11 +14,11 @@
         </div>
         <div class="bg-white rounded-2xl border p-4">
             <p class="text-xs text-gray-400 uppercase font-bold">PO Total</p>
-            <p class="font-bold">৳{{ number_format($order->total_amount, 2) }}</p>
+            <p class="font-bold">{{ format_taka($order->total_amount) }}</p>
         </div>
         <div class="bg-white rounded-2xl border p-4">
             <p class="text-xs text-gray-400 uppercase font-bold">AP Balance (shop)</p>
-            <p class="font-bold">৳{{ number_format($apBalance ?? 0, 2) }}</p>
+            <p class="font-bold">{{ format_taka($apBalance ?? 0) }}</p>
         </div>
     </div>
 
@@ -70,7 +70,7 @@
                                 {{ $item->product->name }}
                                 <input type="hidden" name="items[{{ $i }}][id]" value="{{ $item->id }}">
                             </td>
-                            <td class="p-4 text-center">৳{{ number_format($item->unit_cost, 2) }}</td>
+                            <td class="p-4 text-center">{{ format_taka($item->unit_cost) }}</td>
                             <td class="p-4 text-center">{{ $item->quantity }}</td>
                             <td class="p-4 text-center">{{ $item->received_quantity }}</td>
                             <td class="p-4">
@@ -112,9 +112,9 @@
                 <div>
                     <h3 class="font-bold text-gray-900">Pay supplier</h3>
                     <p class="text-xs text-gray-500 mt-1">
-                        PO total ৳{{ number_format($order->total_amount, 2) }}
-                        · Paid ৳{{ number_format($order->paid_amount, 2) }}
-                        · Remaining ৳{{ number_format($remainingDue, 2) }}
+                        PO total {{ format_taka($order->total_amount) }}
+                        · Paid {{ format_taka($order->paid_amount) }}
+                        · Remaining {{ format_taka($remainingDue) }}
                     </p>
                 </div>
                 <div class="grid md:grid-cols-2 gap-4">
@@ -139,7 +139,7 @@
             </form>
         @else
             <div class="p-5 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 font-semibold mb-8">
-                Fully paid (৳{{ number_format($order->paid_amount, 2) }}).
+                Fully paid ({{ format_taka($order->paid_amount) }}).
             </div>
         @endif
     @endif

@@ -49,9 +49,9 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-500">{{ $row['entry']->transaction->transaction_date->format('d M Y') }}</td>
                                 <td class="px-6 py-4 text-gray-900">{{ $row['entry']->transaction->description }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-500">{{ $row['entry']->counter?->name ?? '—' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-700">{{ $row['debit'] > 0 ? '৳'.number_format($row['debit'], 2) : '—' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-700">{{ $row['credit'] > 0 ? '৳'.number_format($row['credit'], 2) : '—' }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-gray-900">৳{{ number_format($row['balance'], 2) }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-700">{{ $row['debit'] > 0 ? format_taka($row['debit']) : '—' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-700">{{ $row['credit'] > 0 ? format_taka($row['credit']) : '—' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-gray-900">{{ format_taka($row['balance']) }}</td>
                             </tr>
                         @empty
                             <tr>

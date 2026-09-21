@@ -56,44 +56,83 @@
             max-width: 980px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 14px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
         }
         .label {
+            width: 100%;
+            max-width: 220px;
+            margin: 0 auto;
             background: #fff;
-            border: 1px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 14px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px 10px 8px;
             text-align: center;
             page-break-inside: avoid;
+            overflow: hidden;
         }
-        .label h3 {
-            margin: 0 0 8px;
-            font-size: 13px;
+        .label-name {
+            margin: 0 0 6px;
+            font-size: 11px;
             font-weight: 700;
-            line-height: 1.3;
+            line-height: 1.25;
+            color: #0f172a;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 1.25em;
         }
-        .label .price {
-            margin: 8px 0 0;
-            font-size: 12px;
-            font-weight: 700;
-            color: #334155;
+        .barcode-wrap {
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 0;
         }
-        .label .meta {
-            margin: 2px 0 0;
+        .barcode-wrap svg {
+            max-width: 100% !important;
+            height: auto !important;
+            display: block;
+        }
+        .label-code {
+            margin: 4px 0 0;
             font-size: 10px;
-            color: #94a3b8;
-            font-family: ui-monospace, monospace;
+            font-weight: 600;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            color: #0f172a;
+            letter-spacing: .02em;
+            word-break: break-all;
+        }
+        .label-price {
+            margin: 4px 0 0;
+            font-size: 12px;
+            font-weight: 800;
+            color: #0f172a;
         }
         @media print {
             body { background: #fff; padding: 0; }
             .toolbar { display: none !important; }
-            .grid { max-width: none; gap: 10px; padding: 8px; }
+            .grid {
+                max-width: none;
+                gap: 6mm;
+                padding: 4mm;
+                grid-template-columns: repeat(auto-fill, minmax(50mm, 1fr));
+            }
             .label {
+                max-width: none;
+                width: 50mm;
+                min-height: 28mm;
                 border: 1px solid #000;
                 border-radius: 0;
+                padding: 2.5mm 2mm 2mm;
                 break-inside: avoid;
             }
+            .label-name { font-size: 9pt; }
+            .label-code { font-size: 8pt; }
+            .label-price { font-size: 10pt; }
         }
     </style>
 </head>
@@ -113,25 +152,47 @@
         @foreach($products as $product)
             @for($i = 0; $i < $copies; $i++)
                 <div class="label">
-                    <h3>{{ $product->name }}</h3>
-                    <svg class="barcode"
-                         jsbarcode-format="CODE128"
-                         jsbarcode-value="{{ $product->barcode }}"
-                         jsbarcode-height="48"
-                         jsbarcode-displayValue="true"
-                         jsbarcode-fontSize="12"
-                         jsbarcode-margin="4"></svg>
-                    <p class="price">Tk {{ number_format($product->selling_price, 2) }}</p>
-                    <p class="meta">{{ $product->barcode }}</p>
+                    <p class="label-name" title="{{ $product->name }}">{{ $product->name }}</p>
+                    <div class="barcode-wrap">
+                        <svg class="js-print-barcode" data-value="{{ $product->barcode }}"></svg>
+                    </div>
+                    <p class="label-code">{{ $product->barcode }}</p>
+                    <p class="label-price">{{ format_taka($product->selling_price, 'Tk ') }}</p>
                 </div>
             @endfor
         @endforeach
     </div>
 
     <script>
-        JsBarcode('.barcode').init();
+        function fitBarcode(el) {
+            const value = el.getAttribute('data-value');
+            if (!value) return;
+
+            const wrap = el.closest('.barcode-wrap');
+            const avail = Math.max(120, (wrap?.clientWidth || 180) - 4);
+            // CODE128 roughly ~11 modules per char + start/stop/checksum/quiet zone
+            const modules = (String(value).length * 11) + 35;
+            const barWidth = Math.max(0.85, Math.min(1.8, avail / modules));
+
+            JsBarcode(el, value, {
+                format: 'CODE128',
+                width: barWidth,
+                height: 40,
+                displayValue: false,
+                margin: 0,
+                background: '#ffffff',
+                lineColor: '#000000',
+            });
+
+            el.style.maxWidth = '100%';
+            el.style.width = '100%';
+            el.style.height = 'auto';
+        }
+
+        document.querySelectorAll('.js-print-barcode').forEach(fitBarcode);
         window.addEventListener('load', () => {
-            setTimeout(() => window.print(), 350);
+            document.querySelectorAll('.js-print-barcode').forEach(fitBarcode);
+            setTimeout(() => window.print(), 400);
         });
     </script>
 </body>

@@ -38,7 +38,7 @@
                                 >
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right font-bold {{ AccountUi::balanceTone($account->type, (float) $row['balance']) }}">
-                                ৳{{ number_format($row['balance'], 2) }}
+                                {{ format_taka($row['balance']) }}
                             </td>
                         </tr>
                     @endforeach

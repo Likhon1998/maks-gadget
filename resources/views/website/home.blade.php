@@ -1,4 +1,4 @@
-﻿@extends('website.layout')
+@extends('website.layout')
 @php $ws = app(\App\Services\WebsiteService::class); @endphp
 
 @section('content')
@@ -70,14 +70,6 @@
                     x-data="{ slide: 0, total: 1 }"
                 @endif
             >
-                @if($heroSlides->count() > 1)
-                    <button type="button" @click="prev()" class="tn-hero-arrow left" aria-label="Previous">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                    </button>
-                    <button type="button" @click="next()" class="tn-hero-arrow right" aria-label="Next">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </button>
-                @endif
                 <div class="tn-hero-track">
                     @forelse($heroSlides as $i => $slide)
                         @php
@@ -182,6 +174,7 @@
 
 {{-- Service features — premium strip under hero --}}
 @if($features->isNotEmpty())
+@php $homeCopy = data_get($settings, 'home_copy') ?: []; @endphp
 <section class="tn-features">
     <div class="tn-container">
         <div class="tn-features-panel">
@@ -196,6 +189,9 @@
                     </div>
                 @endforeach
             </div>
+            @if(!empty($settings->trusted_by_text))
+                <p class="tn-features-trusted">{{ $settings->trusted_by_text }}</p>
+            @endif
         </div>
     </div>
 </section>
@@ -204,6 +200,7 @@
 {{-- Shop by Category — 3D coverflow with scroll / swipe / click --}}
 @if($categories->isNotEmpty())
 @php
+    $homeCopy = data_get($settings, 'home_copy') ?: [];
     $catTaglines = [
         'smartphones' => 'Power in your pocket.',
         'phones' => 'Power in your pocket.',
@@ -247,9 +244,7 @@
     x-data="{
         active: {{ $coverStart }},
         total: {{ $coverTotal }},
-        dragging: false,
-        startX: 0,
-        lastWheel: 0,
+        timer: null,
         go(i) {
             if (this.total < 1) return;
             this.active = ((i % this.total) + this.total) % this.total;
@@ -262,12 +257,6 @@
             let d = ((i - this.active) % n + n) % n;
             if (d > n / 2) d -= n;
             return d;
-        },
-        onWheel(e) {
-            const now = Date.now();
-            if (now - this.lastWheel < 380) return;
-            this.lastWheel = now;
-            (e.deltaY > 0 || e.deltaX > 0) ? this.next() : this.prev();
         },
         styleFor(i) {
             const d = this.delta(i);
@@ -283,28 +272,20 @@
             const opacity = abs === 0 ? 1 : (abs === 1 ? 0.92 : (abs === 2 ? 0.7 : 0.42));
             return `transform: translate(-50%, -50%) translateX(${x}%) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:${opacity};`;
         },
-        onPointerDown(e) {
-            this.dragging = true;
-            this.startX = e.clientX ?? (e.touches && e.touches[0]?.clientX) ?? 0;
-        },
-        onPointerUp(e) {
-            if (!this.dragging) return;
-            const endX = e.clientX ?? (e.changedTouches && e.changedTouches[0]?.clientX) ?? this.startX;
-            const dx = endX - this.startX;
-            this.dragging = false;
-            if (Math.abs(dx) < 40) return;
-            dx < 0 ? this.next() : this.prev();
+        arm() {
+            clearInterval(this.timer);
+            if (this.total < 2) return;
+            this.timer = setInterval(() => { this.next(); }, 3200);
         }
     }"
-    @keydown.left.window="prev()"
-    @keydown.right.window="next()"
+    x-init="arm()"
 >
     <div class="tn-container">
         <div class="mg-cover-head">
             <div class="mg-cover-copy">
-                <p class="mg-cover-eyebrow">Curated collections</p>
-                <h2 class="mg-cover-title">Shop by <span>Category</span></h2>
-                <p class="mg-cover-sub">Premium gadgets, sorted for how you live — scroll to explore.</p>
+                <p class="mg-cover-eyebrow">{{ $homeCopy['categories_eyebrow'] ?? 'Curated collections' }}</p>
+                <h2 class="mg-cover-title">{{ $homeCopy['categories_title'] ?? 'Shop by' }} <span>{{ $homeCopy['categories_title_accent'] ?? 'Category' }}</span></h2>
+                <p class="mg-cover-sub">{{ $homeCopy['categories_subtitle'] ?? 'Premium gadgets, sorted for how you live — browse the collection.' }}</p>
             </div>
 
             <div class="mg-cover-marquee" aria-label="Categories preview">
@@ -343,22 +324,15 @@
         </div>
     </div>
 
-    <div
-        class="mg-cover-stage"
-        @wheel.prevent="onWheel($event)"
-        @pointerdown="onPointerDown($event)"
-        @pointerup="onPointerUp($event)"
-        @pointercancel="dragging=false"
-        @touchstart.passive="onPointerDown($event)"
-        @touchend.passive="onPointerUp($event)"
-    >
+    <div class="mg-cover-stage">
         <div class="mg-cover-track" aria-live="polite">
             @foreach($coverCats as $i => $category)
                 @php
                     $iconMeta = $category->iconMeta();
                     $slug = $category->slug ?? \Illuminate\Support\Str::slug($category->name);
                     $img = $ws->categoryImageUrl($category) ?: ($catFallbacks[$iconMeta['key']] ?? $catFallbacks['phone']);
-                    $tagline = $catTaglines[$slug] ?? ($catTaglines[$iconMeta['key']] ?? 'Explore the collection.');
+                    $tagline = trim((string) ($category->description ?? ''))
+                        ?: ($catTaglines[$slug] ?? ($catTaglines[$iconMeta['key']] ?? 'Explore the collection.'));
                     $count = (int) ($category->products_count ?? 0);
                     $countLabel = $category->product_count_label
                         ?: ($count > 0 ? ($count >= 100 ? '100+ products' : $count.' products') : 'Shop now');
@@ -369,10 +343,10 @@
                     class="mg-cover-card {{ $theme }}"
                     :class="{ 'is-active': active === {{ $i }} }"
                     :style="styleFor({{ $i }})"
-                    @click="active === {{ $i }} ? (window.location.href = @js($url)) : go({{ $i }})"
-                    role="button"
+                    @click="window.location.href = @js($url)"
+                    role="link"
                     tabindex="0"
-                    @keydown.enter.prevent="active === {{ $i }} ? (window.location.href = @js($url)) : go({{ $i }})"
+                    @keydown.enter.prevent="window.location.href = @js($url)"
                     aria-label="{{ $category->name }}"
                 >
                     <div class="mg-cover-media">
@@ -391,9 +365,6 @@
                             <h3 class="mg-cover-name">{{ $category->name }}</h3>
                             <p class="mg-cover-tagline">{{ $tagline }}</p>
                         </div>
-                        <a href="{{ $url }}" class="mg-cover-cta" @click.stop aria-label="Shop {{ $category->name }}">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-                        </a>
                     </div>
                     <div class="mg-cover-pager" x-show="active === {{ $i }}" x-cloak>
                         <span x-text="String(active + 1).padStart(2,'0')"></span>
@@ -403,13 +374,6 @@
                 </article>
             @endforeach
         </div>
-
-        <button type="button" class="mg-cover-arrow left" @click="prev()" aria-label="Previous category">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <button type="button" class="mg-cover-arrow right" @click="next()" aria-label="Next category">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        </button>
     </div>
 </section>
 @endif
@@ -419,14 +383,14 @@
 <section class="tn-flash">
     <div class="tn-container">
         <div class="tn-flash-head">
-            <div class="tn-flash-head-left">
+            @php $homeCopy = data_get($settings, 'home_copy') ?: []; @endphp
+            <div class="tn-flash-copy">
+                <p class="tn-flash-eyebrow">{{ $homeCopy['flash_eyebrow'] ?? 'Limited time' }}</p>
                 <div class="tn-flash-title-row">
-                    <span class="tn-flash-bolt" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.5 13.5H11l-1 8.5L19.5 10.5H13L13 2z"/></svg>
-                    </span>
-                    <h2 class="tn-flash-title">Flash Sale</h2>
+                    <h2 class="tn-flash-title">{{ $homeCopy['flash_title'] ?? 'Flash' }} <span>{{ $homeCopy['flash_title_accent'] ?? 'Sale' }}</span></h2>
                     <span class="tn-flash-live">Live</span>
                 </div>
+                <p class="tn-flash-sub">{{ $homeCopy['flash_subtitle'] ?? 'Today’s best prices on selected gadgets — ends when the timer hits zero.' }}</p>
                 <div class="tn-countdown tn-countdown--flash" x-data="{
                     h:0,m:0,s:0,
                     end: {{ ($flashSaleEndsAt ?? null) ? ((int) $flashSaleEndsAt->timestamp * 1000) : 'null' }},
@@ -446,7 +410,7 @@
                     <span class="tn-countdown-box"><strong x-text="String(s).padStart(2,'0')">00</strong><small>Sec</small></span>
                 </div>
             </div>
-            <a href="{{ route('website.shop', ['filter' => 'deals']) }}" class="tn-flash-link">View All Deals &rarr;</a>
+            <a href="{{ route('website.shop', ['filter' => 'deals']) }}" class="tn-flash-link">View all deals <span aria-hidden="true">→</span></a>
         </div>
 
         <div class="tn-flash-grid tn-flash-grid--8">
@@ -458,16 +422,128 @@
 </section>
 @endif
 
+{{-- Mid promo cards (CMS → Landing Page → Mid promo banner) --}}
+@if(($midPromoBanners ?? collect())->isNotEmpty())
+@php
+    $midPromoList = $midPromoBanners->values();
+    $midPromoCount = $midPromoList->count();
+@endphp
+<section class="mg-midpromo" aria-label="Featured promotions"
+    x-data="{
+        i: 0,
+        n: {{ $midPromoCount }},
+        per: 3,
+        timer: null,
+        measure(){
+            const w = this.$refs.view ? this.$refs.view.clientWidth : window.innerWidth;
+            this.per = w < 640 ? 1 : (w < 1024 ? 2 : 3);
+            if (this.i > this.max()) this.i = this.max();
+        },
+        max(){ return Math.max(0, this.n - this.per); },
+        shift(){
+            const card = this.$refs.track && this.$refs.track.querySelector('.mg-midpromo-card');
+            if (!card || !this.$refs.view) return 0;
+            const gap = parseFloat(getComputedStyle(this.$refs.track).columnGap || getComputedStyle(this.$refs.track).gap) || 16;
+            return card.getBoundingClientRect().width + gap;
+        },
+        go(to){
+            const m = this.max();
+            this.i = m === 0 ? 0 : ((to % (m + 1)) + (m + 1)) % (m + 1);
+            this.arm();
+        },
+        next(){ this.go(this.i >= this.max() ? 0 : this.i + 1); },
+        prev(){ this.go(this.i <= 0 ? this.max() : this.i - 1); },
+        arm(){
+            clearInterval(this.timer);
+            if (this.max() < 1) return;
+            this.timer = setInterval(() => {
+                this.i = this.i >= this.max() ? 0 : this.i + 1;
+            }, 4800);
+        },
+        pause(){ clearInterval(this.timer); },
+        resume(){ this.arm(); }
+    }"
+    x-init="measure(); arm();"
+    @resize.window="measure()"
+    @mouseenter="pause()"
+    @mouseleave="resume()"
+>
+    <div class="tn-container">
+        <div class="mg-midpromo-row">
+            <div class="mg-midpromo-view" x-ref="view">
+                <div class="mg-midpromo-track" x-ref="track" :style="'transform: translateX(-' + (i * shift()) + 'px)'">
+                    @foreach($midPromoList as $idx => $banner)
+                        @php
+                            $isLight = ($banner->theme ?? 'dark') === 'light';
+                            $url = $banner->button_url ?: route('website.shop');
+                            $sub = trim((string) ($banner->subtitle ?? ''));
+                            $img = $banner->image_path ? public_storage_url($banner->image_path) : null;
+                        @endphp
+                        <article class="mg-midpromo-card {{ $isLight ? 'is-light' : 'is-dark' }}">
+                            <a href="{{ $url }}" class="mg-midpromo-link" aria-label="{{ $banner->title }}">
+                                <div class="mg-midpromo-media" aria-hidden="true">
+                                    @if($img)
+                                        <img src="{{ $img }}" alt="" class="mg-midpromo-img" loading="{{ $idx < 3 ? 'eager' : 'lazy' }}">
+                                    @else
+                                        <div class="mg-midpromo-fallback"></div>
+                                    @endif
+                                </div>
+                                <div class="mg-midpromo-panel">
+                                    @if($banner->badge_text || $banner->discount_badge)
+                                        <div class="mg-midpromo-meta">
+                                            @if($banner->badge_text)
+                                                <span class="mg-midpromo-badge">{{ $banner->badge_text }}</span>
+                                            @endif
+                                            @if($banner->discount_badge)
+                                                <span class="mg-midpromo-offer">{{ $banner->discount_badge }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    <h3 class="mg-midpromo-title">{{ $banner->title }}</h3>
+                                    @if($sub !== '')
+                                        @php
+                                            $subHtml = e($sub);
+                                            if (!empty($banner->highlight_text)) {
+                                                $hi = e($banner->highlight_text);
+                                                $subHtml = str_ireplace($hi, '<em>'.$hi.'</em>', $subHtml);
+                                            }
+                                        @endphp
+                                        <p class="mg-midpromo-sub">{!! $subHtml !!}</p>
+                                    @endif
+                                    @if(!empty($banner->highlight_text) && $sub === '')
+                                        <p class="mg-midpromo-sub"><em>{{ $banner->highlight_text }}</em></p>
+                                    @endif
+                                    <div class="mg-midpromo-foot">
+                                        <span class="mg-midpromo-cta">
+                                            {{ $banner->button_text ?: 'Shop now' }}
+                                        </span>
+                                        @if($banner->price_from)
+                                            <span class="mg-midpromo-price">From {{ $ws->formatPrice($banner->price_from, $settings) }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </a>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@endif
+
 {{-- New Arrivals --}}
 @if(($newArrivals ?? collect())->isNotEmpty())
 <section class="tn-section tn-section-new">
     <div class="tn-container">
-        <div class="tn-section-head">
-            <div class="tn-section-head-left">
-                <h2 class="tn-section-title">New Arrivals</h2>
-                <span class="tn-new-pill">Just in</span>
+        <div class="tn-section-head tn-section-head--branded">
+            @php $homeCopy = data_get($settings, 'home_copy') ?: []; @endphp
+            <div class="tn-section-copy">
+                <p class="tn-section-eyebrow">{{ $homeCopy['new_eyebrow'] ?? 'Just landed' }}</p>
+                <h2 class="tn-section-title">{{ $homeCopy['new_title'] ?? 'New' }} <span>{{ $homeCopy['new_title_accent'] ?? 'Arrivals' }}</span></h2>
+                <p class="tn-section-sub">{{ $homeCopy['new_subtitle'] ?? 'Fresh gadgets added to the store — explore what’s new this week.' }}</p>
             </div>
-            <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-section-link">View All New Arrivals &rarr;</a>
+            <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-section-link">View all new arrivals <span aria-hidden="true">→</span></a>
         </div>
         <div class="tn-flash-grid tn-flash-grid--8">
             @foreach($newArrivals as $product)
@@ -483,10 +559,11 @@
 <section class="tn-trending" aria-labelledby="tn-trending-heading">
     <div class="tn-container">
         <div class="tn-trending-head">
+            @php $homeCopy = data_get($settings, 'home_copy') ?: []; @endphp
             <div class="tn-trending-copy">
-                <p class="tn-trending-kicker">Most loved</p>
-                <h2 id="tn-trending-heading" class="tn-trending-title">What's <span>Trending</span></h2>
-                <p class="tn-trending-sub">Customer favorites — grab them before they sell out.</p>
+                <p class="tn-trending-kicker">{{ $homeCopy['trending_eyebrow'] ?? 'Most loved' }}</p>
+                <h2 id="tn-trending-heading" class="tn-trending-title">{{ $homeCopy['trending_title'] ?? "What's" }} <span>{{ $homeCopy['trending_title_accent'] ?? 'Trending' }}</span></h2>
+                <p class="tn-trending-sub">{{ $homeCopy['trending_subtitle'] ?? 'Customer favorites — grab them before they sell out.' }}</p>
             </div>
             <a href="{{ route('website.shop', ['filter' => 'bestsellers']) }}" class="tn-trending-all">
                 View all <span aria-hidden="true">→</span>
@@ -538,10 +615,11 @@
 <section class="tn-brands" aria-labelledby="tn-brands-heading">
     <div class="tn-container">
         <div class="tn-brands-head">
+            @php $homeCopy = data_get($settings, 'home_copy') ?: []; @endphp
             <div class="tn-brands-copy">
-                <p class="tn-brands-eyebrow">Partners</p>
-                <h2 id="tn-brands-heading" class="tn-brands-title">Brands We <span>Carry</span></h2>
-                <p class="tn-brands-sub">Trusted names in gadgets — quality, performance, and innovation.</p>
+                <p class="tn-brands-eyebrow">{{ $homeCopy['brands_eyebrow'] ?? 'Partners' }}</p>
+                <h2 id="tn-brands-heading" class="tn-brands-title">{{ $homeCopy['brands_title'] ?? 'Brands We' }} <span>{{ $homeCopy['brands_title_accent'] ?? 'Carry' }}</span></h2>
+                <p class="tn-brands-sub">{{ $homeCopy['brands_subtitle'] ?? 'Trusted names in gadgets — quality, performance, and innovation.' }}</p>
             </div>
         </div>
     </div>
@@ -554,7 +632,8 @@
                         $brandSlug = \Illuminate\Support\Str::slug($brand->name);
                         $logoUrl = $brand->logo_url
                             ?: ($brand->logo_path ? public_storage_url($brand->logo_path) : null);
-                        $tagline = $brandTaglines[$brandSlug] ?? 'Gadgets · Accessories';
+                        $tagline = trim((string) ($brand->tagline ?? ''))
+                            ?: ($brandTaglines[$brandSlug] ?? 'Gadgets · Accessories');
                     @endphp
                     <a href="{{ route('website.brand', $brandSlug) }}"
                        class="tn-brand-card"
@@ -587,95 +666,79 @@
 {{-- Deals You'll Love (CMS → Landing Page promo banners) --}}
 @if($promoBanners->isNotEmpty())
 @php
-    $dealsKicker = data_get($settings, 'deals_kicker') ?: 'Special Offers';
-    $dealsTitle = data_get($settings, 'deals_title') ?: "Deals You'll";
-    $dealsAccent = data_get($settings, 'deals_title_accent') ?: 'Love';
-    $dealsSub = data_get($settings, 'deals_subtitle') ?: 'Grab the best deals on top-quality gadgets and accessories.';
+    $dealsKicker = data_get($settings, 'deals_kicker') ?: 'This week';
+    $dealsTitle = data_get($settings, 'deals_title') ?: 'Featured';
+    $dealsAccent = data_get($settings, 'deals_title_accent') ?: 'Deals';
+    $dealsSub = data_get($settings, 'deals_subtitle') ?: 'Premium gadgets at carefully chosen prices.';
 @endphp
-<section class="tn-deals">
+<section class="tn-deals" aria-labelledby="tn-deals-heading">
+    <div class="tn-deals-glow" aria-hidden="true"></div>
     <div class="tn-container">
-        <div class="tn-deals-head">
-            <div class="tn-deals-kicker">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
-                    <circle cx="7" cy="7" r="1.2" fill="currentColor" stroke="none"/>
-                </svg>
+        <header class="tn-deals-head">
+            <p class="tn-deals-kicker">
+                <span class="tn-deals-kicker-dot" aria-hidden="true"></span>
                 {{ $dealsKicker }}
-            </div>
-            <h2 class="tn-deals-title">
-                <span class="tn-deals-rays tn-deals-rays--left" aria-hidden="true"><i></i><i></i><i></i></span>
-                <span>{{ $dealsTitle }} <em>{{ $dealsAccent }}</em></span>
-                <span class="tn-deals-rays tn-deals-rays--right" aria-hidden="true"><i></i><i></i><i></i></span>
+            </p>
+            <h2 id="tn-deals-heading" class="tn-deals-title">
+                {{ $dealsTitle }} <span>{{ $dealsAccent }}</span>
             </h2>
             <p class="tn-deals-sub">{{ $dealsSub }}</p>
-        </div>
+        </header>
 
         <div class="tn-deals-grid">
             @foreach($promoBanners->take(2) as $banner)
                 @php
                     $isLight = $banner->theme === 'light';
                     $url = $banner->button_url ?: route('website.shop');
-                    $sub = (string) ($banner->subtitle ?? '');
-                    $hi = trim((string) ($banner->highlight_text ?? ''));
-                    if ($hi !== '' && $sub !== '' && str_contains($sub, $hi)) {
-                        $subHtml = str_replace($hi, '<strong>'.e($hi).'</strong>', e($sub));
-                    } else {
-                        $subHtml = e($sub);
-                    }
+                    $sub = trim((string) ($banner->subtitle ?? ''));
                 @endphp
                 <article class="tn-deal {{ $isLight ? 'is-light' : 'is-dark' }}">
-                    @if($banner->discount_badge)
-                        <span class="tn-deal-disc">{{ $banner->discount_badge }}</span>
-                    @endif
-
-                    <div class="tn-deal-body">
-                        @if($banner->badge_text)
-                            <span class="tn-deal-badge">
-                                @if($isLight)
-                                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 10-14h-7l1-6z"/></svg>
-                                @else
-                                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.5 2.2c.3-.5 1.1-.3 1.1.3v5.2h4.2c.6 0 .9.7.5 1.1l-8.4 9.7c-.4.5-1.2.2-1.1-.5l.8-5.5H5.5c-.6 0-.9-.7-.5-1.1L12.5 2.2z"/></svg>
-                                @endif
-                                {{ $banner->badge_text }}
-                            </span>
+                    <a href="{{ $url }}" class="tn-deal-link" aria-label="{{ $banner->title }}">
+                        @if($banner->discount_badge)
+                            <span class="tn-deal-disc">{{ $banner->discount_badge }}</span>
                         @endif
 
-                        <div class="tn-deal-copy">
-                            <div class="tn-deal-copy-main">
+                        <div class="tn-deal-body">
+                            @if($banner->badge_text)
+                                <span class="tn-deal-badge">{{ $banner->badge_text }}</span>
+                            @endif
+
+                            <div class="tn-deal-copy">
                                 <h3 class="tn-deal-name">{{ $banner->title }}</h3>
                                 @if($sub !== '')
+                                    @php
+                                        $subHtml = e($sub);
+                                        if (!empty($banner->highlight_text)) {
+                                            $hi = e($banner->highlight_text);
+                                            $subHtml = str_ireplace($hi, '<em>'.$hi.'</em>', $subHtml);
+                                        }
+                                    @endphp
                                     <p class="tn-deal-offer">{!! $subHtml !!}</p>
+                                @elseif(!empty($banner->highlight_text))
+                                    <p class="tn-deal-offer"><em>{{ $banner->highlight_text }}</em></p>
+                                @endif
+                                @if($banner->price_from)
+                                    <p class="tn-deal-price">
+                                        <span>From</span>
+                                        <strong>{{ $ws->formatPrice($banner->price_from, $settings) }}</strong>
+                                    </p>
                                 @endif
                             </div>
-                            @if($banner->price_from)
-                                <div class="tn-deal-price">
-                                    <span>From</span>
-                                    <strong>{{ $ws->formatPrice($banner->price_from, $settings) }}</strong>
-                                </div>
+
+                            <span class="tn-deal-cta">
+                                {{ $banner->button_text ?: 'Shop now' }}
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </span>
+                        </div>
+
+                        <div class="tn-deal-media" aria-hidden="true">
+                            <span class="tn-deal-orb"></span>
+                            <span class="tn-deal-ring"></span>
+                            @if($banner->image_path)
+                                <img src="{{ public_storage_url($banner->image_path) }}" alt="" class="tn-deal-img" loading="lazy">
                             @endif
                         </div>
-
-                        <div class="tn-deal-actions">
-                            <a href="{{ $url }}" class="tn-deal-cta">
-                                @if($isLight)
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l3-8H6.4M7 13L5.4 5M7 13l-2 7h14M10 20a1 1 0 102 0 1 1 0 00-2 0zm8 0a1 1 0 102 0 1 1 0 00-2 0z"/></svg>
-                                @else
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                                @endif
-                                {{ $banner->button_text ?: 'Shop Now' }}
-                            </a>
-                            <a href="{{ $url }}" class="tn-deal-arrow" aria-label="{{ $banner->button_text ?: 'Shop Now' }}">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="tn-deal-media">
-                        <div class="tn-deal-podium" aria-hidden="true"></div>
-                        @if($banner->image_path)
-                            <img src="{{ public_storage_url($banner->image_path) }}" alt="{{ $banner->title }}" class="tn-deal-img">
-                        @endif
-                    </div>
+                    </a>
                 </article>
             @endforeach
         </div>
@@ -687,9 +750,10 @@
 @if(($featuredReviews ?? collect())->isNotEmpty())
 <section class="tn-section">
     <div class="tn-container">
+        @php $homeCopy = data_get($settings, 'home_copy') ?: []; @endphp
         <div class="tn-section-head tn-section-head-center">
-            <h2 class="tn-section-title">What Our Customers Say</h2>
-            <p class="tn-section-desc">Real feedback from shoppers who love our products and service.</p>
+            <h2 class="tn-section-title">{{ $homeCopy['reviews_title'] ?? 'What Our Customers Say' }}</h2>
+            <p class="tn-section-desc">{{ $homeCopy['reviews_subtitle'] ?? 'Real feedback from shoppers who love our products and service.' }}</p>
         </div>
         <div class="tn-review-grid">
             @foreach($featuredReviews->take(3) as $review)
@@ -724,16 +788,17 @@
 @if(($latestBlogs ?? collect())->isNotEmpty())
 <section class="tn-blog" aria-labelledby="tn-blog-heading">
     <div class="tn-container">
+        @php $homeCopy = data_get($settings, 'home_copy') ?: []; @endphp
         <div class="tn-blog-head">
             <p class="tn-blog-kicker">
                 <span class="tn-blog-kicker-line" aria-hidden="true"></span>
-                Latest from the Blog
+                {{ $homeCopy['blog_eyebrow'] ?? 'Latest from the Blog' }}
                 <span class="tn-blog-kicker-line" aria-hidden="true"></span>
             </p>
             <div class="tn-blog-head-main">
                 <div class="tn-blog-head-copy">
-                    <h2 id="tn-blog-heading" class="tn-blog-heading">Latest from the <em>Blog</em></h2>
-                    <p class="tn-blog-sub">Stay ahead with gadget tips, reviews, guides and tech insights.</p>
+                    <h2 id="tn-blog-heading" class="tn-blog-heading">{{ $homeCopy['blog_title'] ?? 'Latest from the' }} <em>{{ $homeCopy['blog_title_accent'] ?? 'Blog' }}</em></h2>
+                    <p class="tn-blog-sub">{{ $homeCopy['blog_subtitle'] ?? 'Stay ahead with gadget tips, reviews, guides and tech insights.' }}</p>
                 </div>
                 <a href="{{ route('website.blogs') }}" class="tn-blog-all">
                     View All Articles

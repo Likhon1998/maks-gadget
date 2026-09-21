@@ -107,7 +107,7 @@ class CounterSessionController extends Controller
         $available = $this->sessions->transferableCash($openFrom);
         if ((float) $request->amount > $available + 0.0001) {
             return back()
-                ->with('error', "Only ৳" . number_format($available, 2) . " is transferable from {$from->name} right now (drawer / ledger).")
+                ->with('error', "Only " . format_taka($available) . " is transferable from {$from->name} right now (drawer / ledger).")
                 ->withInput();
         }
 
@@ -123,7 +123,7 @@ class CounterSessionController extends Controller
             return back()->with('error', $e->getMessage())->withInput();
         }
 
-        $amount = number_format((float) $request->amount, 2);
+        $amount = format_taka_number((float) $request->amount);
 
         return back()->with(
             'success',
@@ -233,7 +233,7 @@ class CounterSessionController extends Controller
 
             return redirect()
                 ->route('pos.index')
-                ->with('success', "{$counter->name} opened with ৳" . number_format((float) $request->opening_cash, 2) . ' starting cash.');
+                ->with('success', "{$counter->name} opened with ৳" . format_taka_number((float) $request->opening_cash) . ' starting cash.');
         }
 
         if (! $user->counter_id) {
@@ -263,7 +263,7 @@ class CounterSessionController extends Controller
 
         return redirect()
             ->route('pos.index')
-            ->with('success', "{$counter->name} opened with ৳" . number_format((float) $request->opening_cash, 2) . ' starting cash.');
+            ->with('success', "{$counter->name} opened with ৳" . format_taka_number((float) $request->opening_cash) . ' starting cash.');
     }
 
     public function open(Request $request)
@@ -305,7 +305,7 @@ class CounterSessionController extends Controller
 
         return redirect()
             ->route($user->isAdminUser() ? 'pos.index' : 'counters.sessions.index')
-            ->with('success', "{$counter->name} opened with ৳" . number_format((float) $request->opening_cash, 2) . '.');
+            ->with('success', "{$counter->name} opened with ৳" . format_taka_number((float) $request->opening_cash) . '.');
     }
 
     public function closeForm(CounterSession $session)
@@ -340,7 +340,7 @@ class CounterSessionController extends Controller
         if (abs($closingCash - $expected) > 0.009 && blank($request->notes)) {
             return back()
                 ->withInput()
-                ->with('error', 'Expected ৳' . number_format($expected, 2) . '. Enter a note explaining the variance before closing.');
+                ->with('error', 'Expected ' . format_taka($expected) . '. Enter a note explaining the variance before closing.');
         }
 
         try {
@@ -358,7 +358,7 @@ class CounterSessionController extends Controller
 
         return redirect()
             ->route('counters.sessions.show', $closed)
-            ->with('success', 'Counter closed. Variance: ৳' . number_format((float) $closed->variance, 2));
+            ->with('success', 'Counter closed. Variance: ৳' . format_taka_number((float) $closed->variance));
     }
 
     public function show(CounterSession $session)

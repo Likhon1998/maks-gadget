@@ -222,18 +222,37 @@ class ReportController extends Controller
         return view('reports.best-sellers', compact('bestSellers', 'startDate', 'endDate'));
     }
 
-    public function lowStock()
+    public function lowStock(Request $request)
     {
         $shopId = Auth::user()->shop_id;
-        
-        // Note: No date range here, because Low Stock represents the physical items on shelves RIGHT NOW.
-        $lowStockItems = \App\Models\Product::where('shop_id', $shopId)
-            ->whereColumn('stock_quantity', '<=', 'alert_quantity') 
-            ->with('category') 
-            ->orderBy('stock_quantity', 'asc') 
-            ->paginate(15);
 
-        return view('reports.low-stock', compact('lowStockItems'));
+        $base = \App\Models\Product::where('shop_id', $shopId)
+            ->whereColumn('stock_quantity', '<=', 'alert_quantity');
+
+        $outCount = (clone $base)->where('stock_quantity', '<=', 0)->count();
+        $lowCount = (clone $base)->where('stock_quantity', '>', 0)->count();
+
+        $query = (clone $base)->with(['category', 'brand'])->orderBy('stock_quantity', 'asc');
+
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where(function ($builder) use ($q) {
+                $builder->where('name', 'like', "%{$q}%")
+                    ->orWhere('barcode', 'like', "%{$q}%")
+                    ->orWhere('sku', 'like', "%{$q}%")
+                    ->orWhere('brand_name', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->input('status') === 'out') {
+            $query->where('stock_quantity', '<=', 0);
+        } elseif ($request->input('status') === 'low') {
+            $query->where('stock_quantity', '>', 0);
+        }
+
+        $lowStockItems = $query->paginate(20)->withQueryString();
+
+        return view('reports.low-stock', compact('lowStockItems', 'outCount', 'lowCount'));
     }
 
     public function staffPerformance(Request $request)
@@ -382,13 +401,13 @@ class ReportController extends Controller
             'counter_name' => $counterName,
             'date_formatted' => $parsedDate->format('l, F j, Y'),
             'total_orders' => $orders->count(),
-            'total_revenue' => number_format($orders->sum('total_amount'), 2),
+            'total_revenue' => format_taka_number($orders->sum('total_amount')),
             'orders' => $orders->map(function($order) {
                 return [
                     'time' => $order->created_at->format('h:i A'),
                     'id' => $order->id,
                     'customer' => $order->customer ? $order->customer->name : 'Walk-in Customer',
-                    'amount' => number_format($order->total_amount, 2),
+                    'amount' => format_taka_number($order->total_amount),
                 ];
             })
         ]);

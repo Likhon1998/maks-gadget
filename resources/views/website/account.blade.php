@@ -33,19 +33,26 @@
                 'invoice' => $order->invoice_no,
                 'date' => asian_date($order->created_at, 'M j, Y'),
                 'datetime' => asian_datetime($order->created_at, 'M j, Y g:i A'),
-                'status' => $order->status,
+                'status' => $order->status === 'pending_fulfillment' ? 'pending' : $order->status,
                 'status_label' => $track['status_label'] ?? ucfirst($order->status),
-                'total' => number_format((float) $order->total_amount, 2),
+                'total' => format_taka_number((float) $order->total_amount),
                 'where' => $track['where_is_product'] ?? '',
                 'courier' => $order->shipping_courier,
                 'tracking_no' => $order->shipping_tracking_no,
                 'address' => $customer?->address ?: 'No address saved yet.',
                 'timeline' => $track['timeline'] ?? [],
-                'items' => $order->items->map(fn ($item) => [
-                    'name' => $item->product?->name ?? 'Product',
-                    'qty' => (int) $item->quantity,
-                    'subtotal' => number_format((float) $item->subtotal, 2),
-                ])->values()->all(),
+                'items' => $order->items->map(function ($item) {
+                    $product = $item->product;
+
+                    return [
+                        'name' => $product?->name ?? 'Product',
+                        'qty' => (int) $item->quantity,
+                        'subtotal' => format_taka_number((float) $item->subtotal),
+                        'image' => $product
+                            ? app(\App\Services\WebsiteService::class)->productImageUrl($product)
+                            : '',
+                    ];
+                })->values()->all(),
             ],
         ];
     });
@@ -73,22 +80,25 @@
             return 'bg-slate-100 text-slate-700';
         },
         flowSteps: [
-            { key: 'pending', label: 'Order received' },
-            { key: 'processing', label: 'Packaging' },
-            { key: 'shipped', label: 'Out for delivery' },
+            { key: 'pending', label: 'Received' },
+            { key: 'processing', label: 'Preparing' },
+            { key: 'shipped', label: 'In transit' },
             { key: 'completed', label: 'Delivered' },
         ],
         buildTrack(order) {
             if (!order) return [];
             const rankMap = { pending: 0, processing: 1, shipped: 2, completed: 3 };
-            const status = order.status || 'pending';
+            const raw = order.status || 'pending';
+            const status = raw === 'pending_fulfillment' ? 'pending' : raw;
             const rank = Object.prototype.hasOwnProperty.call(rankMap, status) ? rankMap[status] : 0;
             const byKey = {};
             (order.timeline || []).forEach((s) => { if (s && s.key) byKey[s.key] = s; });
             return this.flowSteps.map((step, i) => {
                 const log = byKey[step.key] || {};
-                const active = step.key === status;
-                const passed = i < rank || status === 'completed';
+                const active = typeof log.active === 'boolean' ? log.active : (step.key === status);
+                const passed = typeof log.done === 'boolean'
+                    ? log.done
+                    : (i < rank || status === 'completed');
                 return {
                     key: step.key,
                     label: step.label,
@@ -102,7 +112,9 @@
         progressPct(order) {
             if (!order) return 0;
             const rankMap = { pending: 0, processing: 1, shipped: 2, completed: 3 };
-            const rank = rankMap[order.status] ?? 0;
+            const raw = order.status || 'pending';
+            const status = raw === 'pending_fulfillment' ? 'pending' : raw;
+            const rank = rankMap[status] ?? 0;
             return (rank / 3) * 100;
         },
      }"
@@ -114,7 +126,8 @@
             }, 120);
         @endif
      "
-     @keydown.escape.window="closeDetail()">
+     @keydown.escape.window="closeDetail()"
+     @acct-open-detail.window="openDetail($event.detail)">
     <div class="acct-page max-w-[1280px] mx-auto px-3 sm:px-4 md:px-5 py-4 sm:py-6">
     <div class="grid gap-4 xl:grid-cols-[250px_minmax(0,1fr)] min-w-0">
         <div class="space-y-4 min-w-0 order-2 xl:order-1">
@@ -215,9 +228,9 @@
                             index: 0,
                             touchStartX: null,
                             flowSteps: [
-                                { key: 'pending', label: 'Order received' },
-                                { key: 'processing', label: 'Packaging' },
-                                { key: 'shipped', label: 'Out for delivery' },
+                                { key: 'pending', label: 'Received' },
+                                { key: 'processing', label: 'Preparing' },
+                                { key: 'shipped', label: 'In transit' },
                                 { key: 'completed', label: 'Delivered' },
                             ],
                             get current() { return this.slides[this.index] || null; },
@@ -227,14 +240,17 @@
                             buildTrack(order) {
                                 if (!order) return [];
                                 const rankMap = { pending: 0, processing: 1, shipped: 2, completed: 3 };
-                                const status = order.status || 'pending';
+                                const raw = order.status || 'pending';
+                                const status = raw === 'pending_fulfillment' ? 'pending' : raw;
                                 const rank = Object.prototype.hasOwnProperty.call(rankMap, status) ? rankMap[status] : 0;
                                 const byKey = {};
                                 (order.timeline || []).forEach((s) => { if (s && s.key) byKey[s.key] = s; });
                                 return this.flowSteps.map((step, i) => {
                                     const log = byKey[step.key] || {};
-                                    const active = step.key === status;
-                                    const passed = i < rank || status === 'completed';
+                                    const active = typeof log.active === 'boolean' ? log.active : (step.key === status);
+                                    const passed = typeof log.done === 'boolean'
+                                        ? log.done
+                                        : (i < rank || status === 'completed');
                                     return {
                                         key: step.key,
                                         label: step.label,
@@ -248,7 +264,9 @@
                             progressPct(order) {
                                 if (!order) return 0;
                                 const rankMap = { pending: 0, processing: 1, shipped: 2, completed: 3 };
-                                const rank = rankMap[order.status] ?? 0;
+                                const raw = order.status || 'pending';
+                                const status = raw === 'pending_fulfillment' ? 'pending' : raw;
+                                const rank = rankMap[status] ?? 0;
                                 return (rank / 3) * 100;
                             },
                             prev() { if (this.count < 2) return; this.index = (this.index - 1 + this.count) % this.count; },
@@ -285,74 +303,73 @@
                         <div class="relative min-w-0 max-w-full"
                              @touchstart.passive="onTouchStart($event)"
                              @touchend.passive="onTouchEnd($event)">
-                            <div class="rounded-2xl border border-slate-100 bg-white p-1 sm:p-0 min-w-0 max-w-full overflow-hidden">
-                                <div class="flex flex-wrap items-center justify-between gap-2 min-w-0">
+                            <div class="acct-active-order min-w-0 max-w-full">
+                                <div class="acct-active-order__head">
                                     <div class="min-w-0">
-                                        <p class="text-[13px] font-bold text-slate-900 break-all" x-text="current.invoice"></p>
-                                        <p class="text-[11px] text-slate-500" x-show="current.id" x-text="'Order ID · Ref #' + current.id"></p>
-                                        <p class="text-[11px] text-slate-500" x-text="'Placed on ' + current.date"></p>
+                                        <p class="acct-active-order__invoice" x-text="current.invoice"></p>
+                                        <p class="acct-active-order__meta" x-show="current.id" x-text="'Ref #' + current.id + ' · Placed ' + current.date"></p>
                                     </div>
-                                    <span class="shrink-0 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-extrabold"
-                                          :class="statusClass(current.status)">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-current animate-pulse" x-show="['pending','processing','shipped'].includes(current.status)"></span>
-                                        <span x-text="current.status_label"></span>
-                                    </span>
+                                    <span class="acct-active-order__badge" :data-status="current.status" x-text="current.status_label"></span>
                                 </div>
 
-                                {{-- Connected 4-step progress line --}}
-                                <div class="gaget-progress mt-6" aria-label="Order progress">
-                                    <div class="gaget-progress__rail" aria-hidden="true">
-                                        <div class="gaget-progress__fill" :style="'width:' + fillPct + '%'"></div>
-                                    </div>
-                                    <div class="gaget-progress__steps">
-                                        <template x-for="(step, sIdx) in track" :key="current.id + '-track-' + step.key">
-                                            <div class="gaget-progress__step"
-                                                 :class="{
-                                                    'is-done': step.done,
-                                                    'is-active': step.active,
-                                                    'is-waiting': !step.done && !step.active
-                                                 }">
-                                                <div class="gaget-progress__dot" x-text="step.done || (step.active && current.status === 'completed') ? '✓' : (sIdx + 1)"></div>
-                                                <p class="gaget-progress__label" x-text="step.label"></p>
-                                                <p class="gaget-progress__meta" x-text="step.active ? (step.at || 'In progress') : (step.at || 'Waiting')"></p>
+                                <div class="acct-active-order__status" x-show="current.where">
+                                    <p class="acct-active-order__status-label">Current status</p>
+                                    <p class="acct-active-order__status-text" x-text="current.where"></p>
+                                </div>
+
+                                <ol class="acct-timeline acct-timeline--compact">
+                                    <template x-for="(step, sIdx) in track" :key="current.id + '-track-' + step.key">
+                                        <li class="acct-timeline__item"
+                                            :class="{
+                                                'is-done': step.done,
+                                                'is-active': step.active,
+                                                'is-waiting': !step.done && !step.active
+                                            }">
+                                            <div class="acct-timeline__marker" aria-hidden="true">
+                                                <span class="acct-timeline__dot" x-text="step.done || (step.active && current.status === 'completed') ? '✓' : (sIdx + 1)"></span>
+                                                <span class="acct-timeline__line" x-show="sIdx < 3"></span>
                                             </div>
-                                        </template>
-                                    </div>
-                                </div>
+                                            <div class="acct-timeline__content">
+                                                <p class="acct-timeline__label" x-text="step.label"></p>
+                                                <p class="acct-timeline__meta" x-text="step.active ? (step.at || 'In progress') : (step.done ? (step.at || 'Completed') : 'Pending')"></p>
+                                            </div>
+                                        </li>
+                                    </template>
+                                </ol>
 
-                                <div class="mt-4 rounded-xl border border-amber-100 bg-amber-50 px-3 py-2.5 text-left min-w-0"
-                                     x-show="current.where">
-                                    <p class="text-[10px] font-bold uppercase tracking-wide text-amber-700">Where is my order?</p>
-                                    <p class="mt-1 text-[13px] font-semibold text-amber-950 break-words" x-text="current.where"></p>
-                                </div>
-
-                                <div class="mt-5 flex flex-col gap-3 min-w-0 max-w-full">
-                                    <div class="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 min-w-0 max-w-full overflow-hidden">
-                                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-xl">📦</div>
-                                        <div class="min-w-0 flex-1 overflow-hidden">
-                                            <p class="text-[13px] font-bold text-slate-900 break-words leading-snug">
-                                                <span x-text="current.item_name"></span>
-                                                <span x-show="current.extra_items > 0" x-text="' +' + current.extra_items + ' more'"></span>
-                                            </p>
-                                            <p class="mt-0.5 text-[11px] text-slate-500" x-text="'Qty: ' + current.qty"></p>
+                                <div class="acct-active-order__items">
+                                    <template x-for="(item, ii) in (current.items || [])" :key="current.id + '-item-' + ii">
+                                        <div class="acct-active-order__item">
+                                            <div class="acct-active-order__thumb">
+                                                <img x-show="item.image" :src="item.image" :alt="item.name" loading="lazy">
+                                                <div x-show="!item.image" class="acct-active-order__thumb-fallback" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                                </div>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="acct-active-order__item-name" x-text="item.name"></p>
+                                                <p class="acct-active-order__item-qty" x-text="'Quantity: ' + item.qty"></p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <a href="{{ route('website.account') }}#recent-orders"
-                                       class="inline-flex w-full max-w-full items-center justify-center rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-[13px] font-semibold text-blue-700 hover:bg-blue-50">
-                                        View Orders
-                                    </a>
+                                    </template>
                                 </div>
 
-                                <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 min-w-0">
-                                    <div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 min-w-0">
-                                        <p class="text-[10px] uppercase tracking-wide text-slate-400">Current Location</p>
-                                        <p class="mt-1 text-[13px] font-semibold text-slate-800 break-words" x-text="current.courier"></p>
+                                <div class="acct-active-order__delivery">
+                                    <div>
+                                        <p class="acct-active-order__delivery-label">Courier</p>
+                                        <p class="acct-active-order__delivery-value" x-text="current.courier"></p>
                                     </div>
-                                    <div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 min-w-0">
-                                        <p class="text-[10px] uppercase tracking-wide text-slate-400">Delivery Address</p>
-                                        <p class="mt-1 text-[13px] font-semibold text-slate-800 break-words" x-text="current.address"></p>
+                                    <div>
+                                        <p class="acct-active-order__delivery-label">Delivery address</p>
+                                        <p class="acct-active-order__delivery-value" x-text="current.address"></p>
                                     </div>
                                 </div>
+
+                                <button type="button"
+                                        class="acct-active-order__cta"
+                                        @click="$dispatch('acct-open-detail', current.id)">
+                                    View order details
+                                </button>
                             </div>
 
                             <template x-if="count > 1">
@@ -427,7 +444,7 @@
                                     <span class="text-slate-400">· {{ $order->items->sum('quantity') }} item(s)</span>
                                 </p>
                                 <div class="mt-3 flex items-center justify-between gap-2">
-                                    <p class="text-[14px] font-extrabold text-slate-900">{{ $currency }}{{ number_format($order->total_amount, 2) }}</p>
+                                    <p class="text-[14px] font-extrabold text-slate-900">{{ format_taka($order->total_amount, $currency) }}</p>
                                     <button type="button"
                                             @click="openDetail({{ $order->id }})"
                                             class="shrink-0 inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700">
@@ -469,7 +486,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-2 py-3 text-right font-bold text-slate-900 whitespace-nowrap">{{ $currency }}{{ number_format($order->total_amount, 2) }}</td>
+                                        <td class="px-2 py-3 text-right font-bold text-slate-900 whitespace-nowrap">{{ format_taka($order->total_amount, $currency) }}</td>
                                         <td class="px-2 py-3">
                                             <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-extrabold
                                                 @if($order->status === 'completed') bg-emerald-100 text-emerald-700
@@ -567,88 +584,116 @@
         </section>
     </div>
 
-    {{-- Order details modal --}}
+    {{-- Order details sheet --}}
     <div x-show="detailOpen" x-cloak
-         class="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4"
+         class="acct-order-overlay fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-5"
          @keydown.escape.window="closeDetail()">
-        <div class="absolute inset-0 bg-slate-900/50" @click="closeDetail()"></div>
-        <div class="acct-order-modal relative w-full sm:max-w-lg max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl"
+        <div class="absolute inset-0 bg-slate-950/45" @click="closeDetail()"></div>
+        <div class="acct-order-sheet relative w-full sm:max-w-[440px] max-h-[92vh] flex flex-col bg-white shadow-2xl"
              @click.outside="closeDetail()"
              x-show="detailOpen"
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 translate-y-3 sm:translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0">
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 translate-y-6 sm:translate-y-3 sm:scale-[0.98]"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0 translate-y-4">
             <template x-if="detail">
-                <div class="min-w-0">
-                    <div class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-slate-100 bg-white px-4 sm:px-5 py-4">
-                        <div class="min-w-0">
-                            <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">Order ID</p>
-                            <h3 class="mt-0.5 break-all text-[17px] sm:text-[18px] font-extrabold text-slate-900" x-text="detail.invoice"></h3>
-                            <p class="text-[11px] text-slate-500" x-show="detail.id" x-text="'Ref #' + detail.id"></p>
-                            <p class="mt-0.5 text-[12px] text-slate-500" x-text="'Placed ' + detail.datetime"></p>
+                <div class="min-w-0 flex flex-col max-h-[92vh]">
+                    <div class="acct-order-sheet__hero shrink-0">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="acct-order-sheet__kicker">Order summary</p>
+                                <h3 class="acct-order-sheet__invoice" x-text="detail.invoice"></h3>
+                                <p class="acct-order-sheet__meta" x-text="'Placed on ' + detail.datetime"></p>
+                            </div>
+                            <button type="button" @click="closeDetail()" class="acct-order-sheet__close" aria-label="Close">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
                         </div>
-                        <button type="button" @click="closeDetail()" class="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Close">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
+                        <div class="acct-order-sheet__hero-row">
+                            <span class="acct-order-sheet__badge" :data-status="detail.status" x-text="detail.status_label"></span>
+                            <div class="acct-order-sheet__total">
+                                <p class="acct-order-sheet__total-label">Amount paid</p>
+                                <p class="acct-order-sheet__total-value" x-text="'{{ $currency }}' + detail.total"></p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="space-y-4 px-4 sm:px-5 py-4 min-w-0">
-                        <div class="flex flex-wrap items-center justify-between gap-2">
-                            <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold" :class="statusClass(detail.status)" x-text="detail.status_label"></span>
-                            <p class="text-[15px] font-extrabold text-slate-900" x-text="'{{ $currency }}' + detail.total"></p>
-                        </div>
-
-                        <p class="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2.5 text-[12px] font-medium text-blue-800 break-words" x-text="detail.where" x-show="detail.where"></p>
-
-                        <div class="rounded-xl border border-slate-100 bg-white p-3 min-w-0 overflow-hidden">
-                            <p class="mb-3 text-[11px] font-bold uppercase tracking-wide text-slate-400">Tracking</p>
-                            <div class="gaget-progress gaget-progress--modal" aria-label="Order progress">
-                                <div class="gaget-progress__rail" aria-hidden="true">
-                                    <div class="gaget-progress__fill" :style="'width:' + progressPct(detail) + '%'"></div>
-                                </div>
-                                <div class="gaget-progress__steps">
-                                    <template x-for="(step, sIdx) in buildTrack(detail)" :key="'detail-' + step.key">
-                                        <div class="gaget-progress__step"
-                                             :class="{ 'is-done': step.done, 'is-active': step.active, 'is-waiting': !step.done && !step.active }">
-                                            <div class="gaget-progress__dot" x-text="step.done || (step.active && detail.status === 'completed') ? '✓' : (sIdx + 1)"></div>
-                                            <p class="gaget-progress__label" x-text="step.label"></p>
-                                            <p class="gaget-progress__meta" x-text="step.active ? (step.at || 'In progress') : (step.at || 'Waiting')"></p>
-                                        </div>
-                                    </template>
-                                </div>
+                    <div class="acct-order-sheet__body min-w-0 overflow-y-auto">
+                        <div class="acct-order-sheet__status" x-show="detail.where">
+                            <div class="acct-order-sheet__status-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 16h-1v-4h-1m1-4h.01M12 3a9 9 0 100 18 9 9 0 000-18z"/></svg>
+                            </div>
+                            <div>
+                                <p class="acct-order-sheet__status-label">Current status</p>
+                                <p class="acct-order-sheet__status-text" x-text="detail.where"></p>
                             </div>
                         </div>
 
-                        <div class="min-w-0">
-                            <p class="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-400">Items</p>
-                            <div class="divide-y divide-slate-100 rounded-xl border border-slate-100">
-                                <template x-for="(item, i) in detail.items" :key="'item-' + i">
-                                    <div class="flex items-start justify-between gap-3 px-3 py-2.5 text-[13px] min-w-0">
-                                        <div class="min-w-0 flex-1">
-                                            <p class="font-semibold text-slate-900 break-words" x-text="item.name"></p>
-                                            <p class="text-[11px] text-slate-500" x-text="'Qty ' + item.qty"></p>
+                        <section class="acct-order-sheet__section">
+                            <h4 class="acct-order-sheet__section-title">Shipment progress</h4>
+                            <ol class="acct-timeline">
+                                <template x-for="(step, sIdx) in buildTrack(detail)" :key="'detail-' + step.key">
+                                    <li class="acct-timeline__item"
+                                        :class="{
+                                            'is-done': step.done,
+                                            'is-active': step.active,
+                                            'is-waiting': !step.done && !step.active
+                                        }">
+                                        <div class="acct-timeline__marker" aria-hidden="true">
+                                            <span class="acct-timeline__dot" x-text="step.done || (step.active && detail.status === 'completed') ? '✓' : (sIdx + 1)"></span>
+                                            <span class="acct-timeline__line" x-show="sIdx < 3"></span>
                                         </div>
-                                        <p class="shrink-0 font-bold text-slate-900" x-text="'{{ $currency }}' + item.subtotal"></p>
-                                    </div>
+                                        <div class="acct-timeline__content">
+                                            <p class="acct-timeline__label" x-text="step.label"></p>
+                                            <p class="acct-timeline__meta" x-text="step.active ? (step.at || 'In progress') : (step.done ? (step.at || 'Completed') : 'Pending')"></p>
+                                            <p class="acct-timeline__note" x-show="step.active && step.note" x-text="step.note"></p>
+                                        </div>
+                                    </li>
                                 </template>
-                            </div>
-                        </div>
+                            </ol>
+                        </section>
 
-                        <div class="grid gap-2 grid-cols-1 sm:grid-cols-2 min-w-0">
-                            <div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 min-w-0">
-                                <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Courier</p>
-                                <p class="mt-1 text-[12px] font-semibold text-slate-800 break-words" x-text="detail.courier || 'Our store / packing desk'"></p>
-                                <p class="mt-0.5 font-mono text-[11px] text-slate-500 break-all" x-show="detail.tracking_no" x-text="detail.tracking_no"></p>
+                        <section class="acct-order-sheet__section">
+                            <h4 class="acct-order-sheet__section-title">Order items</h4>
+                            <ul class="acct-order-items">
+                                <template x-for="(item, i) in detail.items" :key="'item-' + i">
+                                    <li class="acct-order-item">
+                                        <div class="acct-order-item__media">
+                                            <img x-show="item.image" :src="item.image" :alt="item.name" loading="lazy">
+                                            <div x-show="!item.image" class="acct-order-item__fallback" aria-hidden="true">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                            </div>
+                                        </div>
+                                        <div class="acct-order-item__meta">
+                                            <p class="acct-order-item__name" x-text="item.name"></p>
+                                            <p class="acct-order-item__qty" x-text="'Quantity: ' + item.qty"></p>
+                                        </div>
+                                        <p class="acct-order-item__price" x-text="'{{ $currency }}' + item.subtotal"></p>
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+
+                        <section class="acct-order-sheet__section acct-order-sheet__section--last">
+                            <h4 class="acct-order-sheet__section-title">Delivery details</h4>
+                            <div class="acct-order-delivery">
+                                <div>
+                                    <p class="acct-order-delivery__label">Courier</p>
+                                    <p class="acct-order-delivery__value" x-text="detail.courier || 'Store dispatch'"></p>
+                                    <p class="acct-order-delivery__track" x-show="detail.tracking_no" x-text="'Tracking: ' + detail.tracking_no"></p>
+                                </div>
+                                <div>
+                                    <p class="acct-order-delivery__label">Delivery address</p>
+                                    <p class="acct-order-delivery__value" x-text="detail.address"></p>
+                                </div>
                             </div>
-                            <div class="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5 min-w-0">
-                                <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Delivery address</p>
-                                <p class="mt-1 text-[12px] font-semibold text-slate-800 break-words" x-text="detail.address"></p>
-                            </div>
-                        </div>
+                        </section>
                     </div>
 
-                    <div class="sticky bottom-0 flex flex-wrap gap-2 border-t border-slate-100 bg-white px-4 sm:px-5 py-3">
-                        <button type="button" @click="closeDetail()" class="gaget-btn-primary flex-1 text-[13px] py-2.5">Close</button>
+                    <div class="acct-order-sheet__foot shrink-0">
+                        <button type="button" @click="closeDetail()" class="acct-order-sheet__done">Close summary</button>
                     </div>
                 </div>
             </template>

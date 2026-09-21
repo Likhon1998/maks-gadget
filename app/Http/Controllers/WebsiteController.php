@@ -99,7 +99,7 @@ class WebsiteController extends Controller
             $query->onSale();
         } elseif ($request->filter === 'new') {
             $query->newArrivals();
-        } elseif ($request->filter === 'bestsellers') {
+        } elseif (in_array($request->filter, ['bestsellers', 'best'], true)) {
             $query->trending()->orderByDesc('review_count');
         }
 
@@ -121,7 +121,7 @@ class WebsiteController extends Controller
         $pageTitle = match ($request->filter) {
             'deals' => 'Deals',
             'new' => 'New Arrivals',
-            'bestsellers' => 'Best Sellers',
+            'bestsellers', 'best' => 'Best Sellers',
             default => 'Shop',
         };
 
@@ -133,7 +133,7 @@ class WebsiteController extends Controller
 
             return response()->json([
                 'html' => view('website.partials.shop-results', compact('products', 'settings'))->render(),
-                'count_text' => "Showing {$countFrom}–{$countTo} of ".number_format($countTotal).' products',
+                'count_text' => "Showing {$countFrom}–{$countTo} of ".format_taka_number($countTotal).' products',
                 'title' => $pageTitle,
                 'url' => $request->fullUrlWithoutQuery(['ajax']),
             ]);
@@ -253,7 +253,7 @@ class WebsiteController extends Controller
         $sidebar = $this->shopSidebarData($shopId);
         // Keep price slider scoped to this category's range.
         $sidebar['priceBounds'] = [
-            'min' => (float) ((clone $priceBoundsQuery)->min('selling_price') ?? 0),
+            'min' => 0,
             'max' => (float) ((clone $priceBoundsQuery)->max('selling_price') ?? 0),
         ];
 
@@ -334,7 +334,7 @@ class WebsiteController extends Controller
             'ramOptions' => $ramOptions,
             'categoryTotal' => (clone $catalog)->count(),
             'priceBounds' => [
-                'min' => (float) ((clone $catalog)->min('selling_price') ?? 0),
+                'min' => 0,
                 'max' => (float) ((clone $catalog)->max('selling_price') ?? 0),
             ],
         ];
@@ -808,7 +808,7 @@ class WebsiteController extends Controller
 
         return response()->json([
             'items' => $lines,
-            'subtotal' => round($subtotal, 2),
+            'subtotal' => round($subtotal),
             'warnings' => array_values(array_unique($warnings)),
         ]);
     }
@@ -990,8 +990,8 @@ class WebsiteController extends Controller
             DB::commit();
 
             $payNote = $paymentMethod === DeliveryChargeService::PAY_CONFIRMATION
-                ? 'Confirmation charge ৳'.number_format($paidNow, 2).' · balance due on delivery ৳'.number_format($quote['amount_due_later'], 2)
-                : 'Cash on delivery · total due ৳'.number_format($finalTotal, 2);
+                ? 'Confirmation charge ৳'.format_taka_number($paidNow).' · balance due on delivery ৳'.format_taka_number($quote['amount_due_later'])
+                : 'Cash on delivery · total due ৳'.format_taka_number($finalTotal);
 
             return response()->json([
                 'success' => true,

@@ -33,7 +33,7 @@
                     <p class="text-[10px] font-bold text-indigo-500 uppercase">Current Balance</p>
                     <p class="text-lg font-black text-indigo-800">{{ $cashBookAccount->name }}</p>
                 </div>
-                <p class="text-2xl font-black text-indigo-600">৳{{ number_format($cashBookBalance, 2) }}</p>
+                <p class="text-2xl font-black text-indigo-600">{{ format_taka($cashBookBalance) }}</p>
             </div>
 
             <div class="overflow-x-auto">
@@ -56,10 +56,10 @@
                                 <td class="px-6 py-4 text-gray-900">{{ $entry->transaction->description }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-500">{{ $entry->counter?->name ?? '—' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-emerald-600 font-semibold">
-                                    {{ $entry->entry_type === 'debit' ? '৳'.number_format($entry->amount, 2) : '—' }}
+                                    {{ $entry->entry_type === 'debit' ? format_taka($entry->amount) : '—' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-rose-600 font-semibold">
-                                    {{ $entry->entry_type === 'credit' ? '৳'.number_format($entry->amount, 2) : '—' }}
+                                    {{ $entry->entry_type === 'credit' ? format_taka($entry->amount) : '—' }}
                                 </td>
                             </tr>
                         @empty

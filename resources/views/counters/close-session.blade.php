@@ -17,7 +17,7 @@
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Starting cash</p>
-                <p class="font-semibold">৳{{ number_format($session->opening_cash, 2) }}</p>
+                <p class="font-semibold">{{ format_taka($session->opening_cash) }}</p>
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Orders</p>
@@ -25,35 +25,35 @@
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Total sales</p>
-                <p class="font-semibold">৳{{ number_format($stats['total_sales'], 2) }}</p>
+                <p class="font-semibold">{{ format_taka($stats['total_sales']) }}</p>
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Cash sales</p>
-                <p class="font-semibold">৳{{ number_format($stats['cash_sales'], 2) }}</p>
+                <p class="font-semibold">{{ format_taka($stats['cash_sales']) }}</p>
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Card / Mobile</p>
-                <p class="font-semibold">৳{{ number_format($stats['card_sales'] + $stats['mobile_sales'], 2) }}</p>
+                <p class="font-semibold">{{ format_taka($stats['card_sales'] + $stats['mobile_sales']) }}</p>
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Cash refunds</p>
-                <p class="font-semibold text-red-600">৳{{ number_format($stats['cash_refunds'], 2) }}</p>
+                <p class="font-semibold text-red-600">{{ format_taka($stats['cash_refunds']) }}</p>
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Transfers in</p>
-                <p class="font-semibold text-emerald-700">৳{{ number_format($stats['transfers_in'] ?? 0, 2) }}</p>
+                <p class="font-semibold text-emerald-700">{{ format_taka($stats['transfers_in'] ?? 0) }}</p>
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Transfers out</p>
-                <p class="font-semibold text-amber-700">৳{{ number_format($stats['transfers_out'] ?? 0, 2) }}</p>
+                <p class="font-semibold text-amber-700">{{ format_taka($stats['transfers_out'] ?? 0) }}</p>
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Cash purchases</p>
-                <p class="font-semibold text-red-600">৳{{ number_format($stats['cash_purchases'] ?? 0, 2) }}</p>
+                <p class="font-semibold text-red-600">{{ format_taka($stats['cash_purchases'] ?? 0) }}</p>
             </div>
             <div>
                 <p class="text-[11px] uppercase font-bold text-gray-400">Expected in drawer</p>
-                <p class="font-black text-emerald-700 text-lg">৳{{ number_format($expected, 2) }}</p>
+                <p class="font-black text-emerald-700 text-lg">{{ format_taka($expected) }}</p>
                 <p class="text-[10px] text-gray-400 mt-0.5">Start + cash sales + transfers in − refunds − transfers out − purchases</p>
             </div>
         </div>
@@ -67,14 +67,14 @@
               data-confirm-tone="warning">
             @csrf
             <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900">
-                <strong>Count the cash yourself.</strong> Expected ৳{{ number_format($expected, 2) }} is a guide only — do not copy it blindly.
+                <strong>Count the cash yourself.</strong> Expected {{ format_taka($expected) }} is a guide only — do not copy it blindly.
             </div>
             <div>
                 <label class="block text-[11px] font-semibold text-gray-500 mb-1">Counted closing cash (৳)</label>
                 <input type="number" step="0.01" min="0" name="closing_cash" value="{{ old('closing_cash') }}"
                        placeholder="Enter counted amount" autocomplete="off"
                        class="w-full text-sm rounded-lg border-gray-200 py-2 font-bold" required>
-                <p class="mt-1 text-[11px] text-gray-400">Reference expected: ৳{{ number_format($expected, 2) }}</p>
+                <p class="mt-1 text-[11px] text-gray-400">Reference expected: {{ format_taka($expected) }}</p>
             </div>
             <div>
                 <label class="block text-[11px] font-semibold text-gray-500 mb-1">Closing notes</label>

@@ -94,7 +94,7 @@
                                 </svg>
                             </div>
                         </div>
-                        <p class="text-[22px] font-black text-white tracking-tight leading-none">৳{{ number_format($summary->total_revenue ?? 0, 2) }}</p>
+                        <p class="text-[22px] font-black text-white tracking-tight leading-none">{{ format_taka($summary->total_revenue ?? 0) }}</p>
                         <p class="text-xs text-slate-300 mt-2">{{ $summary->total_orders ?? 0 }} orders placed</p>
                         <div class="mt-3 h-0.5 w-6 bg-indigo-500 rounded-full"></div>
                     </div>
@@ -110,7 +110,7 @@
                             </svg>
                         </div>
                     </div>
-                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">৳{{ number_format($summary->cash_total ?? 0, 2) }}</p>
+                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">{{ format_taka($summary->cash_total ?? 0) }}</p>
                     <div class="mt-3 h-0.5 w-6 bg-emerald-400 rounded-full"></div>
                 </div>
 
@@ -124,7 +124,7 @@
                             </svg>
                         </div>
                     </div>
-                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">৳{{ number_format($summary->card_total ?? 0, 2) }}</p>
+                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">{{ format_taka($summary->card_total ?? 0) }}</p>
                     <div class="mt-3 h-0.5 w-6 bg-blue-400 rounded-full"></div>
                 </div>
 
@@ -138,7 +138,7 @@
                             </svg>
                         </div>
                     </div>
-                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">৳{{ number_format($summary->bkash_total ?? 0, 2) }}</p>
+                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">{{ format_taka($summary->bkash_total ?? 0) }}</p>
                     <div class="mt-3 h-0.5 w-6 bg-pink-400 rounded-full"></div>
                 </div>
 
@@ -165,7 +165,7 @@
                                         <p class="text-xs text-gray-400">{{ $empSale->total_orders }} {{ Str::plural('order', $empSale->total_orders) }}</p>
                                     </div>
                                 </div>
-                                <span class="text-sm font-black text-gray-900">৳{{ number_format($empSale->total_revenue, 2) }}</span>
+                                <span class="text-sm font-black text-gray-900">{{ format_taka($empSale->total_revenue) }}</span>
                             </div>
                         @empty
                             <div class="px-5 py-8 text-center">
@@ -195,7 +195,7 @@
                                         <p class="text-xs text-gray-400">{{ $counterSale->total_orders }} {{ Str::plural('order', $counterSale->total_orders) }}</p>
                                     </div>
                                 </div>
-                                <span class="text-sm font-black text-gray-900">৳{{ number_format($counterSale->total_revenue, 2) }}</span>
+                                <span class="text-sm font-black text-gray-900">{{ format_taka($counterSale->total_revenue) }}</span>
                             </div>
                         @empty
                             <div class="px-5 py-8 text-center">
@@ -230,10 +230,10 @@
                                 <tr class="hover:bg-slate-50/60 transition-colors">
                                     <td class="px-5 py-3 text-sm font-bold text-gray-900">{{ \Carbon\Carbon::parse($day->date)->format('d M, Y') }}</td>
                                     <td class="px-5 py-3 text-sm text-gray-500 font-medium">{{ $day->total_orders }}</td>
-                                    <td class="px-5 py-3 text-sm font-black text-indigo-600">৳{{ number_format($day->total_revenue, 2) }}</td>
-                                    <td class="px-5 py-3 text-sm text-gray-600 font-medium">৳{{ number_format($day->cash_total, 2) }}</td>
-                                    <td class="px-5 py-3 text-sm text-gray-600 font-medium">৳{{ number_format($day->card_total, 2) }}</td>
-                                    <td class="px-5 py-3 text-sm text-gray-600 font-medium">৳{{ number_format($day->bkash_total, 2) }}</td>
+                                    <td class="px-5 py-3 text-sm font-black text-indigo-600">{{ format_taka($day->total_revenue) }}</td>
+                                    <td class="px-5 py-3 text-sm text-gray-600 font-medium">{{ format_taka($day->cash_total) }}</td>
+                                    <td class="px-5 py-3 text-sm text-gray-600 font-medium">{{ format_taka($day->card_total) }}</td>
+                                    <td class="px-5 py-3 text-sm text-gray-600 font-medium">{{ format_taka($day->bkash_total) }}</td>
                                 </tr>
                             @empty
                                 <tr>

@@ -114,7 +114,7 @@ class EmiService
                 'type' => 'plan',
                 'amount' => $principal,
                 'method' => null,
-                'note' => 'EMI plan on sale '.$order->invoice_no.' ('.$months.' months, down ৳'.number_format($downPayment, 2).')',
+                'note' => 'EMI plan on sale '.$order->invoice_no.' ('.$months.' months, down ৳'.format_taka_number($downPayment).')',
             ]);
 
             $customer->increment('emi_balance', $principal);
@@ -156,7 +156,7 @@ class EmiService
             $remaining = round((float) $plan->remaining_amount, 2);
             if ($amount > $remaining + 0.009) {
                 throw new InvalidArgumentException(
-                    'Payment cannot exceed EMI remaining (৳'.number_format($remaining, 2).').'
+                    'Payment cannot exceed EMI remaining (৳'.format_taka_number($remaining).').'
                 );
             }
 

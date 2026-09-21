@@ -2,7 +2,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <p class="text-[10px] font-bold text-gray-400 uppercase">Total Discounts</p>
-            <p class="text-2xl font-black text-amber-600 mt-2">৳{{ number_format($discountTotal, 2) }}</p>
+            <p class="text-2xl font-black text-amber-600 mt-2">{{ format_taka($discountTotal) }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <p class="text-[10px] font-bold text-gray-400 uppercase">Discounted Orders</p>
@@ -39,9 +39,9 @@
                             <td class="px-5 py-3 font-semibold text-gray-900">{{ $order->invoice_no }}</td>
                             <td class="px-5 py-3 text-gray-500 whitespace-nowrap">{{ $order->created_at->format('d M Y') }}</td>
                             <td class="px-5 py-3">{{ $order->customer?->name ?? 'Walk-in' }}</td>
-                            <td class="px-5 py-3 text-right font-medium">৳{{ number_format($order->total_amount, 2) }}</td>
-                            <td class="px-5 py-3 text-right font-bold text-amber-600">৳{{ number_format($order->discount_amount, 2) }}</td>
-                            <td class="px-5 py-3 text-right font-bold text-gray-900">৳{{ number_format($order->netPayable(), 2) }}</td>
+                            <td class="px-5 py-3 text-right font-medium">{{ format_taka($order->total_amount) }}</td>
+                            <td class="px-5 py-3 text-right font-bold text-amber-600">{{ format_taka($order->discount_amount) }}</td>
+                            <td class="px-5 py-3 text-right font-bold text-gray-900">{{ format_taka($order->netPayable()) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="6" class="px-5 py-10 text-center text-gray-400">No discounts in this period.</td></tr>

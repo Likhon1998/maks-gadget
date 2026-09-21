@@ -32,27 +32,27 @@
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between py-2 border-b border-gray-100">
                                 <span class="text-gray-500">Opening Balance</span>
-                                <span class="font-bold text-gray-900">৳{{ number_format($row['opening'], 2) }}</span>
+                                <span class="font-bold text-gray-900">{{ format_taka($row['opening']) }}</span>
                             </div>
                             <div class="flex justify-between py-2 border-b border-gray-100">
                                 <span class="text-emerald-600">Sales (Cash In)</span>
-                                <span class="font-bold text-emerald-600">+৳{{ number_format($row['sales_in'], 2) }}</span>
+                                <span class="font-bold text-emerald-600">+{{ format_taka($row['sales_in']) }}</span>
                             </div>
                             <div class="flex justify-between py-2 border-b border-gray-100">
                                 <span class="text-indigo-600">Transfers In</span>
-                                <span class="font-bold text-indigo-600">+৳{{ number_format($row['transfers_in'], 2) }}</span>
+                                <span class="font-bold text-indigo-600">+{{ format_taka($row['transfers_in']) }}</span>
                             </div>
                             <div class="flex justify-between py-2 border-b border-gray-100">
                                 <span class="text-rose-600">Transfers Out</span>
-                                <span class="font-bold text-rose-600">-৳{{ number_format($row['transfers_out'], 2) }}</span>
+                                <span class="font-bold text-rose-600">-{{ format_taka($row['transfers_out']) }}</span>
                             </div>
                             <div class="flex justify-between py-2 border-b border-gray-100">
                                 <span class="text-rose-600">Refunds Out</span>
-                                <span class="font-bold text-rose-600">-৳{{ number_format($row['refunds_out'], 2) }}</span>
+                                <span class="font-bold text-rose-600">-{{ format_taka($row['refunds_out']) }}</span>
                             </div>
                             <div class="flex justify-between py-3 bg-white rounded-xl px-3 mt-2 border border-gray-100">
                                 <span class="font-bold text-gray-800">Closing Balance</span>
-                                <span class="font-black text-indigo-600">৳{{ number_format($row['closing'], 2) }}</span>
+                                <span class="font-black text-indigo-600">{{ format_taka($row['closing']) }}</span>
                             </div>
                         </div>
                     </div>

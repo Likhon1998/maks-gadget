@@ -10,7 +10,7 @@
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <p class="text-[10px] font-bold text-gray-400 uppercase">Retail Value</p>
-            <p class="text-2xl font-black text-emerald-600 mt-2">৳{{ number_format($inventory['retail_value'], 2) }}</p>
+            <p class="text-2xl font-black text-emerald-600 mt-2">{{ format_taka($inventory['retail_value']) }}</p>
         </div>
         <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
             <p class="text-[10px] font-bold text-gray-400 uppercase">Low Stock Alerts</p>
@@ -69,7 +69,7 @@
                                 <td class="px-5 py-3 font-semibold text-gray-900">{{ $row->name }}</td>
                                 <td class="px-5 py-3 text-right">{{ $row->products }}</td>
                                 <td class="px-5 py-3 text-right font-medium">{{ number_format($row->units) }}</td>
-                                <td class="px-5 py-3 text-right font-bold text-indigo-600">৳{{ number_format($row->cost_value, 2) }}</td>
+                                <td class="px-5 py-3 text-right font-bold text-indigo-600">{{ format_taka($row->cost_value) }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="4" class="px-5 py-8 text-center text-gray-400">No categories found.</td></tr>

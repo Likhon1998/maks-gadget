@@ -96,7 +96,7 @@ class OnlineOrderController extends Controller
             ->map(fn ($row) => [
                 'name' => $row['name'],
                 'amount' => round($row['amount'], 2),
-                'amount_fmt' => number_format($row['amount'], 2),
+                'amount_fmt' => format_taka_number($row['amount']),
                 'orders' => $row['orders'],
             ])
             ->all();
@@ -147,13 +147,13 @@ class OnlineOrderController extends Controller
             'status' => $order->status,
             'created_at' => asian_datetime($order->created_at, 'd M Y, h:i A'),
             'payment_method' => str_replace('_', ' ', (string) $order->payment_method),
-            'product_revenue' => number_format($productRevenue, 2),
+            'product_revenue' => format_taka_number($productRevenue),
             'delivery_charge' => (float) ($order->delivery_charge ?? 0),
-            'delivery_charge_fmt' => number_format((float) ($order->delivery_charge ?? 0), 2),
+            'delivery_charge_fmt' => format_taka_number((float) ($order->delivery_charge ?? 0)),
             'shipping_courier' => $order->courierService?->name ?: $order->shipping_courier,
             'shipping_tracking_no' => $order->shipping_tracking_no,
             'due_from_courier' => $dueFromCourier,
-            'due_from_courier_fmt' => number_format($dueFromCourier, 2),
+            'due_from_courier_fmt' => format_taka_number($dueFromCourier),
             'is_voided' => $isVoided,
             'show_url' => route('online-orders.show', $order),
             'receipt_url' => route('pos.receipt', $order->id),
@@ -252,7 +252,7 @@ class OnlineOrderController extends Controller
                 'status_label' => $labels[$order->status] ?? ucfirst($order->status),
                 'customer' => $order->customer?->name ?? 'Guest',
                 'phone' => $order->customer?->phone,
-                'total' => number_format((float) $order->total_amount, 2),
+                'total' => format_taka_number((float) $order->total_amount),
                 'at' => $order->created_at->diffForHumans(),
                 'url' => route('online-orders.show', $order),
                 'is_new' => $isNew,
@@ -437,7 +437,7 @@ class OnlineOrderController extends Controller
 
             $msg = "Order {$order->invoice_no} updated to ".ucfirst($newStatus).'. Customer can now see this on tracking.';
             if ($newStatus === 'completed' && (float) ($courierCollectedAmount ?? 0) > 0.009) {
-                $msg .= ' Collected ৳'.number_format((float) $courierCollectedAmount, 2).' from courier (products only).';
+                $msg .= ' Collected ৳'.format_taka_number((float) $courierCollectedAmount).' from courier (products only).';
             }
 
             return back()->with('success', $msg);
@@ -482,7 +482,7 @@ class OnlineOrderController extends Controller
                 $order,
                 'completed',
                 $due > 0.009
-                    ? 'Delivered. Collected ৳'.number_format($due, 2).' product COD from courier (delivery fee stays with courier).'
+                    ? 'Delivered. Collected ৳'.format_taka_number($due).' product COD from courier (delivery fee stays with courier).'
                     : 'Order delivered successfully.',
                 $order->shipping_courier,
                 $order->shipping_tracking_no,
@@ -500,7 +500,7 @@ class OnlineOrderController extends Controller
             return back()->with(
                 'success',
                 $due > 0.009
-                    ? "Collected ৳".number_format($due, 2)." from {$service}. Order marked completed."
+                    ? "Collected ৳".format_taka_number($due)." from {$service}. Order marked completed."
                     : "Order marked completed. No COD was outstanding from {$service}."
             );
         } catch (\Exception $e) {

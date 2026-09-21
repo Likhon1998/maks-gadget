@@ -179,4 +179,30 @@
         </table>
         <div class="p-4">{{ $messages->links() }}</div>
     </div>
+
+    <div class="mt-6 bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-slate-200">
+        <div class="border-b border-slate-100 px-5 py-4">
+            <h3 class="text-sm font-bold text-slate-900">Newsletter subscribers</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Emails captured from blog / contact newsletter forms.</p>
+        </div>
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-500">
+                <tr>
+                    <th class="px-5 py-3 text-left">Email</th>
+                    <th class="px-5 py-3 text-right">Subscribed</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                @forelse($subscribers as $sub)
+                    <tr>
+                        <td class="px-5 py-3 font-medium text-slate-800">{{ $sub->email }}</td>
+                        <td class="px-5 py-3 text-right text-slate-500">{{ $sub->created_at?->format('M d, Y') }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="2" class="px-5 py-10 text-center text-slate-400">No subscribers yet.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+        <div class="p-4">{{ $subscribers->links() }}</div>
+    </div>
 </x-cms-layout>

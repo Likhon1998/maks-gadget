@@ -265,7 +265,7 @@
 
         <div class="amount-box">
             <div class="lbl">Amount received</div>
-            <div class="val">৳{{ number_format($paidAmount, 2) }}</div>
+            <div class="val">{{ format_taka($paidAmount) }}</div>
         </div>
 
         <table class="rows">
@@ -293,7 +293,7 @@
             @endif
             <tr>
                 <td class="lbl">Outstanding after</td>
-                <td class="val">৳{{ number_format((float) $remainingAfter, 2) }}</td>
+                <td class="val">{{ format_taka((float) $remainingAfter) }}</td>
             </tr>
             @if($entry->note)
                 <tr>

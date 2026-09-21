@@ -114,7 +114,7 @@
                     </div>
                     <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl shadow-sm col-span-2 xl:col-span-1">
                         <p class="text-[10px] font-black text-sky-600 uppercase tracking-widest">COD with courier</p>
-                        <h3 class="text-xl font-black text-sky-900 mt-1" x-text="'৳' + Number(onlineStats.cod_outstanding || 0).toFixed(2)"></h3>
+                        <h3 class="text-xl font-black text-sky-900 mt-1" x-text="'৳' + Math.round(Number(onlineStats.cod_outstanding) || 0).toLocaleString()"></h3>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2">

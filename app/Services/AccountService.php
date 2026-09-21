@@ -490,8 +490,8 @@ class AccountService
                 sprintf(
                     'Insufficient cash on %s. Available ৳%s, tried ৳%s.',
                     $fromCounter->name,
-                    number_format($available, 2),
-                    number_format($amount, 2)
+                    format_taka_number($available),
+                    format_taka_number($amount)
                 )
             );
         }

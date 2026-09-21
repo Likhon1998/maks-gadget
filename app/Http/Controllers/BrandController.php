@@ -34,12 +34,14 @@ class BrandController extends Controller
                 Rule::unique('brands')->where(fn ($q) => $q->where('shop_id', Auth::user()->shop_id)),
             ],
             'logo' => 'nullable|file|mimes:jpeg,jpg,png,webp,gif,svg|max:5120',
+            'tagline' => 'nullable|string|max:120',
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
         $data = [
             'shop_id' => Auth::user()->shop_id,
             'name' => $request->name,
+            'tagline' => $request->input('tagline'),
             'sort_order' => $request->sort_order ?? 0,
             'is_active' => $request->boolean('is_active', true),
         ];
@@ -94,13 +96,15 @@ class BrandController extends Controller
                     ->ignore($brand->id),
             ],
             'logo' => 'nullable|file|mimes:jpeg,jpg,png,webp,gif,svg|max:5120',
+            'tagline' => 'nullable|string|max:120',
             'sort_order' => 'nullable|integer|min:0',
         ]);
 
         $data = [
             'name' => $request->name,
+            'tagline' => $request->input('tagline'),
             'sort_order' => $request->sort_order ?? 0,
-            'is_active' => $request->boolean('is_active', true),
+            'is_active' => $request->boolean('is_active'),
         ];
 
         if ($request->hasFile('logo')) {

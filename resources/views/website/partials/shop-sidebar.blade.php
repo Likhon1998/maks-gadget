@@ -1,6 +1,6 @@
 @php
-    $boundMin = (float) ($priceBounds['min'] ?? 0);
-    $boundMax = max($boundMin + 1, (float) ($priceBounds['max'] ?? 1000));
+    $boundMin = 0;
+    $boundMax = max(1, (float) ($priceBounds['max'] ?? 1000));
     $minPrice = request()->filled('min_price') ? (float) request('min_price') : $boundMin;
     $maxPrice = request()->filled('max_price') ? (float) request('max_price') : $boundMax;
     $selectedBrands = array_map('intval', (array) request('brands', []));
@@ -17,7 +17,8 @@
     $visibleBrands = 5;
 @endphp
 
-<aside class="gs-sidebar">
+<aside class="gs-sidebar" data-gs-sidebar-slot>
+    <div class="gs-sidebar-pin" data-gs-sidebar-pin>
     <form method="GET"
           action="{{ route('website.shop') }}"
           class="gs-sidebar-card"
@@ -30,8 +31,17 @@
               boundMin: {{ (int) round($boundMin) }},
               boundMax: {{ (int) round($boundMax) }},
               brandsOpen: false,
-              syncMin() { if (this.min > this.max) this.min = this.max; },
-              syncMax() { if (this.max < this.min) this.max = this.min; },
+              clamp() {
+                  this.min = Math.min(Math.max(Number(this.min) || this.boundMin, this.boundMin), this.boundMax);
+                  this.max = Math.min(Math.max(Number(this.max) || this.boundMax, this.boundMin), this.boundMax);
+                  if (this.min > this.max) this.min = this.max;
+              },
+              syncMin() { this.clamp(); },
+              syncMax() { this.clamp(); if (this.max < this.min) this.max = this.min; },
+              applyPrice() { this.clamp(); this.$dispatch('shop-refresh'); },
+              resetPrice() { this.min = this.boundMin; this.max = this.boundMax; this.$dispatch('shop-refresh'); },
+              money(n) { return Number(n || 0).toLocaleString('en-US'); },
+              get changed() { return this.min > this.boundMin || this.max < this.boundMax; },
               get pctMin() { return ((this.min - this.boundMin) / (this.boundMax - this.boundMin || 1)) * 100; },
               get pctMax() { return ((this.max - this.boundMin) / (this.boundMax - this.boundMin || 1)) * 100; },
           }">
@@ -113,19 +123,41 @@
 
         {{-- Price --}}
         <div class="gs-filter-block">
-            <h3 class="gs-filter-title">Filter By Price</h3>
+            <div class="gs-price-head">
+                <h3 class="gs-filter-title">Price</h3>
+                <button type="button" class="gs-price-reset" x-show="changed" x-cloak @click="resetPrice()">Reset</button>
+            </div>
             <div class="gs-price-slider">
+                <div class="gs-price-fields">
+                    <label class="gs-price-field">
+                        <span>Min</span>
+                        <span class="gs-price-input">
+                            <i>{{ $symbol }}</i>
+                            <input type="number" inputmode="numeric" :min="boundMin" :max="max" step="1"
+                                   x-model.number="min" @change="applyPrice()" aria-label="Minimum price">
+                        </span>
+                    </label>
+                    <span class="gs-price-to" aria-hidden="true">–</span>
+                    <label class="gs-price-field">
+                        <span>Max</span>
+                        <span class="gs-price-input">
+                            <i>{{ $symbol }}</i>
+                            <input type="number" inputmode="numeric" :min="min" :max="boundMax" step="1"
+                                   x-model.number="max" @change="applyPrice()" aria-label="Maximum price">
+                        </span>
+                    </label>
+                </div>
                 <div class="gs-price-track">
                     <div class="gs-price-range" :style="'left:' + pctMin + '%; right:' + (100 - pctMax) + '%'"></div>
-                    <input type="range" :min="boundMin" :max="boundMax" step="1" x-model.number="min" @input="syncMin()" class="gs-range gs-range-min">
-                    <input type="range" :min="boundMin" :max="boundMax" step="1" x-model.number="max" @input="syncMax()" class="gs-range gs-range-max">
+                    <input type="range" :min="boundMin" :max="boundMax" step="1" x-model.number="min" @input="syncMin()" @change="applyPrice()" class="gs-range gs-range-min" aria-label="Minimum price">
+                    <input type="range" :min="boundMin" :max="boundMax" step="1" x-model.number="max" @input="syncMax()" @change="applyPrice()" class="gs-range gs-range-max" aria-label="Maximum price">
+                </div>
+                <div class="gs-price-scale">
+                    <span>{{ $symbol }}<span x-text="money(boundMin)"></span></span>
+                    <span>{{ $symbol }}<span x-text="money(boundMax)"></span></span>
                 </div>
                 <input type="hidden" name="min_price" :value="min">
                 <input type="hidden" name="max_price" :value="max">
-                <div class="gs-price-meta">
-                    <span>{{ $symbol }}<span x-text="min"></span> to {{ $symbol }}<span x-text="max"></span>+</span>
-                    <button type="submit" class="gs-price-btn">Filter</button>
-                </div>
             </div>
         </div>
 
@@ -153,4 +185,5 @@
             </div>
         @endif
     </form>
+    </div>
 </aside>

@@ -121,7 +121,7 @@ class GlobalSearchController extends Controller
                         'Stock '.(int) $p->stock_quantity,
                         $flags ?: null,
                     ])->filter()->implode(' · ')),
-                    'meta' => '৳'.number_format((float) $p->selling_price, 2),
+                    'meta' => format_taka((float) $p->selling_price),
                     'url' => $url,
                     'icon' => 'product',
                     'image' => public_storage_url($p->image),
@@ -265,7 +265,7 @@ class GlobalSearchController extends Controller
                         optional($po->created_at)->format('M j, Y'),
                     ])->filter()->implode(' · ')),
                     'meta' => $po->total_amount !== null
-                        ? '৳'.number_format((float) $po->total_amount, 2)
+                        ? format_taka((float) $po->total_amount)
                         : null,
                     'url' => route('supply.purchase-orders.show', $po),
                     'icon' => 'order',
@@ -326,7 +326,7 @@ class GlobalSearchController extends Controller
                         'POS',
                         optional($order->created_at)->format('M j, Y'),
                     ])->filter()->implode(' · ')),
-                    'meta' => '৳'.number_format((float) $order->total_amount, 2),
+                    'meta' => format_taka((float) $order->total_amount),
                     'url' => $url,
                     'icon' => 'order',
                     'image' => null,
@@ -372,7 +372,7 @@ class GlobalSearchController extends Controller
                     'Online',
                     optional($order->created_at)->format('M j, Y'),
                 ])->filter()->implode(' · ')),
-                'meta' => '৳'.number_format((float) $order->total_amount, 2),
+                'meta' => format_taka((float) $order->total_amount),
                 'url' => route('online-orders.show', $order),
                 'icon' => 'globe',
                 'image' => null,

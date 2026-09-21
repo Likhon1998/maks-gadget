@@ -71,17 +71,17 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Financed</p>
-                    <p class="mt-1 text-2xl font-black text-slate-900">৳{{ number_format((float) $plan->principal, 2) }}</p>
-                    <p class="mt-1 text-xs text-slate-500">Down paid ৳{{ number_format((float) $plan->down_payment, 2) }}</p>
+                    <p class="mt-1 text-2xl font-black text-slate-900">{{ format_taka((float) $plan->principal) }}</p>
+                    <p class="mt-1 text-xs text-slate-500">Down paid {{ format_taka((float) $plan->down_payment) }}</p>
                 </div>
                 <div class="rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-4 shadow-sm">
                     <p class="text-[11px] font-bold uppercase tracking-wider text-indigo-700">Remaining</p>
-                    <p class="mt-1 text-2xl font-black text-indigo-950">৳{{ number_format($remaining, 2) }}</p>
+                    <p class="mt-1 text-2xl font-black text-indigo-950">{{ format_taka($remaining) }}</p>
                     <p class="mt-1 text-xs text-indigo-700/80">Status: {{ strtoupper($plan->status) }}</p>
                 </div>
                 <div class="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
                     <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Monthly</p>
-                    <p class="mt-1 text-2xl font-black text-slate-900">৳{{ number_format((float) $plan->installment_amount, 2) }}</p>
+                    <p class="mt-1 text-2xl font-black text-slate-900">{{ format_taka((float) $plan->installment_amount) }}</p>
                     <p class="mt-1 text-xs text-slate-500">{{ $plan->months }} installments</p>
                 </div>
             </div>
@@ -129,8 +129,8 @@
                                     {{ $product->sku ?: ($product->barcode ?? '—') }}
                                 </td>
                                 <td class="px-4 py-3 text-right font-semibold">{{ (int) $item->quantity }}</td>
-                                <td class="px-4 py-3 text-right">৳{{ number_format((float) $item->unit_price, 2) }}</td>
-                                <td class="px-4 py-3 text-right font-bold text-slate-800">৳{{ number_format((float) $item->subtotal, 2) }}</td>
+                                <td class="px-4 py-3 text-right">{{ format_taka((float) $item->unit_price) }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-slate-800">{{ format_taka((float) $item->subtotal) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -218,8 +218,8 @@
                             <tr>
                                 <td class="px-4 py-3 font-semibold">{{ $inst->sequence }}</td>
                                 <td class="px-4 py-3 text-slate-600">{{ $inst->due_date?->format('d M Y') }}</td>
-                                <td class="px-4 py-3 text-right font-semibold">৳{{ number_format((float) $inst->amount, 2) }}</td>
-                                <td class="px-4 py-3 text-right text-emerald-700">৳{{ number_format((float) $inst->paid_amount, 2) }}</td>
+                                <td class="px-4 py-3 text-right font-semibold">{{ format_taka((float) $inst->amount) }}</td>
+                                <td class="px-4 py-3 text-right text-emerald-700">{{ format_taka((float) $inst->paid_amount) }}</td>
                                 <td class="px-4 py-3">
                                     <span class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide {{ $tone }}">{{ $inst->status }}</span>
                                 </td>
@@ -262,7 +262,7 @@
                                 <td class="px-4 py-3 text-xs text-slate-500">{{ $entry->note }}</td>
                                 <td class="px-4 py-3 text-slate-500">{{ $entry->user->name ?? '—' }}</td>
                                 <td class="px-4 py-3 text-right font-bold {{ $amt > 0 ? 'text-indigo-700' : 'text-emerald-700' }}">
-                                    {{ $amt > 0 ? '+' : '' }}৳{{ number_format($amt, 2) }}
+                                    {{ $amt > 0 ? '+' : '' }}{{ format_taka($amt) }}
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     @if($entry->type === 'payment')

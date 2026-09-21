@@ -363,7 +363,7 @@ class PosController extends Controller
                     throw new \Exception('EMI financed amount must be greater than zero. Lower the down payment.');
                 }
                 if ($paidAmountInput + 0.009 < $emiDownPayment) {
-                    throw new \Exception('Pay at least the EMI down payment (৳'.number_format($emiDownPayment, 2).').');
+                    throw new \Exception('Pay at least the EMI down payment (৳'.format_taka_number($emiDownPayment).').');
                 }
                 $creditAmount = $emiPrincipal;
                 $paidAmount = $emiDownPayment;

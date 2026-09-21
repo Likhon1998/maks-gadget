@@ -1011,7 +1011,7 @@ class ProductController extends Controller
             'sale_starts_at' => 'required|date',
             'sale_ends_at' => 'required|date|after:sale_starts_at',
         ], [
-            'sale_price.lt' => 'Sale price must be lower than the selling price (Tk '.number_format($listPrice, 2).').',
+            'sale_price.lt' => 'Sale price must be lower than the selling price ('.format_taka($listPrice, 'Tk ').').',
             'sale_price.required_if' => 'Enter the offer price in Tk.',
             'percent.required_if' => 'Enter the discount percentage.',
             'sale_ends_at.after' => 'Sale end time must be after the start time.',
@@ -1019,16 +1019,16 @@ class ProductController extends Controller
 
         if ($validated['discount_type'] === 'percent') {
             $percent = (float) $validated['percent'];
-            $salePrice = round($listPrice * (1 - ($percent / 100)), 2);
+            $salePrice = (float) round($listPrice * (1 - ($percent / 100)));
             if ($salePrice <= 0 || $salePrice >= $listPrice) {
                 return back()->withErrors([
-                    'percent' => 'Discount must leave an offer price below Tk '.number_format($listPrice, 2).'.',
+                    'percent' => 'Discount must leave an offer price below '.format_taka($listPrice, 'Tk ').'.',
                 ])->withInput();
             }
-            $label = rtrim(rtrim(number_format($percent, 2), '0'), '.').'% off (Tk '.number_format($salePrice, 2).')';
+            $label = rtrim(rtrim(number_format($percent, 2), '0'), '.').'% off ('.format_taka($salePrice, 'Tk ').')';
         } else {
-            $salePrice = (float) $validated['sale_price'];
-            $label = 'Tk '.number_format($salePrice, 2);
+            $salePrice = (float) round((float) $validated['sale_price']);
+            $label = format_taka($salePrice, 'Tk ');
         }
 
         $product->applySale(
@@ -1111,7 +1111,7 @@ class ProductController extends Controller
 
         $label = $isPercent
             ? rtrim(rtrim(number_format($percent, 2), '0'), '.').'%'
-            : 'Tk '.number_format($amount, 2).' off';
+            : format_taka($amount, 'Tk ').' off';
 
         return redirect()->route('products.index')->with(
             'success',

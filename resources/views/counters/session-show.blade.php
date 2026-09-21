@@ -21,36 +21,36 @@
         <div class="grid sm:grid-cols-2 gap-3 mb-6">
             <div class="bg-white rounded-xl border p-4">
                 <p class="text-[11px] font-bold uppercase text-gray-400">Starting cash</p>
-                <p class="text-xl font-black">৳{{ number_format($session->opening_cash, 2) }}</p>
+                <p class="text-xl font-black">{{ format_taka($session->opening_cash) }}</p>
                 <p class="text-xs text-gray-500 mt-1">Opened by {{ $session->opener->name ?? '—' }}</p>
             </div>
             <div class="bg-white rounded-xl border p-4">
                 <p class="text-[11px] font-bold uppercase text-gray-400">Closing cash</p>
-                <p class="text-xl font-black">{{ $session->closing_cash !== null ? '৳'.number_format($session->closing_cash, 2) : '—' }}</p>
+                <p class="text-xl font-black">{{ $session->closing_cash !== null ? format_taka($session->closing_cash) : '—' }}</p>
                 <p class="text-xs text-gray-500 mt-1">Closed by {{ $session->closer->name ?? '—' }}</p>
             </div>
             <div class="bg-white rounded-xl border p-4">
                 <p class="text-[11px] font-bold uppercase text-gray-400">Total sales</p>
-                <p class="text-xl font-black">৳{{ number_format($session->total_sales, 2) }}</p>
+                <p class="text-xl font-black">{{ format_taka($session->total_sales) }}</p>
                 <p class="text-xs text-gray-500 mt-1">{{ $session->order_count }} completed orders</p>
             </div>
             <div class="bg-white rounded-xl border p-4">
                 <p class="text-[11px] font-bold uppercase text-gray-400">Variance</p>
                 <p class="text-xl font-black {{ ($session->variance ?? 0) < 0 ? 'text-red-600' : (($session->variance ?? 0) > 0 ? 'text-emerald-600' : '') }}">
-                    {{ $session->variance !== null ? '৳'.number_format($session->variance, 2) : '—' }}
+                    {{ $session->variance !== null ? format_taka($session->variance) : '—' }}
                 </p>
-                <p class="text-xs text-gray-500 mt-1">Counted − expected (৳{{ number_format($session->expected_cash ?? 0, 2) }})</p>
+                <p class="text-xs text-gray-500 mt-1">Counted − expected ({{ format_taka($session->expected_cash ?? 0) }})</p>
             </div>
         </div>
 
         <div class="bg-white rounded-xl border p-4 text-sm space-y-2">
-            <div class="flex justify-between"><span class="text-gray-500">Cash sales</span><span class="font-semibold">৳{{ number_format($stats['cash_sales'] ?? $session->cash_sales, 2) }}</span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Card sales</span><span class="font-semibold">৳{{ number_format($stats['card_sales'] ?? $session->card_sales, 2) }}</span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Mobile / bKash</span><span class="font-semibold">৳{{ number_format($stats['mobile_sales'] ?? $session->mobile_sales, 2) }}</span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Transfers in</span><span class="font-semibold text-emerald-700">৳{{ number_format($stats['transfers_in'] ?? 0, 2) }}</span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Transfers out</span><span class="font-semibold text-amber-700">৳{{ number_format($stats['transfers_out'] ?? 0, 2) }}</span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Cash purchases</span><span class="font-semibold text-red-600">৳{{ number_format($stats['cash_purchases'] ?? 0, 2) }}</span></div>
-            <div class="flex justify-between"><span class="text-gray-500">Cash refunds</span><span class="font-semibold text-red-600">৳{{ number_format($stats['cash_refunds'] ?? $session->cash_refunds, 2) }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Cash sales</span><span class="font-semibold">{{ format_taka($stats['cash_sales'] ?? $session->cash_sales) }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Card sales</span><span class="font-semibold">{{ format_taka($stats['card_sales'] ?? $session->card_sales) }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Mobile / bKash</span><span class="font-semibold">{{ format_taka($stats['mobile_sales'] ?? $session->mobile_sales) }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Transfers in</span><span class="font-semibold text-emerald-700">{{ format_taka($stats['transfers_in'] ?? 0) }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Transfers out</span><span class="font-semibold text-amber-700">{{ format_taka($stats['transfers_out'] ?? 0) }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Cash purchases</span><span class="font-semibold text-red-600">{{ format_taka($stats['cash_purchases'] ?? 0) }}</span></div>
+            <div class="flex justify-between"><span class="text-gray-500">Cash refunds</span><span class="font-semibold text-red-600">{{ format_taka($stats['cash_refunds'] ?? $session->cash_refunds) }}</span></div>
             @if($session->notes)
                 <div class="pt-3 border-t text-xs text-gray-600 whitespace-pre-line">{{ $session->notes }}</div>
             @endif

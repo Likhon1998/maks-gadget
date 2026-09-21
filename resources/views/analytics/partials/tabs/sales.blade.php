@@ -35,7 +35,7 @@
             {!! $changeBadge($kpis['change']['revenue']) !!}
         </div>
         <p class="text-[10px] font-bold text-gray-400 uppercase mt-3">Total Sales</p>
-        <p class="text-xl font-black text-gray-900 mt-1">৳{{ number_format($kpis['revenue'], 2) }}</p>
+        <p class="text-xl font-black text-gray-900 mt-1">{{ format_taka($kpis['revenue']) }}</p>
     </div>
     <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
         <div class="flex items-start justify-between gap-2">
@@ -55,7 +55,7 @@
             {!! $changeBadge($kpis['change']['aov']) !!}
         </div>
         <p class="text-[10px] font-bold text-gray-400 uppercase mt-3">Avg Order Value</p>
-        <p class="text-xl font-black text-gray-900 mt-1">৳{{ number_format($kpis['aov'], 2) }}</p>
+        <p class="text-xl font-black text-gray-900 mt-1">{{ format_taka($kpis['aov']) }}</p>
     </div>
     <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
         <div class="flex items-start justify-between gap-2">
@@ -65,7 +65,7 @@
             {!! $changeBadge($kpis['change']['profit']) !!}
         </div>
         <p class="text-[10px] font-bold text-gray-400 uppercase mt-3">Total Profit</p>
-        <p class="text-xl font-black text-gray-900 mt-1">৳{{ number_format($kpis['profit'], 2) }}</p>
+        <p class="text-xl font-black text-gray-900 mt-1">{{ format_taka($kpis['profit']) }}</p>
     </div>
     <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
         <div class="flex items-start justify-between gap-2">
@@ -75,7 +75,7 @@
             {!! $changeBadge($kpis['change']['discounts']) !!}
         </div>
         <p class="text-[10px] font-bold text-gray-400 uppercase mt-3">Total Discounts</p>
-        <p class="text-xl font-black text-gray-900 mt-1">৳{{ number_format($kpis['discounts'], 2) }}</p>
+        <p class="text-xl font-black text-gray-900 mt-1">{{ format_taka($kpis['discounts']) }}</p>
     </div>
 </div>
 
@@ -104,14 +104,14 @@
             <canvas id="salesCategoryChart"></canvas>
             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <p class="text-[10px] font-bold text-gray-400 uppercase">Total Sales</p>
-                <p class="text-sm font-black text-gray-900">৳{{ number_format($kpis['revenue'], 0) }}</p>
+                <p class="text-sm font-black text-gray-900">{{ format_taka($kpis['revenue']) }}</p>
             </div>
         </div>
         <div class="mt-4 space-y-2 max-h-40 overflow-y-auto">
             @forelse($categorySales as $cat)
                 <div class="flex items-center justify-between text-xs">
                     <span class="font-medium text-gray-700 truncate pr-2">{{ $cat->category }}</span>
-                    <span class="font-bold text-gray-900 whitespace-nowrap">৳{{ number_format($cat->revenue, 0) }} · {{ number_format(($cat->revenue / $catTotal) * 100, 0) }}%</span>
+                    <span class="font-bold text-gray-900 whitespace-nowrap">{{ format_taka($cat->revenue) }} · {{ $catTotal > 0 ? number_format(($cat->revenue / $catTotal) * 100, 1) : '0' }}%</span>
                 </div>
             @empty
                 <p class="text-xs text-gray-400 text-center py-4">No category sales in this period.</p>
@@ -149,11 +149,11 @@
                     <tr class="hover:bg-gray-50/80">
                         <td class="px-5 py-3 font-semibold text-gray-900">{{ $row->brand }}</td>
                         <td class="px-5 py-3 text-right font-medium">{{ number_format($row->sold) }}</td>
-                        <td class="px-5 py-3 text-right font-semibold text-amber-700">৳{{ number_format($row->cost, 2) }}</td>
-                        <td class="px-5 py-3 text-right font-bold text-indigo-600">৳{{ number_format($row->revenue, 2) }}</td>
-                        <td class="px-5 py-3 text-right font-bold {{ ($row->profit ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">৳{{ number_format($row->profit ?? 0, 2) }}</td>
-                        <td class="px-5 py-3 text-right text-gray-600">৳{{ number_format($row->pos_revenue, 2) }}</td>
-                        <td class="px-5 py-3 text-right text-gray-600">৳{{ number_format($row->web_revenue, 2) }}</td>
+                        <td class="px-5 py-3 text-right font-semibold text-amber-700">৳{{ number_format($row->cost) }}</td>
+                        <td class="px-5 py-3 text-right font-bold text-indigo-600">{{ format_taka($row->revenue) }}</td>
+                        <td class="px-5 py-3 text-right font-bold {{ ($row->profit ?? 0) >= 0 ? 'text-emerald-600' : 'text-rose-600' }}">{{ format_taka($row->profit ?? 0) }}</td>
+                        <td class="px-5 py-3 text-right text-gray-600">{{ format_taka($row->pos_revenue) }}</td>
+                        <td class="px-5 py-3 text-right text-gray-600">{{ format_taka($row->web_revenue) }}</td>
                         <td class="px-5 py-3 text-right text-gray-500">{{ number_format(($row->revenue / $brandTotal) * 100, 0) }}%</td>
                     </tr>
                 @empty
@@ -186,7 +186,7 @@
                             <td class="px-5 py-3 font-semibold text-gray-900">{{ $row->product?->name ?? 'Unknown' }}</td>
                             <td class="px-5 py-3 text-gray-500">{{ $row->product?->category?->name ?? '—' }}</td>
                             <td class="px-5 py-3 text-right font-medium">{{ $row->sold }}</td>
-                            <td class="px-5 py-3 text-right font-bold text-indigo-600">৳{{ number_format($row->revenue ?? 0, 2) }}</td>
+                            <td class="px-5 py-3 text-right font-bold text-indigo-600">{{ format_taka($row->revenue ?? 0) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="4" class="px-5 py-8 text-center text-gray-400">No product sales in this period.</td></tr>
@@ -220,8 +220,8 @@
                     ] as [$label, $cur, $prev, $chg, $money])
                         <tr class="hover:bg-gray-50/80">
                             <td class="px-5 py-3 font-medium text-gray-800">{{ $label }}</td>
-                            <td class="px-5 py-3 text-right font-bold">{{ $money ? '৳'.number_format($cur, 2) : number_format($cur) }}</td>
-                            <td class="px-5 py-3 text-right text-gray-500">{{ $money ? '৳'.number_format($prev, 2) : number_format($prev) }}</td>
+                            <td class="px-5 py-3 text-right font-bold">{{ $money ? format_taka($cur) : number_format($cur) }}</td>
+                            <td class="px-5 py-3 text-right text-gray-500">{{ $money ? format_taka($prev) : number_format($prev) }}</td>
                             <td class="px-5 py-3 text-right">{!! $changeBadge($chg) !!}</td>
                         </tr>
                     @endforeach

@@ -1,5 +1,28 @@
 <?php
 
+if (! function_exists('format_taka_number')) {
+    /**
+     * Round money to whole taka (no poysa / .00). Use for all currency display.
+     * Percentages and other non-money figures should keep their own decimals.
+     */
+    function format_taka_number(mixed $amount): string
+    {
+        return number_format((int) round((float) ($amount ?? 0)), 0);
+    }
+}
+
+if (! function_exists('format_taka')) {
+    /**
+     * Currency display in whole taka, e.g. ৳12,500
+     */
+    function format_taka(mixed $amount, ?string $symbol = '৳'): string
+    {
+        $symbol = $symbol !== null && $symbol !== '' ? $symbol : '৳';
+
+        return $symbol.format_taka_number($amount);
+    }
+}
+
 if (! function_exists('public_storage_path')) {
     /**
      * Absolute filesystem path for a public-disk relative path.

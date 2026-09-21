@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Cms;
 use App\Http\Controllers\Concerns\ShopScoped;
 use App\Http\Controllers\Controller;
 use App\Models\CmsContactMessage;
+use App\Models\CmsNewsletterSubscriber;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 
@@ -19,8 +20,11 @@ class ContactController extends Controller
             ->latest()
             ->paginate(20);
         $unread = CmsContactMessage::where('shop_id', $this->shopId())->where('is_read', false)->count();
+        $subscribers = CmsNewsletterSubscriber::where('shop_id', $this->shopId())
+            ->latest()
+            ->paginate(20, ['*'], 'subs_page');
 
-        return view('cms.contact.index', compact('settings', 'messages', 'unread'));
+        return view('cms.contact.index', compact('settings', 'messages', 'unread', 'subscribers'));
     }
 
     public function updateSettings(Request $request)

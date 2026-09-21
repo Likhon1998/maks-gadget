@@ -1,4 +1,5 @@
-<form method="GET" action="{{ route('website.category', $activeCategory->slug ?? $activeCategory->id) }}" class="gaget-filter-sidebar" x-data="{ open: true }">
+<form method="GET" action="{{ route('website.category', $activeCategory->slug ?? $activeCategory->id) }}" class="gaget-filter-sidebar" data-gs-sidebar-slot x-data="{ open: true }">
+    <div class="gaget-filter-sidebar-pin" data-gs-sidebar-pin>
     @if(request('sort'))
         <input type="hidden" name="sort" value="{{ request('sort') }}">
     @endif
@@ -55,5 +56,6 @@
             <button type="submit" class="gaget-filter-apply">Apply filters</button>
             <a href="{{ route('website.category', $activeCategory->slug ?? $activeCategory->id) }}" class="gaget-filter-clear">Clear</a>
         </div>
+    </div>
     </div>
 </form>

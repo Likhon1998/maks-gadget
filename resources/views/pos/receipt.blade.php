@@ -437,7 +437,7 @@
                             @endif
                         </td>
                         <td class="text-center">{{ $order->return_qty }}</td>
-                        <td class="text-right">- ৳{{ number_format((float) $order->exchange_credit, 2) }}</td>
+                        <td class="text-right">- {{ format_taka((float) $order->exchange_credit) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -485,28 +485,28 @@
             @if($order->is_exchange_receipt)
                 <tr>
                     <td class="lbl">Items total</td>
-                    <td class="text-right">৳{{ number_format((float) $order->total_amount, 2) }}</td>
+                    <td class="text-right">{{ format_taka((float) $order->total_amount) }}</td>
                 </tr>
                 <tr>
                     <td class="lbl">Return credit</td>
-                    <td class="text-right">- ৳{{ number_format((float) $order->exchange_credit, 2) }}</td>
+                    <td class="text-right">- {{ format_taka((float) $order->exchange_credit) }}</td>
                 </tr>
                 @if(($order->discount_amount ?? 0) > 0)
                     <tr>
                         <td class="lbl">{{ $order->includes_sale ? 'SALE discount' : 'Discount' }}</td>
-                        <td class="text-right">- ৳{{ number_format((float) $order->discount_amount, 2) }}</td>
+                        <td class="text-right">- {{ format_taka((float) $order->discount_amount) }}</td>
                     </tr>
                 @endif
                 @if(($order->credit_amount ?? 0) > 0)
                     <tr>
                         <td class="lbl">{{ ($order->is_emi ?? false) ? 'EMI financed' : 'Baki (due)' }}</td>
-                        <td class="text-right">৳{{ number_format((float) $order->credit_amount, 2) }}</td>
+                        <td class="text-right">{{ format_taka((float) $order->credit_amount) }}</td>
                     </tr>
                 @endif
                 @if(($order->is_emi ?? false) && ($order->emi_down_payment ?? 0) > 0)
                     <tr>
                         <td class="lbl">EMI down payment</td>
-                        <td class="text-right">৳{{ number_format((float) $order->emi_down_payment, 2) }}</td>
+                        <td class="text-right">{{ format_taka((float) $order->emi_down_payment) }}</td>
                     </tr>
                 @endif
                 @if(($order->is_emi ?? false) && ($order->emi_months ?? 0) > 0)
@@ -517,12 +517,12 @@
                 @endif
                 <tr class="grand">
                     <td>Net payable</td>
-                    <td class="text-right">৳{{ number_format($order->netPayable(), 2) }}</td>
+                    <td class="text-right">{{ format_taka($order->netPayable()) }}</td>
                 </tr>
             @else
                 <tr>
                     <td class="lbl">Subtotal</td>
-                    <td class="text-right">৳{{ number_format($itemsSubtotal, 2) }}</td>
+                    <td class="text-right">{{ format_taka($itemsSubtotal) }}</td>
                 </tr>
                 @if(($order->delivery_charge ?? 0) > 0 || ($isOnline && filled($order->delivery_zone)))
                     <tr>
@@ -534,7 +534,7 @@
                         </td>
                         <td class="text-right">
                             @if(($order->delivery_charge ?? 0) > 0)
-                                + ৳{{ number_format((float) $order->delivery_charge, 2) }}
+                                + {{ format_taka((float) $order->delivery_charge) }}
                             @else
                                 FREE
                             @endif
@@ -544,18 +544,18 @@
                 @if(($order->confirmation_charge ?? 0) > 0)
                     <tr>
                         <td class="lbl">Confirmation paid</td>
-                        <td class="text-right">৳{{ number_format((float) $order->confirmation_charge, 2) }}</td>
+                        <td class="text-right">{{ format_taka((float) $order->confirmation_charge) }}</td>
                     </tr>
                 @endif
                 @if(($order->discount_amount ?? 0) > 0)
                     <tr>
                         <td class="lbl">{{ $order->includes_sale ? 'SALE discount' : 'Discount' }}</td>
-                        <td class="text-right">- ৳{{ number_format((float) $order->discount_amount, 2) }}</td>
+                        <td class="text-right">- {{ format_taka((float) $order->discount_amount) }}</td>
                     </tr>
                 @endif
                 <tr class="grand">
                     <td>Grand total</td>
-                    <td class="text-right">৳{{ number_format($order->netPayable(), 2) }}</td>
+                    <td class="text-right">{{ format_taka($order->netPayable()) }}</td>
                 </tr>
                 @if($isOnline && ($order->delivery_charge ?? 0) > 0)
                     <tr>
@@ -567,11 +567,11 @@
                 @if(($order->credit_amount ?? 0) > 0)
                     <tr>
                         <td class="lbl">Paid now</td>
-                        <td class="text-right">৳{{ number_format((float) $order->paid_amount, 2) }}</td>
+                        <td class="text-right">{{ format_taka((float) $order->paid_amount) }}</td>
                     </tr>
                     <tr>
                         <td class="lbl">{{ ($order->is_emi ?? false) ? 'EMI (due)' : 'Baki (due)' }}</td>
-                        <td class="text-right" style="font-weight:800">৳{{ number_format((float) $order->credit_amount, 2) }}</td>
+                        <td class="text-right" style="font-weight:800">{{ format_taka((float) $order->credit_amount) }}</td>
                     </tr>
                 @endif
             @endif
@@ -589,7 +589,7 @@
                         @foreach($tenderLines as $line)
                             <tr>
                                 <td class="lbl">{{ $line['label'] }}</td>
-                                <td class="text-right" style="font-weight:700">৳{{ number_format($line['amount'], 2) }}</td>
+                                <td class="text-right" style="font-weight:700">{{ format_taka($line['amount']) }}</td>
                             </tr>
                         @endforeach
                     @endif
@@ -597,31 +597,31 @@
                 <tr>
                     <td class="lbl">Amount paid</td>
                     <td class="text-right" style="font-weight:700">
-                        ৳{{ number_format($isVoid ? 0 : $amountPaid, 2) }}
+                        {{ format_taka($isVoid ? 0 : $amountPaid) }}
                     </td>
                 </tr>
                 @if($hasOpenDue && ! $isVoid)
                     <tr>
                         <td class="lbl">{{ $dueLabel === 'COD DUE' ? 'COD due (collect on delivery)' : ($hasOpenCredit ? (($order->is_emi ?? false) ? 'EMI remaining' : 'Due / Baki') : 'Amount due') }}</td>
-                        <td class="text-right" style="font-weight:800">৳{{ number_format($amountDue, 2) }}</td>
+                        <td class="text-right" style="font-weight:800">{{ format_taka($amountDue) }}</td>
                     </tr>
                 @endif
                 @if(($order->is_emi ?? false) && ($order->customer?->emi_balance ?? 0) > 0 && ! $isVoid)
                     <tr>
                         <td class="lbl">Total EMI left</td>
-                        <td class="text-right" style="font-weight:800">৳{{ number_format((float) $order->customer->emi_balance, 2) }}</td>
+                        <td class="text-right" style="font-weight:800">{{ format_taka((float) $order->customer->emi_balance) }}</td>
                     </tr>
                 @endif
                 @if(!($order->is_emi ?? false) && ($order->customer?->baki_balance ?? 0) > 0 && ! $isVoid)
                     <tr>
                         <td class="lbl">Total baki left</td>
-                        <td class="text-right" style="font-weight:800">৳{{ number_format((float) $order->customer->baki_balance, 2) }}</td>
+                        <td class="text-right" style="font-weight:800">{{ format_taka((float) $order->customer->baki_balance) }}</td>
                     </tr>
                 @endif
                 @if(($order->change_amount ?? 0) > 0 && ! $isVoid)
                     <tr>
                         <td class="lbl">Change due</td>
-                        <td class="text-right" style="font-weight:800">৳{{ number_format((float) $order->change_amount, 2) }}</td>
+                        <td class="text-right" style="font-weight:800">{{ format_taka((float) $order->change_amount) }}</td>
                     </tr>
                 @endif
             </table>

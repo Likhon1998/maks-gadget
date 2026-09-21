@@ -76,14 +76,14 @@
                 <div class="bg-sky-50 px-3.5 py-3 rounded-xl shadow-sm border border-sky-200 flex items-center justify-between gap-2">
                     <div class="min-w-0">
                         <p class="text-[10px] font-bold text-sky-600 uppercase tracking-widest mb-0.5">Due from couriers</p>
-                        <h3 class="text-lg sm:text-xl font-black text-sky-900 leading-none truncate">৳{{ number_format($courierReceivables ?? 0, 2) }}</h3>
+                        <h3 class="text-lg sm:text-xl font-black text-sky-900 leading-none truncate">{{ format_taka($courierReceivables ?? 0) }}</h3>
                     </div>
                     <div class="w-9 h-9 bg-sky-100 text-sky-500 rounded-full flex items-center justify-center shrink-0 text-base">💸</div>
                 </div>
                 <div class="bg-green-50 px-3.5 py-3 rounded-xl shadow-sm border border-green-200 flex items-center justify-between gap-2 col-span-2 md:col-span-1">
                     <div class="min-w-0">
                         <p class="text-[10px] font-bold text-green-600 uppercase tracking-widest mb-0.5">Settled revenue</p>
-                        <h3 class="text-lg sm:text-xl font-black text-green-900 leading-none truncate">৳{{ number_format($settledRevenue ?? 0, 2) }}</h3>
+                        <h3 class="text-lg sm:text-xl font-black text-green-900 leading-none truncate">{{ format_taka($settledRevenue ?? 0) }}</h3>
                     </div>
                     <div class="w-9 h-9 bg-green-100 text-green-500 rounded-full flex items-center justify-center shrink-0">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

@@ -78,28 +78,28 @@
                 <div class="bg-slate-900 rounded-2xl p-5 relative overflow-hidden">
                     <div class="relative">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Selling Amount</p>
-                        <p class="text-[22px] font-black text-white tracking-tight leading-none">৳{{ number_format($summary->total_revenue, 2) }}</p>
+                        <p class="text-[22px] font-black text-white tracking-tight leading-none">{{ format_taka($summary->total_revenue) }}</p>
                         <p class="text-xs text-slate-300 mt-2">{{ $summary->total_units }} units · {{ $summary->brand_count }} brands</p>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Purchase Cost</p>
-                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">৳{{ number_format($summary->total_cost, 2) }}</p>
+                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">{{ format_taka($summary->total_cost) }}</p>
                     <p class="text-xs text-slate-500 mt-2">Product cost × units sold</p>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Gross Profit</p>
-                    <p class="text-[22px] font-black {{ $summary->total_profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }} tracking-tight leading-none">৳{{ number_format($summary->total_profit, 2) }}</p>
+                    <p class="text-[22px] font-black {{ $summary->total_profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }} tracking-tight leading-none">{{ format_taka($summary->total_profit) }}</p>
                     <p class="text-xs text-slate-500 mt-2">Selling − purchase cost</p>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">POS Sales</p>
-                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">৳{{ number_format($summary->pos_revenue, 2) }}</p>
+                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">{{ format_taka($summary->pos_revenue) }}</p>
                     <p class="text-xs text-slate-500 mt-2">{{ $summary->pos_units }} units from counters</p>
                 </div>
                 <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm">
                     <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Website Sales</p>
-                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">৳{{ number_format($summary->web_revenue, 2) }}</p>
+                    <p class="text-[22px] font-black text-gray-900 tracking-tight leading-none">{{ format_taka($summary->web_revenue) }}</p>
                     <p class="text-xs text-slate-500 mt-2">{{ $summary->web_units }} units from online orders</p>
                 </div>
             </div>
@@ -135,15 +135,15 @@
                                     <td class="px-5 py-3 text-sm text-gray-400 font-bold">{{ $index + 1 }}</td>
                                     <td class="px-5 py-3 text-sm font-bold text-gray-900">{{ $row->brand }}</td>
                                     <td class="px-5 py-3 text-sm text-gray-600 font-medium text-right">{{ number_format($row->sold) }}</td>
-                                    <td class="px-5 py-3 text-sm font-semibold text-amber-700 text-right">৳{{ number_format($row->cost, 2) }}</td>
-                                    <td class="px-5 py-3 text-sm font-black text-cyan-700 text-right">৳{{ number_format($row->revenue, 2) }}</td>
-                                    <td class="px-5 py-3 text-sm font-bold {{ $row->profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }} text-right">৳{{ number_format($row->profit, 2) }}</td>
+                                    <td class="px-5 py-3 text-sm font-semibold text-amber-700 text-right">{{ format_taka($row->cost) }}</td>
+                                    <td class="px-5 py-3 text-sm font-black text-cyan-700 text-right">{{ format_taka($row->revenue) }}</td>
+                                    <td class="px-5 py-3 text-sm font-bold {{ $row->profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }} text-right">{{ format_taka($row->profit) }}</td>
                                     <td class="px-5 py-3 text-sm text-slate-500 text-right">
-                                        <span class="font-medium text-slate-700">৳{{ number_format($row->pos_revenue, 2) }}</span>
+                                        <span class="font-medium text-slate-700">{{ format_taka($row->pos_revenue) }}</span>
                                         <span class="text-slate-500 text-xs"> · {{ $row->pos_sold }}u</span>
                                     </td>
                                     <td class="px-5 py-3 text-sm text-slate-500 text-right">
-                                        <span class="font-medium text-slate-700">৳{{ number_format($row->web_revenue, 2) }}</span>
+                                        <span class="font-medium text-slate-700">{{ format_taka($row->web_revenue) }}</span>
                                         <span class="text-slate-500 text-xs"> · {{ $row->web_sold }}u</span>
                                     </td>
                                     <td class="px-5 py-3 text-sm font-bold text-slate-600 text-right">{{ number_format(($row->revenue / $revTotal) * 100, 1) }}%</td>
@@ -189,11 +189,11 @@
                                         </td>
                                         <td class="px-5 py-3 text-sm font-medium text-gray-800">{{ $row->brand }}</td>
                                         <td class="px-5 py-3 text-sm text-slate-600 text-right">{{ number_format($row->sold) }}</td>
-                                        <td class="px-5 py-3 text-sm font-semibold text-amber-700 text-right">৳{{ number_format($row->cost, 2) }}</td>
-                                        <td class="px-5 py-3 text-sm font-black text-cyan-700 text-right">৳{{ number_format($row->revenue, 2) }}</td>
-                                        <td class="px-5 py-3 text-sm font-bold {{ $row->profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }} text-right">৳{{ number_format($row->profit, 2) }}</td>
-                                        <td class="px-5 py-3 text-sm text-slate-700 text-right">৳{{ number_format($row->pos_revenue, 2) }} <span class="text-xs text-slate-500">({{ $row->pos_sold }})</span></td>
-                                        <td class="px-5 py-3 text-sm text-slate-700 text-right">৳{{ number_format($row->web_revenue, 2) }} <span class="text-xs text-slate-500">({{ $row->web_sold }})</span></td>
+                                        <td class="px-5 py-3 text-sm font-semibold text-amber-700 text-right">{{ format_taka($row->cost) }}</td>
+                                        <td class="px-5 py-3 text-sm font-black text-cyan-700 text-right">{{ format_taka($row->revenue) }}</td>
+                                        <td class="px-5 py-3 text-sm font-bold {{ $row->profit >= 0 ? 'text-emerald-600' : 'text-rose-600' }} text-right">{{ format_taka($row->profit) }}</td>
+                                        <td class="px-5 py-3 text-sm text-slate-700 text-right">{{ format_taka($row->pos_revenue) }} <span class="text-xs text-slate-500">({{ $row->pos_sold }})</span></td>
+                                        <td class="px-5 py-3 text-sm text-slate-700 text-right">{{ format_taka($row->web_revenue) }} <span class="text-xs text-slate-500">({{ $row->web_sold }})</span></td>
                                     </tr>
                                 @endforeach
                             @empty

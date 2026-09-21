@@ -75,7 +75,7 @@ class CustomerEmiController extends Controller
         $remaining = round((float) $plan->remaining_amount, 2);
 
         if ($amount > $remaining + 0.009) {
-            return back()->withInput()->with('error', 'Payment cannot exceed EMI remaining (৳'.number_format($remaining, 2).').');
+            return back()->withInput()->with('error', 'Payment cannot exceed EMI remaining (৳'.format_taka_number($remaining).').');
         }
 
         try {
@@ -93,7 +93,7 @@ class CustomerEmiController extends Controller
             $note = trim((string) ($validated['note'] ?? ''));
             if ($note === '') {
                 $note = $isPartial
-                    ? 'Partial EMI payment ৳'.number_format($amount, 2)
+                    ? 'Partial EMI payment ৳'.format_taka_number($amount)
                     : 'EMI settlement';
             }
 
@@ -116,7 +116,7 @@ class CustomerEmiController extends Controller
 
         return redirect()
             ->route('customers.emi.show', $fresh)
-            ->with('success', 'Collected ৳'.number_format($amount, 2).'. Remaining EMI: ৳'.number_format((float) $fresh->remaining_amount, 2).'.')
+            ->with('success', 'Collected ৳'.format_taka_number($amount).'. Remaining EMI: ৳'.format_taka_number((float) $fresh->remaining_amount).'.')
             ->with('open_slip_url', route('customers.emi.slip', ['entry' => $entry, 'embed' => 1]))
             ->with('print_slip', true);
     }

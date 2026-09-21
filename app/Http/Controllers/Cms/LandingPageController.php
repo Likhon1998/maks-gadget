@@ -27,10 +27,11 @@ class LandingPageController extends Controller
 
         $features = SiteFeature::where('shop_id', $this->shopId())->orderBy('sort_order')->orderBy('id')->get();
         $allBanners = PromoBanner::where('shop_id', $this->shopId())->orderBy('sort_order')->orderBy('id')->get();
-        $banners = $allBanners->filter(fn ($b) => ($b->placement ?? 'deals') !== 'hero_side')->values();
+        $banners = $allBanners->filter(fn ($b) => ! in_array($b->placement ?? 'deals', ['hero_side', 'mid_promo'], true))->values();
         $heroSide = $allBanners->filter(fn ($b) => ($b->placement ?? '') === 'hero_side')->values();
+        $midPromo = $allBanners->filter(fn ($b) => ($b->placement ?? '') === 'mid_promo')->values();
 
-        return view('cms.landing.edit', compact('settings', 'features', 'banners', 'heroSide'));
+        return view('cms.landing.edit', compact('settings', 'features', 'banners', 'heroSide', 'midPromo'));
     }
 
     public function update(Request $request)
@@ -51,13 +52,13 @@ class LandingPageController extends Controller
             ],
             'special_offer_text' => 'nullable|string|max:255',
             'trusted_by_text' => 'nullable|string|max:255',
+            'footer_tagline' => 'nullable|string|max:255',
+            'home_copy' => 'nullable|array',
+            'home_copy.*' => 'nullable|string|max:255',
             'deals_kicker' => 'nullable|string|max:80',
             'deals_title' => 'nullable|string|max:120',
             'deals_title_accent' => 'nullable|string|max:80',
             'deals_subtitle' => 'nullable|string|max:500',
-            'contact_email' => 'nullable|email|max:255',
-            'contact_phone' => 'nullable|string|max:50',
-            'contact_address' => 'nullable|string|max:500',
             'logo' => 'nullable|file|mimes:jpeg,jpg,png,webp,gif,svg|max:5120',
             'favicon' => 'nullable|file|mimes:jpeg,jpg,png,webp,gif,svg,ico|max:2048',
             'features' => 'nullable|array',
@@ -93,6 +94,20 @@ class LandingPageController extends Controller
             'hero_side.*.sort_order' => 'nullable|integer|min:0',
             'hero_side.*.is_active' => 'nullable|boolean',
             'hero_side.*.image' => 'nullable|file|mimes:jpeg,jpg,png,webp,gif|max:5120',
+            'mid_promo' => 'nullable|array|max:12',
+            'mid_promo.*.id' => 'nullable|integer',
+            'mid_promo.*.title' => 'nullable|string|max:255',
+            'mid_promo.*.subtitle' => 'nullable|string|max:255',
+            'mid_promo.*.badge_text' => 'nullable|string|max:60',
+            'mid_promo.*.highlight_text' => 'nullable|string|max:60',
+            'mid_promo.*.discount_badge' => 'nullable|string|max:20',
+            'mid_promo.*.price_from' => 'nullable|numeric|min:0',
+            'mid_promo.*.button_text' => 'nullable|string|max:100',
+            'mid_promo.*.button_url' => 'nullable|string|max:255',
+            'mid_promo.*.theme' => 'nullable|in:dark,light',
+            'mid_promo.*.sort_order' => 'nullable|integer|min:0',
+            'mid_promo.*.is_active' => 'nullable|boolean',
+            'mid_promo.*.image' => 'nullable|file|mimes:jpeg,jpg,png,webp,gif|max:5120',
         ]);
 
         $website = app(\App\Services\WebsiteService::class);
@@ -113,13 +128,13 @@ class LandingPageController extends Controller
             'currency_symbol' => $data['currency_symbol'],
             'special_offer_text' => $data['special_offer_text'] ?? null,
             'trusted_by_text' => $data['trusted_by_text'] ?? null,
+            'footer_tagline' => $data['footer_tagline'] ?? null,
+            'home_copy' => $website->homeCopyDefaults($data['home_copy'] ?? []),
             'deals_kicker' => $data['deals_kicker'] ?? null,
             'deals_title' => $data['deals_title'] ?? null,
             'deals_title_accent' => $data['deals_title_accent'] ?? null,
             'deals_subtitle' => $data['deals_subtitle'] ?? null,
-            'contact_email' => $data['contact_email'] ?? null,
-            'contact_phone' => $data['contact_phone'] ?? null,
-            'contact_address' => $data['contact_address'] ?? null,
+            // Contact identity is edited only under CMS → Contact (avoid overwrite conflicts)
         ]);
 
         if ($request->hasFile('logo')) {
@@ -188,6 +203,17 @@ class LandingPageController extends Controller
                 'hero_side',
                 $images,
                 2
+            )
+        );
+
+        $keep = array_merge(
+            $keep,
+            $this->persistBannerRows(
+                $request->input('mid_promo', []),
+                $request->file('mid_promo', []),
+                'mid_promo',
+                $images,
+                12
             )
         );
 

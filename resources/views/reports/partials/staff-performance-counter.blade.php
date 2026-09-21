@@ -37,8 +37,8 @@
                         </td>
                         <td class="px-3 py-3.5 text-center font-bold text-slate-600">{{ $row->staff_count }}</td>
                         <td class="px-3 py-3.5 text-center font-bold text-slate-700">{{ $row->total_orders }}</td>
-                        <td class="px-3 py-3.5 text-right text-slate-600">৳{{ number_format($row->avg_ticket, 2) }}</td>
-                        <td class="px-5 py-3.5 text-right font-extrabold text-emerald-600">৳{{ number_format($row->total_revenue, 2) }}</td>
+                        <td class="px-3 py-3.5 text-right text-slate-600">{{ format_taka($row->avg_ticket) }}</td>
+                        <td class="px-5 py-3.5 text-right font-extrabold text-emerald-600">{{ format_taka($row->total_revenue) }}</td>
                     </tr>
                 @empty
                     <tr><td colspan="6" class="px-5 py-12 text-center text-slate-400">No counter sales in this period.</td></tr>
