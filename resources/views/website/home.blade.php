@@ -46,7 +46,7 @@
         <div class="mg-hero3-grid">
             <div
                 class="mg-hero3-slider tn-hero"
-                @if($heroSlides->count() > 1)
+    @if($heroSlides->count() > 1)
                     x-data="{
                         slide: 0,
                         total: {{ $heroSlides->count() }},
@@ -68,68 +68,68 @@
                     @focusout="paused = false; restart()"
                 @else
                     x-data="{ slide: 0, total: 1 }"
-                @endif
+    @endif
             >
                 <div class="tn-hero-track">
-                    @forelse($heroSlides as $i => $slide)
-                        @php
-                            $posterUrl = $slide->image_path ? public_storage_url($slide->image_path) : null;
-                            if ($posterUrl && $slide->image_path) {
-                                $full = public_storage_path($slide->image_path);
-                                $posterUrl .= '?v='.(is_file($full) ? filemtime($full) : time());
-                            }
-                            $link = $slide->button_url ?: route('website.shop');
-                        @endphp
+    @forelse($heroSlides as $i => $slide)
+        @php
+            $posterUrl = $slide->image_path ? public_storage_url($slide->image_path) : null;
+            if ($posterUrl && $slide->image_path) {
+                $full = public_storage_path($slide->image_path);
+                $posterUrl .= '?v='.(is_file($full) ? filemtime($full) : time());
+            }
+            $link = $slide->button_url ?: route('website.shop');
+        @endphp
                         <div
                             class="tn-hero-slide{{ $i === 0 ? ' is-active' : '' }}"
                             :class="{ 'is-active': slide === {{ $i }} }"
                             x-bind:aria-hidden="slide !== {{ $i }}"
                         >
-                            @if($posterUrl)
+            @if($posterUrl)
                                 <a href="{{ $link }}" class="tn-hero-poster" aria-label="{{ $slide->title }}" x-bind:tabindex="slide === {{ $i }} ? 0 : -1">
-                                    <img
-                                        src="{{ $posterUrl }}"
-                                        alt="{{ $slide->title }}"
-                                        class="tn-hero-img"
-                                        width="1920"
-                                        height="640"
-                                        decoding="async"
+                    <img
+                        src="{{ $posterUrl }}"
+                        alt="{{ $slide->title }}"
+                        class="tn-hero-img"
+                        width="1920"
+                        height="640"
+                        decoding="async"
                                         @if($i === 0) fetchpriority="high" @else loading="lazy" @endif
-                                    >
-                                </a>
-                            @else
-                                <div class="tn-hero-fallback">
+                    >
+                </a>
+            @else
+                <div class="tn-hero-fallback">
                                     <div class="tn-hero-fallback-inner">
-                                        <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
-                                        <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                                        <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? 'our store' }}.</p>
-                                        <div class="tn-hero-actions">
-                                            <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
-                                            <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
+                        <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
+                        <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
+                        <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? 'our store' }}.</p>
+                        <div class="tn-hero-actions">
+                            <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
+                            <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
                         </div>
-                    @empty
-                        <div class="tn-hero-slide is-active">
-                            <div class="tn-hero-fallback">
-                                <div class="tn-hero-fallback-inner">
-                                    <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
-                                    <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                                    <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
-                                    <div class="tn-hero-actions">
-                                        <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
-                                        <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforelse
+                    </div>
                 </div>
-                @if($heroSlides->count() > 1)
+            @endif
+        </div>
+    @empty
+                        <div class="tn-hero-slide is-active">
+            <div class="tn-hero-fallback">
+                                <div class="tn-hero-fallback-inner">
+                    <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
+                    <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
+                                    <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
+                    <div class="tn-hero-actions">
+                        <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
+                        <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforelse
+                </div>
+    @if($heroSlides->count() > 1)
                     <div class="tn-hero-dots" role="tablist" aria-label="Hero slides">
-                        @foreach($heroSlides as $di => $ds)
+            @foreach($heroSlides as $di => $ds)
                             <button
                                 type="button"
                                 class="tn-hero-dot"
@@ -143,9 +143,9 @@
                                     <span class="tn-hero-dot-fill"></span>
                                 </template>
                             </button>
-                        @endforeach
-                    </div>
-                @endif
+            @endforeach
+        </div>
+    @endif
             </div>
 
             <aside class="mg-hero3-side" aria-label="Featured offers">
@@ -724,7 +724,7 @@
 @endphp
 <section class="tn-brands" aria-labelledby="tn-brands-heading">
     <div class="tn-container">
-        <div class="tn-brands-head">
+            <div class="tn-brands-head">
             @php $homeCopy = data_get($settings, 'home_copy') ?: []; @endphp
             <div class="tn-brands-copy">
                 <p class="tn-brands-eyebrow">{{ $homeCopy['brands_eyebrow'] ?? 'Partners' }}</p>
@@ -732,7 +732,7 @@
                 <p class="tn-brands-sub">{{ $homeCopy['brands_subtitle'] ?? 'Trusted names in gadgets — quality, performance, and innovation.' }}</p>
             </div>
         </div>
-    </div>
+            </div>
 
     <div class="tn-brands-marquee" aria-label="Brand partners">
         <div class="tn-brands-track">
@@ -804,16 +804,16 @@
                 @endphp
                 <article class="tn-deal {{ $isLight ? 'is-light' : 'is-dark' }}">
                     <a href="{{ $url }}" class="tn-deal-link" aria-label="{{ $banner->title }}">
-                        @if($banner->discount_badge)
-                            <span class="tn-deal-disc">{{ $banner->discount_badge }}</span>
+                    @if($banner->discount_badge)
+                        <span class="tn-deal-disc">{{ $banner->discount_badge }}</span>
+                    @endif
+
+                    <div class="tn-deal-body">
+                        @if($banner->badge_text)
+                                <span class="tn-deal-badge">{{ $banner->badge_text }}</span>
                         @endif
 
-                        <div class="tn-deal-body">
-                            @if($banner->badge_text)
-                                <span class="tn-deal-badge">{{ $banner->badge_text }}</span>
-                            @endif
-
-                            <div class="tn-deal-copy">
+                        <div class="tn-deal-copy">
                                 <h3 class="tn-deal-name">{{ $banner->title }}</h3>
                                 @if($sub !== '')
                                     @php
@@ -827,27 +827,27 @@
                                 @elseif(!empty($banner->highlight_text))
                                     <p class="tn-deal-offer"><em>{{ $banner->highlight_text }}</em></p>
                                 @endif
-                                @if($banner->price_from)
+                            @if($banner->price_from)
                                     <p class="tn-deal-price">
-                                        <span>From</span>
-                                        <strong>{{ $ws->formatPrice($banner->price_from, $settings) }}</strong>
+                                    <span>From</span>
+                                    <strong>{{ $ws->formatPrice($banner->price_from, $settings) }}</strong>
                                     </p>
-                                @endif
-                            </div>
+                            @endif
+                        </div>
 
                             <span class="tn-deal-cta">
                                 {{ $banner->button_text ?: 'Shop now' }}
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></svg>
                             </span>
-                        </div>
+                    </div>
 
                         <div class="tn-deal-media" aria-hidden="true">
                             <span class="tn-deal-orb"></span>
                             <span class="tn-deal-ring"></span>
-                            @if($banner->image_path)
+                        @if($banner->image_path)
                                 <img src="{{ public_storage_url($banner->image_path) }}" alt="" class="tn-deal-img" loading="lazy">
-                            @endif
-                        </div>
+                        @endif
+                    </div>
                     </a>
                 </article>
             @endforeach

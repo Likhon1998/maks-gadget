@@ -507,13 +507,38 @@
     <div x-show="mobileOpen" x-cloak class="gaget-mobile-drawer" @click.self="mobileOpen = false; mobileCatsOpen = false; mobileBrandsOpen = false">
         <div class="gaget-mobile-drawer-panel" x-show="mobileOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full">
             <div class="gaget-mobile-drawer-head">
-                <p class="gaget-mobile-drawer-title" style="margin:0">Menu</p>
+                <a href="{{ route('home') }}" class="gaget-mobile-drawer-brand" @click="mobileOpen = false">
+                    @if($headerIcon)
+                        <img src="{{ $headerIcon }}?v={{ $headerIconVer }}" alt="" class="gaget-mobile-drawer-brand-mark">
+                    @else
+                        <span class="gaget-mobile-drawer-brand-mark gaget-mobile-drawer-brand-mark--text">{{ mb_substr($headerName, 0, 1) }}</span>
+                    @endif
+                    <span class="gaget-mobile-drawer-brand-text">
+                        <span class="gaget-mobile-drawer-brand-name">{{ $headerName }}</span>
+                        <span class="gaget-mobile-drawer-brand-sub">Browse the store</span>
+                    </span>
+                </a>
                 <button type="button"
                         class="gaget-mobile-drawer-close"
                         aria-label="Close menu"
                         @click="mobileOpen = false; mobileCatsOpen = false; mobileBrandsOpen = false">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
+            </div>
+
+            <div class="gaget-mobile-drawer-quick">
+                <a href="{{ route('website.shop') }}" class="gaget-mobile-quick" @click="mobileOpen = false">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h10"/></svg>
+                    <span>Shop all</span>
+                </a>
+                <a href="{{ route('website.shop', ['filter' => 'deals']) }}" class="gaget-mobile-quick" @click="mobileOpen = false">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/></svg>
+                    <span>Deals</span>
+                </a>
+                <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="gaget-mobile-quick" @click="mobileOpen = false">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4"/></svg>
+                    <span>New in</span>
+                </a>
             </div>
             @forelse($navLinks as $link)
                 @php $navLabel = trim((string) $link->label); @endphp
@@ -630,18 +655,21 @@
             @endif
             @endforelse
 
-            @auth('web')
-                @if(auth('web')->user()->isStorefrontCustomer())
-                    <a href="{{ route('website.account') }}" class="gaget-mobile-drawer-link mt-4" @click="mobileOpen = false">My Account</a>
-                    <button type="button"
-                            class="gaget-mobile-drawer-link w-full text-left text-rose-300"
-                            @click="mobileOpen = false; typeof storefrontLogout === 'function' && storefrontLogout()">
-                        Sign out
-                    </button>
-                @endif
-            @else
-                <button type="button" class="gaget-mobile-drawer-link mt-4 w-full text-left" @click="mobileOpen = false; openSignIn('login')">Sign in</button>
-            @endauth
+            <div class="gaget-mobile-drawer-foot">
+                @auth('web')
+                    @if(auth('web')->user()->isStorefrontCustomer())
+                        <a href="{{ route('website.account') }}" class="gaget-mobile-drawer-cta" @click="mobileOpen = false">My Account</a>
+                        <button type="button"
+                                class="gaget-mobile-drawer-signout"
+                                @click="mobileOpen = false; typeof storefrontLogout === 'function' && storefrontLogout()">
+                            Sign out
+                        </button>
+                    @endif
+                @else
+                    <button type="button" class="gaget-mobile-drawer-cta" @click="mobileOpen = false; openSignIn('login')">Sign in</button>
+                    <p class="gaget-mobile-drawer-note">Track orders and save your wishlist.</p>
+                @endauth
+            </div>
         </div>
     </div>
 </div>

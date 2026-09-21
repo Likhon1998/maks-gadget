@@ -724,7 +724,7 @@
             };
         };
     </script>
-    @vite(['resources/css/app.css', 'resources/css/website.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/website.css', 'resources/css/website-mobile.css', 'resources/js/app.js'])
     <style>
         [x-cloak]{display:none!important}
         /* Critical first-paint loader (before Vite CSS) */
