@@ -523,7 +523,7 @@
             <a href="{{ route('website.shop', ['filter' => 'deals']) }}" class="tn-flash-link">View all deals <span aria-hidden="true">→</span></a>
         </div>
 
-        <div class="tn-flash-grid tn-flash-grid--8">
+        <div class="tn-flash-grid">
             @foreach($flashSaleProducts as $product)
                 @include('website.partials.tn-product-card', ['product' => $product, 'flash' => true])
             @endforeach
@@ -655,7 +655,7 @@
             </div>
             <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-section-link">View all new arrivals <span aria-hidden="true">→</span></a>
         </div>
-        <div class="tn-flash-grid tn-flash-grid--8">
+        <div class="tn-flash-grid">
             @foreach($newArrivals as $product)
                 @include('website.partials.tn-product-card', ['product' => $product])
             @endforeach
