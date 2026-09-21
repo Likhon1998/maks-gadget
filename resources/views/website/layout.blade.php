@@ -783,7 +783,7 @@
         .powered-by strong,.powered-by--footer strong{color:#0f172a;font-weight:800}
     </style>
 </head>
-<body class="gaget-store bg-white antialiased" id="storefront-root" x-data="storefrontCart()" @keydown.escape.window="cartOpen && closeCart(); checkoutOpen=false; mobileOpen=false; mobileCatsOpen=false; mobileBrandsOpen=false">
+<body class="gaget-store bg-white antialiased" id="storefront-root" x-data="storefrontCart()" :class="{ 'is-nav-open': mobileOpen, 'is-cart-open': cartOpen || checkoutOpen }" @keydown.escape.window="cartOpen && closeCart(); checkoutOpen=false; mobileOpen=false; mobileCatsOpen=false; mobileBrandsOpen=false">
 
 {{-- Simple branded page loader --}}
 <div id="gaget-page-loader" class="gaget-page-loader is-active" role="status" aria-live="polite" aria-busy="true" aria-label="Loading">

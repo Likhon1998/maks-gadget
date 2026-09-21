@@ -241,6 +241,7 @@
 @endphp
 <section
     class="mg-cover"
+    :class="{ 'is-mobile-cover': narrow }"
     x-data="{
         active: {{ $coverStart }},
         total: {{ $coverTotal }},
@@ -249,9 +250,16 @@
         dragMoved: false,
         dragStartX: 0,
         dragDelta: 0,
+        narrow: false,
+        _scrollLock: false,
+        syncNarrow() {
+            this.narrow = window.matchMedia('(max-width: 767px)').matches;
+            if (this.narrow) this.dragging = false;
+        },
         go(i) {
             if (this.total < 1) return;
             this.active = ((i % this.total) + this.total) % this.total;
+            if (this.narrow) this.$nextTick(() => this.scrollToActive(true));
             this.arm();
         },
         next() { this.go(this.active + 1); },
@@ -264,6 +272,7 @@
             return d;
         },
         styleFor(i) {
+            if (this.narrow) return '';
             const d = this.delta(i);
             const abs = Math.abs(d);
             if (abs > 3) {
@@ -280,11 +289,39 @@
         },
         arm() {
             clearInterval(this.timer);
-            if (this.total < 2 || this.dragging) return;
+            if (this.total < 2 || this.dragging || this.narrow) return;
             this.timer = setInterval(() => { this.next(); }, 4200);
         },
+        scrollToActive(smooth) {
+            if (!this.narrow) return;
+            const stage = this.$refs.coverStage;
+            if (!stage) return;
+            const card = stage.querySelector('[data-cover-i=' + this.active + ']');
+            if (!card) return;
+            this._scrollLock = true;
+            const left = card.offsetLeft - (stage.clientWidth - card.clientWidth) / 2;
+            stage.scrollTo({ left: Math.max(0, left), behavior: smooth ? 'smooth' : 'auto' });
+            setTimeout(() => { this._scrollLock = false; }, smooth ? 420 : 80);
+        },
+        onStageScroll() {
+            if (!this.narrow || this._scrollLock) return;
+            const stage = this.$refs.coverStage;
+            if (!stage) return;
+            const center = stage.scrollLeft + stage.clientWidth / 2;
+            let best = this.active;
+            let bestDist = Infinity;
+            stage.querySelectorAll('[data-cover-i]').forEach((card) => {
+                const mid = card.offsetLeft + card.clientWidth / 2;
+                const dist = Math.abs(mid - center);
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    best = Number(card.getAttribute('data-cover-i'));
+                }
+            });
+            if (best !== this.active) this.active = best;
+        },
         onPointerDown(e) {
-            if (this.total < 2) return;
+            if (this.narrow || this.total < 2) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             this.dragging = true;
             this.dragMoved = false;
@@ -294,12 +331,12 @@
             try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
         },
         onPointerMove(e) {
-            if (!this.dragging) return;
+            if (!this.dragging || this.narrow) return;
             this.dragDelta = e.clientX - this.dragStartX;
             if (Math.abs(this.dragDelta) > 10) this.dragMoved = true;
         },
         onPointerUp(e) {
-            if (!this.dragging) return;
+            if (!this.dragging || this.narrow) return;
             this.dragging = false;
             const threshold = Math.min(72, Math.max(40, window.innerWidth * 0.12));
             if (this.dragDelta <= -threshold) this.next();
@@ -307,7 +344,6 @@
             else this.arm();
             this.dragDelta = 0;
             try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
-            // Keep dragMoved true briefly so card click does not navigate after a swipe
             if (this.dragMoved) {
                 setTimeout(() => { this.dragMoved = false; }, 80);
             }
@@ -317,7 +353,7 @@
             window.location.href = url;
         },
         onWheel(e) {
-            if (this.total < 2) return;
+            if (this.narrow || this.total < 2) return;
             const dominant = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
             if (!dominant) return;
             e.preventDefault();
@@ -328,7 +364,17 @@
             setTimeout(() => { this._wheelLock = false; }, 420);
         }
     }"
-    x-init="arm()"
+    x-init="
+        syncNarrow();
+        arm();
+        $nextTick(() => { if (narrow) scrollToActive(false); });
+        window.addEventListener('resize', () => {
+            const was = narrow;
+            syncNarrow();
+            if (narrow) $nextTick(() => scrollToActive(false));
+            else if (was) arm();
+        });
+    "
 >
     <div class="tn-container">
         <div class="mg-cover-head">
@@ -376,14 +422,16 @@
 
     <div
         class="mg-cover-stage"
-        :class="{ 'is-dragging': dragging }"
+        x-ref="coverStage"
+        :class="{ 'is-dragging': dragging && !narrow }"
         @pointerdown="onPointerDown($event)"
         @pointermove="onPointerMove($event)"
         @pointerup="onPointerUp($event)"
         @pointercancel="onPointerUp($event)"
         @wheel="onWheel($event)"
+        @scroll.passive="onStageScroll()"
         role="region"
-        aria-label="Swipe or drag categories"
+        aria-label="Swipe categories"
     >
         <div class="mg-cover-track" aria-live="polite">
             @foreach($coverCats as $i => $category)
@@ -401,7 +449,8 @@
                 @endphp
                 <article
                     class="mg-cover-card {{ $theme }}"
-                    :class="{ 'is-active': active === {{ $i }}, 'is-dragging': dragging }"
+                    data-cover-i="{{ $i }}"
+                    :class="{ 'is-active': active === {{ $i }}, 'is-dragging': dragging && !narrow }"
                     :style="styleFor({{ $i }})"
                     @click="openCategory(@js($url))"
                     role="link"
@@ -434,7 +483,7 @@
                 </article>
             @endforeach
         </div>
-        <p class="mg-cover-hint" aria-hidden="true">Drag or swipe</p>
+        <p class="mg-cover-hint" aria-hidden="true" x-text="narrow ? 'Swipe' : 'Drag or swipe'"></p>
     </div>
 </section>
 @endif
