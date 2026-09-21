@@ -25,6 +25,7 @@
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 12h12M10 20h4"/></svg>
         <span x-text="filtersOpen ? 'Hide filters' : 'Filters & categories'"></span>
     </button>
+    <div class="gs-filters-backdrop" x-show="filtersOpen" x-cloak @click="filtersOpen = false" aria-hidden="true"></div>
     <div class="gs-sidebar-pin" data-gs-sidebar-pin>
     <form method="GET"
           action="{{ route('website.shop') }}"
