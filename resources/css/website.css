@@ -1,4 +1,4 @@
-/* GAGET STORE ÃÂ¢ÃÂÃÂ exact mockup match */
+/* GAGET STORE ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ exact mockup match */
 :root {
     --g-blue: #2563eb;
     --g-blue-hover: #1d4ed8;
@@ -42,7 +42,7 @@ body.gaget-store {
     padding: 0;
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ TOP BAR ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ TOP BAR ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-topbar {
     background: transparent;
     border-bottom: none;
@@ -67,7 +67,7 @@ body.gaget-store {
     .gaget-topbar { display: none; }
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ HEADER ÃÂ¢ÃÂÃÂ floating pill navbar (single-row fit) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ HEADER ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ floating pill navbar (single-row fit) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-sticky-header {
     position: fixed;
     top: 0;
@@ -276,7 +276,7 @@ body.gaget-store {
     padding: 8px 0;
     pointer-events: auto;
 }
-/* Invisible bridge so cursor can move from button Ã¢ÂÂ menu without closing */
+/* Invisible bridge so cursor can move from button ÃÂ¢ÃÂÃÂ menu without closing */
 .gaget-nav-dropdown-menu::before {
     content: "";
     position: absolute;
@@ -627,7 +627,7 @@ body.gaget-store {
     }
 }
 
-/* Search: input | categories | navy button ÃÂ¢ÃÂÃÂ kept for suggest styles below */
+/* Search: input | categories | navy button ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ kept for suggest styles below */
 
 .gaget-search-suggest {
     position: absolute;
@@ -735,7 +735,7 @@ body.gaget-store {
     animation: gaget-badge-pop 0.55s cubic-bezier(0.34, 1.45, 0.64, 1);
 }
 
-/* Flying product thumb ÃÂ¢ÃÂÃÂ cart (CSS keyframes) */
+/* Flying product thumb ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ cart (CSS keyframes) */
 .gaget-cart-flyer {
     position: fixed;
     z-index: 100060;
@@ -789,7 +789,7 @@ body.gaget-store {
     }
 }
 
-/* Floating cart sheet ÃÂ¢ÃÂÃÂ CSS keyframe entrance */
+/* Floating cart sheet ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ CSS keyframe entrance */
 .gaget-cart-shell {
     position: fixed;
     inset: 0;
@@ -1449,10 +1449,10 @@ body.gaget-store {
     color: #e11d48;
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ NAVBAR (merged into floating floatbar) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ NAVBAR (merged into floating floatbar) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-navbar, .gaget-navbar-inner, .gaget-navbar-left, .gaget-all-cat { display: none !important; }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ HERO POSTERS (full-design image only, no text overlay) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ HERO POSTERS (full-design image only, no text overlay) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-hero {
     background: #f3f5f8;
     position: relative;
@@ -1550,7 +1550,7 @@ body.gaget-store {
     transform: scale(1.15);
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ FEATURES (CMS-managed) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ FEATURES (CMS-managed) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-features { background: #fff; border-top: 1px solid var(--g-border); border-bottom: 1px solid var(--g-border); }
 .gaget-features-grid {
     max-width: 1280px; margin: 0 auto; padding: 0 24px;
@@ -1589,7 +1589,7 @@ body.gaget-store {
     line-height: 1.3;
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ SECTIONS ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ SECTIONS ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-section { max-width: 1280px; margin: 0 auto; padding: 48px 24px; }
 .gaget-section--compact { padding: 32px 24px; }
 .gaget-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
@@ -1599,7 +1599,7 @@ body.gaget-store {
 .gaget-section-link { font-size: 13px; font-weight: 600; color: var(--g-blue); text-decoration: none; }
 .gaget-section-link:hover { text-decoration: underline; }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ CATEGORIES (real images only) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ CATEGORIES (real images only) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-cat-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -1634,7 +1634,7 @@ body.gaget-store {
 .gaget-cat-name { font-size: 12px; font-weight: 600; color: var(--g-text); line-height: 1.25; }
 .gaget-cat-count { font-size: 10px; color: var(--g-muted); margin-top: 2px; }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ PROMO BANNERS (CMS-managed) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ PROMO BANNERS (CMS-managed) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-promo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .gaget-promo {
     border-radius: var(--g-radius-lg);
@@ -1678,7 +1678,7 @@ body.gaget-store {
     pointer-events: none;
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ PRODUCT CARDS ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ PRODUCT CARDS ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-product-card {
     background: #fff;
     border: 1px solid var(--g-border);
@@ -1774,7 +1774,7 @@ body.gaget-store {
 .gaget-price-current { font-size: 15px; font-weight: 800; color: var(--g-text); }
 .gaget-price-old { font-size: 12px; color: #94a3b8; text-decoration: line-through; margin-left: 5px; }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ CAROUSEL ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ CAROUSEL ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-bestsellers-bg { background: var(--g-bg-soft); }
 .gaget-carousel-wrap { position: relative; padding: 0 4px; }
 .gaget-product-grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
@@ -1794,7 +1794,7 @@ body.gaget-store {
 .gaget-carousel-arrow.prev { left: -14px; }
 .gaget-carousel-arrow.next { right: -14px; }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ BRANDS ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ BRANDS ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-brands {
     text-align: center;
     padding: 40px 24px 48px;
@@ -1807,7 +1807,7 @@ body.gaget-store {
 .gaget-brand-logo { font-size: 20px; font-weight: 800; color: #94a3b8; filter: grayscale(1); opacity: .65; letter-spacing: -0.02em; }
 .gaget-brand-logo img { height: 24px; object-fit: contain; filter: grayscale(1); opacity: .65; }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ SHOP PAGE ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ SHOP PAGE ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-shop-page {
     max-width: 1280px;
     margin: 0 auto;
@@ -1995,7 +1995,7 @@ body.gaget-store {
 .gaget-shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
 .gaget-shop-grid--sidebar { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ FIXED HEADER (always visible) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ FIXED HEADER (always visible) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-sticky-header {
     position: fixed;
     top: 0;
@@ -2211,12 +2211,12 @@ body.gaget-store {
     .gaget-mobile-search { display: none; }
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ
    TECHNOVA HOMEPAGE TEMPLATE
-   ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+   ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .tn-container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
 
-/* Hero ÃÂ¢ÃÂÃÂ wide banner matching design ratio (3:1 / 1920ÃÂÃÂ640), full width */
+/* Hero ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ wide banner matching design ratio (3:1 / 1920ÃÂÃÂÃÂÃÂ640), full width */
 .mg-hero3 {
     padding: 18px 0 8px;
     background: linear-gradient(180deg, #f7f8fa 0%, #fff 100%);
@@ -2731,19 +2731,21 @@ body.gaget-store {
 }
 .tn-flash-grid--8 {
     display: flex;
-    flex-wrap: nowrap !important;
+    flex-wrap: nowrap;
     align-items: stretch;
-    gap: 10px;
+    gap: 12px;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
     -webkit-overflow-scrolling: touch;
     grid-template-columns: none !important;
+    padding-bottom: 4px;
 }
 .tn-flash-grid--8 > * {
-    flex: 1 1 0;
-    min-width: 0;
-    max-width: none;
+    flex: 0 0 168px;
+    width: 168px;
+    min-width: 168px;
+    max-width: 168px;
     display: flex;
 }
 .tn-flash-grid--8 .tn-product-card {
@@ -2810,7 +2812,107 @@ body.gaget-store {
     padding: 8px;
 }
 
-/* Categories ÃÂ¢ÃÂÃÂ compact colorful icons, up to 10 centered */
+/* Phones / tablets: premium 2-column product grids (never squeeze 8-across) */
+@media (max-width: 900px) {
+    .tn-flash-grid--8,
+    .tn-flash-grid--10 {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+        overflow: visible !important;
+        flex-wrap: unset;
+        scroll-snap-type: none;
+        padding-bottom: 0;
+    }
+    .tn-flash-grid--8 > *,
+    .tn-flash-grid--10 > * {
+        flex: none !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        scroll-snap-align: unset;
+    }
+    .tn-flash-grid--8 .tn-product-card,
+    .tn-flash-grid--10 .tn-product-card {
+        border-radius: 14px;
+    }
+    .tn-flash-grid--8 .tn-product-meta,
+    .tn-flash-grid--10 .tn-product-meta {
+        padding: 10px 10px 12px;
+        gap: 6px;
+    }
+    .tn-flash-grid--8 .tn-product-name,
+    .tn-flash-grid--10 .tn-product-name {
+        font-size: 13px;
+        line-height: 1.35;
+        min-height: 0;
+        -webkit-line-clamp: 2;
+    }
+    .tn-flash-grid--8 .tn-product-star,
+    .tn-flash-grid--10 .tn-product-star { font-size: 11px; }
+    .tn-flash-grid--8 .tn-product-reviews,
+    .tn-flash-grid--10 .tn-product-reviews { font-size: 11px; }
+    .tn-flash-grid--8 .tn-product-price,
+    .tn-flash-grid--10 .tn-product-price { font-size: 14px; font-weight: 750; }
+    .tn-flash-grid--8 .tn-product-old,
+    .tn-flash-grid--10 .tn-product-old { font-size: 11px; }
+    .tn-flash-grid--8 .tn-product-foot,
+    .tn-flash-grid--10 .tn-product-foot {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-top: 8px;
+    }
+    .tn-flash-grid--8 .tn-product-price-row,
+    .tn-flash-grid--10 .tn-product-price-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        min-height: 0;
+    }
+    .tn-flash-grid--8 .tn-product-add,
+    .tn-flash-grid--10 .tn-product-add {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border-radius: 12px;
+        flex-shrink: 0;
+    }
+    .tn-flash-grid--8 .tn-product-wish,
+    .tn-flash-grid--10 .tn-product-wish {
+        width: 34px;
+        height: 34px;
+        top: 10px;
+        right: 10px;
+    }
+    .tn-flash-grid--8 .tn-product-discount,
+    .tn-flash-grid--8 .tn-product-new,
+    .tn-flash-grid--10 .tn-product-discount,
+    .tn-flash-grid--10 .tn-product-new {
+        top: 10px;
+        left: 10px;
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+    .tn-flash-grid--8 .tn-product-img,
+    .tn-flash-grid--10 .tn-product-img {
+        padding: 12px;
+        aspect-ratio: 1 / 1;
+        object-fit: contain;
+    }
+}
+
+@media (min-width: 901px) and (max-width: 1200px) {
+    .tn-flash-grid--8 > * {
+        flex-basis: 148px;
+        width: 148px;
+        min-width: 148px;
+        max-width: 148px;
+    }
+}
+
+/* Categories ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ compact colorful icons, up to 10 centered */
 .tn-section-cats { padding: 28px 0 36px; }
 .tn-cat-grid {
     display: grid;
@@ -3087,7 +3189,7 @@ body.gaget-store {
 }
 .tn-product-add:active { transform: scale(0.98); }
 
-/* What's Trending Now ÃÂ¢ÃÂÃÂ clean editorial strip */
+/* What's Trending Now ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ clean editorial strip */
 .tn-trending {
     position: relative;
     overflow: hidden;
@@ -3474,7 +3576,7 @@ body.gaget-store {
     .tn-trending-grid { grid-template-columns: 1fr; }
 }
 
-/* Brands We Carry ÃÂ¢ÃÂÃÂ continuous slow marquee */
+/* Brands We Carry ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ continuous slow marquee */
 .tn-brands {
     position: relative;
     overflow: hidden;
@@ -3659,7 +3761,7 @@ body.gaget-store {
     .tn-brands-track { animation: none; }
 }
 
-/* Deals You'll Love ÃÂ¢ÃÂÃÂ mockup promo cards */
+/* Deals You'll Love ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ mockup promo cards */
 .tn-deals {
     position: relative;
     padding: 52px 0 60px;
@@ -3989,7 +4091,7 @@ body.gaget-store {
     object-fit: contain; pointer-events: none;
 }
 
-/* Features bar ÃÂ¢ÃÂÃÂ organized strip below hero (no overlap) */
+/* Features bar ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ organized strip below hero (no overlap) */
 .tn-features {
     background: #fff;
     margin: 0;
@@ -4307,7 +4409,7 @@ body.gaget-store {
     .tn-blog-excerpt { min-height: 0; }
 }
 
-/* Footer ÃÂ¢ÃÂÃÂ mockup identical (no newsletter) */
+/* Footer ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ mockup identical (no newsletter) */
 .tn-footer-credit {
     border-top: 1px solid #eef2f7;
     padding: 14px 16px 18px;
@@ -4508,7 +4610,7 @@ body.gaget-store {
 @media (max-width: 560px) {
     .tn-footer-main { grid-template-columns: 1fr; gap: 28px; }
 }
-/* Ã¢ÂÂÃ¢ÂÂ SHOP PAGE (mockup layout) Ã¢ÂÂÃ¢ÂÂ */
+/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ SHOP PAGE (mockup layout) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
 .gs-shop {
     background: #f5f7fb;
     padding: 20px 0 56px;
@@ -4962,7 +5064,7 @@ body.gaget-store {
     .gs-grid--list .gs-card { grid-template-columns: 120px minmax(0, 1fr); }
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Simple branded page loader ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Simple branded page loader ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .gaget-page-loader {
     position: fixed;
     inset: 0;
@@ -5184,7 +5286,7 @@ body.gaget-store {
     }
 }
 
-/* Account stats ÃÂ¢ÃÂÃÂ always one row */
+/* Account stats ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ always one row */
 .gaget-account-stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -5336,7 +5438,7 @@ body.gaget-store {
     .gaget-account-stat__icon { width: 30px; height: 30px; }
 }
 @media (max-width: 640px) {
-    /* 2x2 grid ÃÂ¢ÃÂÃÂ fully visible without side scroll */
+    /* 2x2 grid ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ fully visible without side scroll */
     .gaget-account-stats {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5360,7 +5462,7 @@ body.gaget-store {
     .gaget-progress__fill { transition: none; }
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Account sidebar (responsive) ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Account sidebar (responsive) ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .acct-sidebar { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
 .acct-sidebar-card,
 .acct-help-card {
@@ -5459,7 +5561,7 @@ body.gaget-store {
 }
 .acct-info-btn:hover { background: #f8fafc; }
 
-/* Active order product + CTA Ã¢ÂÂ never overflow on mobile */
+/* Active order product + CTA ÃÂ¢ÃÂÃÂ never overflow on mobile */
 .acct-page .gaget-progress {
     max-width: 100%;
     overflow: visible;
@@ -5481,7 +5583,7 @@ body.gaget-store {
     line-height: 1.25;
 }
 
-/* Order details sheet Ã¢ÂÂ calm professional palette */
+/* Order details sheet ÃÂ¢ÃÂÃÂ calm professional palette */
 .acct-order-modal {
     max-width: 100%;
 }
@@ -5754,7 +5856,7 @@ body.gaget-store {
     padding-bottom: 10px;
 }
 
-/* Active order card Ã¢ÂÂ hairline separators instead of stacked border boxes */
+/* Active order card ÃÂ¢ÃÂÃÂ hairline separators instead of stacked border boxes */
 .acct-active-order {
     padding: 2px 0 0;
 }
@@ -6113,7 +6215,7 @@ body.gaget-store {
     .ap-page .acct-sidebar-edit { display: none; }
     .ap-page .acct-nav-wrap { margin-top: 0; padding-top: 0; border-top: 0; }
     .ap-page .acct-sidebar-card { padding: 0.75rem; }
-    /* Wrap menu ÃÂ¢ÃÂÃÂ all items visible, no side scroll */
+    /* Wrap menu ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ all items visible, no side scroll */
     .acct-nav {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -6140,7 +6242,7 @@ body.gaget-store {
     }
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Edit Profile page ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Edit Profile page ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 .ap-page {
     max-width: 1280px;
     margin: 0 auto;
@@ -6407,7 +6509,7 @@ body.gaget-store {
     .ap-phone select { max-width: 6.25rem; font-size: 0.75rem; padding-left: 0.4rem; padding-right: 0.3rem; }
 }
 
-/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ Storefront responsive polish ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
+/* ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Storefront responsive polish ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂ */
 @media (max-width: 1400px) {
     .tn-flash-grid--10 { grid-template-columns: repeat(8, minmax(0, 1fr)); }
 }
@@ -6502,7 +6604,20 @@ body.gaget-store {
     .tn-feature { padding: 10px 6px; }
     .tn-product-card { border-radius: 14px; }
     .tn-product-img { aspect-ratio: 1 / 1; }
-    .tn-product-add { width: 100%; justify-content: center; }
+    .tn-product-add {
+        width: 40px;
+        min-width: 40px;
+        height: 40px;
+        justify-content: center;
+        border-radius: 12px;
+    }
+    .tn-product-add-label { display: none; }
+    .tn-product-foot {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
     .tn-deals-head { margin-bottom: 18px; }
     .tn-deal-price strong { font-size: 18px; }
     .gaget-navbar-inner { padding: 0 12px; }
@@ -6534,7 +6649,7 @@ body.gaget-store {
     }
 }
 
-/* Product detail page ÃÂ¢ÃÂÃÂ denser layout */
+/* Product detail page ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ denser layout */
 .pd-layout {
     display: grid;
     gap: 1rem;
@@ -7011,9 +7126,9 @@ body.gaget-store,
 
 
 
-/* Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
-   Shop by Category Ã¢ÂÂ premium coverflow
-   Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ */
+/* ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ
+   Shop by Category ÃÂ¢ÃÂÃÂ premium coverflow
+   ÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂÃÂ¢ÃÂÃÂ */
 .mg-cover {
     position: relative;
     padding: 28px 0 24px;
@@ -7733,7 +7848,7 @@ body.gaget-store,
     .mg-midpromo-cta { transition: none; }
 }
 /* -----------------------------------------------------------
-   Mobile / responsive polish Â all storefront screens
+   Mobile / responsive polish ÃÂ all storefront screens
    ----------------------------------------------------------- */
 
 .gs-filters-toggle {
@@ -7896,16 +8011,10 @@ body.gaget-store,
         grid-template-columns: 1fr !important;
     }
 
-    .tn-brands-track,
-    .tn-flash-grid--8,
-    .tn-flash-grid--10 {
+    .tn-brands-track {
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 6px;
-    }
-    .tn-flash-grid--8 > *,
-    .tn-flash-grid--10 > * {
-        scroll-snap-align: start;
     }
 
     .tn-footer-shell {
@@ -8006,13 +8115,24 @@ body.gaget-store,
 @media (max-width: 480px) {
     .tn-product-grid,
     .tn-flash-grid,
+    .tn-flash-grid--8,
+    .tn-flash-grid--10,
     .gs-grid {
+        display: grid !important;
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 8px !important;
+        gap: 10px !important;
+        overflow: visible !important;
+    }
+    .tn-flash-grid--8 > *,
+    .tn-flash-grid--10 > * {
+        flex: none !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
     }
     .tn-product-name,
     .gaget-product-name {
-        font-size: 12px;
+        font-size: 12.5px;
         line-height: 1.35;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -8021,13 +8141,15 @@ body.gaget-store,
     }
     .tn-product-add-label { display: none; }
     .tn-product-foot {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         gap: 6px;
     }
     .tn-product-add,
     .gs-icon-btn--cart {
         min-width: 40px;
         min-height: 40px;
+        width: 40px;
+        height: 40px;
     }
     .gs-grid--list .gs-card {
         grid-template-columns: 100px minmax(0, 1fr) !important;
