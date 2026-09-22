@@ -1,4 +1,4 @@
-@extends('website.layout')
+﻿@extends('website.layout')
 @php $ws = app(\App\Services\WebsiteService::class); @endphp
 
 @section('content')
@@ -250,17 +250,22 @@
         dragMoved: false,
         dragStartX: 0,
         dragDelta: 0,
-        narrow: false,
-        _scrollLock: false,
+        narrow: typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
         syncNarrow() {
             this.narrow = window.matchMedia('(max-width: 767px)').matches;
-            if (this.narrow) this.dragging = false;
         },
         go(i) {
             if (this.total < 1) return;
             this.active = ((i % this.total) + this.total) % this.total;
-            if (this.narrow) this.$nextTick(() => this.scrollToActive(true));
+            if (this.narrow) this.$nextTick(() => this.scrollChipIntoView());
             this.arm();
+        },
+        scrollChipIntoView() {
+            if (!this.narrow) return;
+            const chip = this.$el.querySelector('.mg-cover-marquee-item.is-active:not(.mg-cover-marquee-item--dup)');
+            if (chip && chip.scrollIntoView) {
+                chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
         },
         next() { this.go(this.active + 1); },
         prev() { this.go(this.active - 1); },
@@ -272,56 +277,39 @@
             return d;
         },
         styleFor(i) {
-            if (this.narrow) return '';
             const d = this.delta(i);
             const abs = Math.abs(d);
+            const mobile = this.narrow;
+            const dragNudge = this.dragging ? (this.dragDelta * (mobile ? 0.18 : 0.12)) : 0;
+            if (mobile) {
+                /* Flat peek coverflow (matches mockup) — no rotateY so cards don't collapse edge-on */
+                if (abs > 2) {
+                    return 'opacity:0; visibility:hidden; pointer-events:none; transform: translate(-50%, -50%) scale(0.62);';
+                }
+                const x = d * 72;
+                const scale = abs === 0 ? 1 : (abs === 1 ? 0.84 : 0.72);
+                const opacity = abs === 0 ? 1 : (abs === 1 ? 0.92 : 0.55);
+                const z = 40 - abs;
+                return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) scale(${scale}); z-index:${z}; opacity:${opacity};`;
+            }
             if (abs > 3) {
-                return 'opacity:0; visibility:hidden; pointer-events:none; transform: translate(-50%, -50%) scale(0.58);';
+                return 'opacity:0; visibility:hidden; pointer-events:none; transform: translate(-50%, -50%) scale(0.55);';
             }
             const x = d * 54;
             const y = abs * 2.5;
             const rot = d * -22;
             const scale = Math.max(0.72, 1 - abs * 0.1);
             const z = 50 - abs;
-            const opacity = abs === 0 ? 1 : (abs === 1 ? 0.92 : (abs === 2 ? 0.7 : 0.42));
-            const dragNudge = this.dragging ? (this.dragDelta * 0.12) : 0;
+            const opacity = abs === 0 ? 1 : (abs === 1 ? 0.9 : (abs === 2 ? 0.62 : 0.4));
             return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:${opacity};`;
         },
         arm() {
             clearInterval(this.timer);
-            if (this.total < 2 || this.dragging || this.narrow) return;
+            if (this.total < 2 || this.dragging) return;
             this.timer = setInterval(() => { this.next(); }, 4200);
         },
-        scrollToActive(smooth) {
-            if (!this.narrow) return;
-            const stage = this.$refs.coverStage;
-            if (!stage) return;
-            const card = stage.querySelector('[data-cover-i=' + this.active + ']');
-            if (!card) return;
-            this._scrollLock = true;
-            const left = card.offsetLeft - (stage.clientWidth - card.clientWidth) / 2;
-            stage.scrollTo({ left: Math.max(0, left), behavior: smooth ? 'smooth' : 'auto' });
-            setTimeout(() => { this._scrollLock = false; }, smooth ? 420 : 80);
-        },
-        onStageScroll() {
-            if (!this.narrow || this._scrollLock) return;
-            const stage = this.$refs.coverStage;
-            if (!stage) return;
-            const center = stage.scrollLeft + stage.clientWidth / 2;
-            let best = this.active;
-            let bestDist = Infinity;
-            stage.querySelectorAll('[data-cover-i]').forEach((card) => {
-                const mid = card.offsetLeft + card.clientWidth / 2;
-                const dist = Math.abs(mid - center);
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    best = Number(card.getAttribute('data-cover-i'));
-                }
-            });
-            if (best !== this.active) this.active = best;
-        },
         onPointerDown(e) {
-            if (this.narrow || this.total < 2) return;
+            if (this.total < 2) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             this.dragging = true;
             this.dragMoved = false;
@@ -331,14 +319,14 @@
             try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
         },
         onPointerMove(e) {
-            if (!this.dragging || this.narrow) return;
+            if (!this.dragging) return;
             this.dragDelta = e.clientX - this.dragStartX;
-            if (Math.abs(this.dragDelta) > 10) this.dragMoved = true;
+            if (Math.abs(this.dragDelta) > 8) this.dragMoved = true;
         },
         onPointerUp(e) {
-            if (!this.dragging || this.narrow) return;
+            if (!this.dragging) return;
             this.dragging = false;
-            const threshold = Math.min(72, Math.max(40, window.innerWidth * 0.12));
+            const threshold = Math.min(64, Math.max(36, window.innerWidth * 0.1));
             if (this.dragDelta <= -threshold) this.next();
             else if (this.dragDelta >= threshold) this.prev();
             else this.arm();
@@ -353,7 +341,7 @@
             window.location.href = url;
         },
         onWheel(e) {
-            if (this.narrow || this.total < 2) return;
+            if (this.total < 2) return;
             const dominant = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
             if (!dominant) return;
             e.preventDefault();
@@ -367,21 +355,22 @@
     x-init="
         syncNarrow();
         arm();
-        $nextTick(() => { if (narrow) scrollToActive(false); });
+        $nextTick(() => { if (narrow) scrollChipIntoView(); });
         window.addEventListener('resize', () => {
-            const was = narrow;
             syncNarrow();
-            if (narrow) $nextTick(() => scrollToActive(false));
-            else if (was) arm();
+            if (narrow) $nextTick(() => scrollChipIntoView());
         });
     "
 >
     <div class="tn-container">
         <div class="mg-cover-head">
-            <div class="mg-cover-copy">
-                <p class="mg-cover-eyebrow">{{ $homeCopy['categories_eyebrow'] ?? 'Curated collections' }}</p>
-                <h2 class="mg-cover-title">{{ $homeCopy['categories_title'] ?? 'Shop by' }} <span>{{ $homeCopy['categories_title_accent'] ?? 'Category' }}</span></h2>
-                <p class="mg-cover-sub">{{ $homeCopy['categories_subtitle'] ?? 'Premium gadgets, sorted for how you live — browse the collection.' }}</p>
+            <div class="mg-cover-top">
+                <div class="mg-cover-copy">
+                    <p class="mg-cover-eyebrow">{{ $homeCopy['categories_eyebrow'] ?? 'Curated collections' }}</p>
+                    <h2 class="mg-cover-title">{{ $homeCopy['categories_title'] ?? 'Shop by' }} <span>{{ $homeCopy['categories_title_accent'] ?? 'Category' }}</span></h2>
+                    <p class="mg-cover-sub">{{ $homeCopy['categories_subtitle'] ?? 'Premium gadgets, sorted for how you live — browse the collection.' }}</p>
+                </div>
+                <a href="{{ route('website.shop') }}" class="mg-cover-all">View all <span aria-hidden="true">→</span></a>
             </div>
 
             <div class="mg-cover-marquee" aria-label="Categories preview">
@@ -397,7 +386,7 @@
                             @endphp
                             <button
                                 type="button"
-                                class="mg-cover-marquee-item"
+                                class="mg-cover-marquee-item{{ $loopPass === 1 ? ' mg-cover-marquee-item--dup' : '' }}"
                                 :class="{ 'is-active': active === {{ $i }} }"
                                 @click="go({{ $i }})"
                                 tabindex="{{ $loopPass === 0 ? 0 : -1 }}"
@@ -415,21 +404,18 @@
                     @endforeach
                 </div>
             </div>
-
-            <a href="{{ route('website.shop') }}" class="mg-cover-all">View all <span aria-hidden="true">→</span></a>
         </div>
     </div>
 
     <div
         class="mg-cover-stage"
         x-ref="coverStage"
-        :class="{ 'is-dragging': dragging && !narrow }"
+        :class="{ 'is-dragging': dragging }"
         @pointerdown="onPointerDown($event)"
         @pointermove="onPointerMove($event)"
         @pointerup="onPointerUp($event)"
         @pointercancel="onPointerUp($event)"
         @wheel="onWheel($event)"
-        @scroll.passive="onStageScroll()"
         role="region"
         aria-label="Swipe categories"
     >
@@ -450,9 +436,9 @@
                 <article
                     class="mg-cover-card {{ $theme }}"
                     data-cover-i="{{ $i }}"
-                    :class="{ 'is-active': active === {{ $i }}, 'is-dragging': dragging && !narrow }"
+                    :class="{ 'is-active': active === {{ $i }}, 'is-dragging': dragging }"
                     :style="styleFor({{ $i }})"
-                    @click="openCategory(@js($url))"
+                    @click="active === {{ $i }} ? openCategory(@js($url)) : go({{ $i }})"
                     role="link"
                     tabindex="0"
                     @keydown.enter.prevent="openCategory(@js($url))"
@@ -475,7 +461,7 @@
                             <p class="mg-cover-tagline">{{ $tagline }}</p>
                         </div>
                     </div>
-                    <div class="mg-cover-pager" x-show="active === {{ $i }}" x-cloak>
+                    <div class="mg-cover-pager" x-show="active === {{ $i }} && !narrow" x-cloak>
                         <span x-text="String(active + 1).padStart(2,'0')"></span>
                         <i aria-hidden="true"></i>
                         <span x-text="String(total).padStart(2,'0')"></span>
@@ -483,7 +469,7 @@
                 </article>
             @endforeach
         </div>
-        <p class="mg-cover-hint" aria-hidden="true" x-text="narrow ? 'Swipe' : 'Drag or swipe'"></p>
+        <p class="mg-cover-hint" aria-hidden="true" x-show="!narrow" x-cloak>Drag or swipe</p>
     </div>
 </section>
 @endif
