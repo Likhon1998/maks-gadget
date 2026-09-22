@@ -185,9 +185,9 @@ class WebsiteService
                 ->with(['category', 'brand'])
                 ->onSale()
                 ->orderByRaw('(selling_price - sale_price) / NULLIF(selling_price, 0) DESC')
-                ->take(32)
+                ->take(24)
                 ->get(),
-            8
+            6
         );
 
         $flashSaleEndsAt = $flashSaleProducts
@@ -201,9 +201,9 @@ class WebsiteService
                 ->with(['category', 'brand'])
                 ->newArrivals()
                 ->latest('id')
-                ->take(32)
+                ->take(24)
                 ->get(),
-            8
+            6
         );
 
         // Trending = best sellers (same CMS product flags) — keep one source of truth
