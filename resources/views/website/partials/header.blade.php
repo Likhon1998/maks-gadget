@@ -209,7 +209,6 @@
                         </div>
 
                         <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-nav-link">Deals</a>
-                        <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-nav-link">New Arrivals</a>
 
                         <div class="gaget-nav-dropdown"
                              x-data="navDropdown()"
@@ -600,11 +599,6 @@
             @empty
             <a href="{{ route('home') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Home</a>
             <a href="{{ route('website.shop') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Shop</a>
-            <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Deals</a>
-            <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">New Arrivals</a>
-            <a href="{{ route('website.blogs') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Blog</a>
-            <a href="{{ route('website.faqs') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">FAQ</a>
-            <a href="{{ route('website.contact') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Contact</a>
 
             @if(($allCategories ?? collect())->isNotEmpty())
                 <div class="gaget-mobile-accordion">
@@ -630,6 +624,8 @@
                 </div>
             @endif
 
+            <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Deals</a>
+
             @if(($brands ?? collect())->isNotEmpty())
                 <div class="gaget-mobile-accordion">
                     <button type="button"
@@ -653,6 +649,9 @@
                     </div>
                 </div>
             @endif
+
+            <a href="{{ route('website.blogs') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Blog</a>
+            <a href="{{ route('website.contact') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Contact</a>
             @endforelse
 
             <div class="gaget-mobile-drawer-foot">

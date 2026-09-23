@@ -250,22 +250,14 @@
         dragMoved: false,
         dragStartX: 0,
         dragDelta: 0,
-        narrow: typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
+        narrow: typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches,
         syncNarrow() {
-            this.narrow = window.matchMedia('(max-width: 767px)').matches;
+            this.narrow = window.matchMedia('(max-width: 900px)').matches;
         },
         go(i) {
             if (this.total < 1) return;
             this.active = ((i % this.total) + this.total) % this.total;
-            if (this.narrow) this.$nextTick(() => this.scrollChipIntoView());
             this.arm();
-        },
-        scrollChipIntoView() {
-            if (!this.narrow) return;
-            const chip = this.$el.querySelector('.mg-cover-marquee-item.is-active:not(.mg-cover-marquee-item--dup)');
-            if (chip && chip.scrollIntoView) {
-                chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-            }
         },
         next() { this.go(this.active + 1); },
         prev() { this.go(this.active - 1); },
@@ -282,13 +274,13 @@
             const mobile = this.narrow;
             const dragNudge = this.dragging ? (this.dragDelta * (mobile ? 0.18 : 0.12)) : 0;
             if (mobile) {
-                /* Flat peek coverflow (matches mockup) — no rotateY so cards don't collapse edge-on */
+                /* Flat peek coverflow — center focus, neighbors peek (matches previous style) */
                 if (abs > 2) {
                     return 'opacity:0; visibility:hidden; pointer-events:none; transform: translate(-50%, -50%) scale(0.62);';
                 }
                 const x = d * 72;
                 const scale = abs === 0 ? 1 : (abs === 1 ? 0.84 : 0.72);
-                const opacity = abs === 0 ? 1 : (abs === 1 ? 0.92 : 0.55);
+                const opacity = abs === 0 ? 1 : (abs === 1 ? 0.9 : 0.55);
                 const z = 40 - abs;
                 return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) scale(${scale}); z-index:${z}; opacity:${opacity};`;
             }
@@ -355,10 +347,9 @@
     x-init="
         syncNarrow();
         arm();
-        $nextTick(() => { if (narrow) scrollChipIntoView(); });
         window.addEventListener('resize', () => {
             syncNarrow();
-            if (narrow) $nextTick(() => scrollChipIntoView());
+            arm();
         });
     "
 >
@@ -373,7 +364,13 @@
                 <a href="{{ route('website.shop') }}" class="mg-cover-all">View all <span aria-hidden="true">→</span></a>
             </div>
 
-            <div class="mg-cover-marquee" aria-label="Categories preview">
+            <div class="mg-cover-marquee"
+                 aria-label="Categories preview"
+                 @pointerdown="$el.classList.add('is-paused')"
+                 @pointerup="$el.classList.remove('is-paused')"
+                 @pointerleave="$el.classList.remove('is-paused')"
+                 @touchstart.passive="$el.classList.add('is-paused')"
+                 @touchend.passive="$el.classList.remove('is-paused')">
                 <div class="mg-cover-marquee-fade mg-cover-marquee-fade--left" aria-hidden="true"></div>
                 <div class="mg-cover-marquee-fade mg-cover-marquee-fade--right" aria-hidden="true"></div>
                 <div class="mg-cover-marquee-track">
@@ -461,7 +458,7 @@
                             <p class="mg-cover-tagline">{{ $tagline }}</p>
                         </div>
                     </div>
-                    <div class="mg-cover-pager" x-show="active === {{ $i }} && !narrow" x-cloak>
+                    <div class="mg-cover-pager" x-show="active === {{ $i }}" x-cloak>
                         <span x-text="String(active + 1).padStart(2,'0')"></span>
                         <i aria-hidden="true"></i>
                         <span x-text="String(total).padStart(2,'0')"></span>
@@ -469,7 +466,7 @@
                 </article>
             @endforeach
         </div>
-        <p class="mg-cover-hint" aria-hidden="true" x-show="!narrow" x-cloak>Drag or swipe</p>
+        <p class="mg-cover-hint" aria-hidden="true">Drag or swipe</p>
     </div>
 </section>
 @endif

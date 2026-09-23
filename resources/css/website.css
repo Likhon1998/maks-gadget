@@ -7350,6 +7350,9 @@ body.gaget-store,
     .mg-cover-all { order: 2; }
 }
 
+.mg-cover-card--dup {
+    display: none;
+}
 .mg-cover-stage {
     position: relative;
     height: clamp(280px, 34vw, 340px);

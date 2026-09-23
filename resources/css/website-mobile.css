@@ -261,7 +261,7 @@
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 
-    /* ---------- Category cover — mobile coverflow (chips + focused cards) ---------- */
+    /* ---------- Category cover — previous oval coverflow (chips + peek cards) ---------- */
     .mg-cover {
         background:
             radial-gradient(ellipse 55% 45% at 50% 0%, rgba(15, 23, 42, 0.035), transparent 60%),
@@ -309,26 +309,34 @@
         box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
         white-space: nowrap;
     }
+
+    /* Chip strip — continuous like desktop */
     .mg-cover-marquee {
         width: 100%;
         order: unset !important;
-        margin: 0 !important;
-        mask-image: none !important;
-        -webkit-mask-image: none !important;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+        margin: 0 calc(-1 * var(--m-pad)) !important;
+        padding: 0 var(--m-pad) !important;
+        overflow: hidden !important;
+        -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+        mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
     }
-    .mg-cover-marquee::-webkit-scrollbar { display: none; }
     .mg-cover-marquee-fade { display: none !important; }
     .mg-cover-marquee-track {
-        animation: none !important;
         display: flex !important;
         gap: 8px !important;
-        padding: 2px 2px 4px;
+        padding: 2px 0 4px;
         width: max-content !important;
+        animation: mg-cover-marquee 42s linear infinite !important;
+        will-change: transform;
     }
-    .mg-cover-marquee-item--dup { display: none !important; }
+    .mg-cover-marquee:hover .mg-cover-marquee-track,
+    .mg-cover-marquee:focus-within .mg-cover-marquee-track,
+    .mg-cover-marquee.is-paused .mg-cover-marquee-track {
+        animation-play-state: paused !important;
+    }
+    .mg-cover-marquee-item--dup {
+        display: inline-flex !important;
+    }
     .mg-cover-marquee-item {
         display: inline-flex !important;
         align-items: center !important;
@@ -360,7 +368,7 @@
         align-items: center !important;
         justify-content: center !important;
     }
-    .mg-cover-marquee-svg { width: 15px !important; height: 15px !important; }
+    .mg-cover-marquee-svg { width: 14px !important; height: 14px !important; }
     .mg-cover-marquee-name {
         font-size: 12.5px !important;
         font-weight: 700 !important;
@@ -386,19 +394,21 @@
         color: rgba(255, 255, 255, 0.55) !important;
     }
 
-    /* Flat peek coverflow — center focused, neighbors peek L/R (no rotateY collapse) */
+    /* Oval peek coverflow — same design as desktop, scaled down for phones */
     .mg-cover-stage {
         position: relative !important;
-        height: 348px !important;
+        height: 268px !important;
         perspective: none !important;
         cursor: grab !important;
         touch-action: pan-y !important;
         overflow: hidden !important;
         scroll-snap-type: none !important;
-        margin: 8px calc(-1 * var(--m-pad)) 0 !important;
-        padding: 10px var(--m-pad) 16px !important;
+        margin: 6px calc(-1 * var(--m-pad)) 0 !important;
+        padding: 8px var(--m-pad) 24px !important;
         user-select: none;
         -webkit-user-select: none;
+        -webkit-mask-image: none;
+        mask-image: none;
     }
     .mg-cover-stage.is-dragging {
         cursor: grabbing !important;
@@ -408,39 +418,41 @@
     }
     .mg-cover-track {
         position: absolute !important;
-        inset: 10px var(--m-pad) 16px !important;
+        inset: 8px var(--m-pad) 24px !important;
         display: block !important;
         width: auto !important;
         height: auto !important;
         padding: 0 !important;
         transform-style: flat !important;
+        animation: none !important;
+        will-change: auto;
     }
     .mg-cover-card {
         position: absolute !important;
         top: 50% !important;
         left: 50% !important;
         flex: none !important;
-        width: min(268px, 72vw) !important;
-        height: 312px !important;
+        width: min(176px, 48vw) !important;
+        height: 228px !important;
         margin: 0 !important;
-        border-radius: 28px !important;
-        /* Fallback before Alpine; inline styleFor overrides without !important */
+        border-radius: 20px !important;
         transform: translate(-50%, -50%) scale(0.84);
         opacity: 0.55;
+        visibility: visible !important;
+        pointer-events: auto !important;
         scroll-snap-align: unset;
-        scroll-snap-stop: normal;
         background: #111827 !important;
         color: #fff !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         box-shadow:
-            0 10px 24px rgba(15, 23, 42, 0.12),
-            0 22px 48px rgba(15, 23, 42, 0.16) !important;
+            0 4px 6px rgba(15, 23, 42, 0.04),
+            0 14px 32px rgba(15, 23, 42, 0.14) !important;
         overflow: hidden !important;
         transform-origin: center center;
         transition:
-            transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
-            opacity 0.35s ease,
-            box-shadow 0.35s ease !important;
+            transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+            opacity 0.4s ease,
+            box-shadow 0.4s ease !important;
         will-change: transform, opacity;
         cursor: grab;
         -webkit-user-drag: none;
@@ -451,11 +463,15 @@
         transform: translate(-50%, -50%) scale(1);
         opacity: 1;
         box-shadow:
-            0 12px 28px rgba(15, 23, 42, 0.14),
-            0 32px 64px rgba(15, 23, 42, 0.22) !important;
+            0 6px 14px rgba(15, 23, 42, 0.08),
+            0 20px 40px rgba(15, 23, 42, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.16) !important;
     }
     .mg-cover-card.is-dragging {
         cursor: grabbing !important;
+    }
+    .mg-cover-card--dup {
+        display: none !important;
     }
     .mg-cover-media {
         position: absolute !important;
@@ -468,10 +484,10 @@
         width: 100% !important;
         height: 100% !important;
         object-fit: cover !important;
-        object-position: center 35% !important;
-        filter: saturate(1.06) contrast(1.02);
-        transform: scale(1.02);
-        transition: transform .4s ease !important;
+        object-position: center 40% !important;
+        filter: saturate(1.05) contrast(1.02);
+        transform: scale(1.03);
+        transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) !important;
     }
     .mg-cover-card.is-active .mg-cover-img {
         transform: scale(1.08) !important;
@@ -481,31 +497,31 @@
         position: absolute !important;
         inset: 0 !important;
         background: linear-gradient(180deg,
-            rgba(8, 10, 18, 0.12) 0%,
-            rgba(8, 10, 18, 0.02) 36%,
-            rgba(8, 10, 18, 0.28) 62%,
-            rgba(8, 10, 18, 0.9) 100%) !important;
+            rgba(8, 10, 18, 0.18) 0%,
+            rgba(8, 10, 18, 0.02) 32%,
+            rgba(8, 10, 18, 0.35) 58%,
+            rgba(8, 10, 18, 0.88) 100%) !important;
         pointer-events: none;
     }
     .mg-cover-shine {
         display: block !important;
         position: absolute !important;
         inset: 0 !important;
-        background: linear-gradient(125deg, rgba(255,255,255,0.16) 0%, transparent 40%, transparent 100%) !important;
+        background: linear-gradient(125deg, rgba(255,255,255,0.14) 0%, transparent 38%, transparent 100%) !important;
         mix-blend-mode: soft-light;
-        opacity: 0.65;
+        opacity: 0.7;
         pointer-events: none;
     }
     .mg-cover-chip {
         display: inline-flex !important;
-        top: 14px !important;
-        left: 14px !important;
+        top: 10px !important;
+        left: 10px !important;
         backdrop-filter: blur(10px);
         background: rgba(15, 23, 42, 0.48) !important;
         color: #fff !important;
         border-radius: 999px !important;
-        padding: 5px 10px 5px 5px !important;
-        font-size: 11px !important;
+        padding: 4px 8px 4px 4px !important;
+        font-size: 10px !important;
         font-weight: 650 !important;
     }
     .mg-cover-foot {
@@ -513,32 +529,76 @@
         left: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
-        padding: 18px 16px 20px !important;
+        padding: 12px 12px 14px !important;
         z-index: 2;
     }
     .mg-cover-name {
-        margin: 0 !important;
-        font-size: 1.3rem !important;
+        margin: 0 0 3px !important;
+        font-size: 0.98rem !important;
         font-weight: 750 !important;
         letter-spacing: -0.03em !important;
         color: #fff !important;
+        line-height: 1.2 !important;
     }
     .mg-cover-tagline {
-        display: none !important;
+        display: block !important;
+        margin: 0 !important;
+        font-size: 11px !important;
+        line-height: 1.35 !important;
+        color: rgba(255, 255, 255, 0.72) !important;
+        font-weight: 500 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
-    .mg-cover-pager,
-    .mg-cover-hint { display: none !important; }
+    .mg-cover-pager {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 5px;
+        position: absolute !important;
+        top: 10px !important;
+        right: 10px !important;
+        z-index: 3;
+        padding: 4px 8px !important;
+        border-radius: 999px !important;
+        background: rgba(15, 23, 42, 0.42) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 9px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.04em;
+        backdrop-filter: blur(8px);
+    }
+    .mg-cover-pager i {
+        display: inline-block;
+        width: 8px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.55);
+    }
+    .mg-cover-hint {
+        display: block !important;
+        position: absolute !important;
+        left: 50% !important;
+        bottom: 2px !important;
+        transform: translateX(-50%) !important;
+        z-index: 60;
+        margin: 0 !important;
+        padding: 3px 9px !important;
+        border-radius: 999px !important;
+        background: rgba(15, 23, 42, 0.45) !important;
+        color: rgba(255, 255, 255, 0.88) !important;
+        font-size: 8.5px !important;
+        font-weight: 650 !important;
+        letter-spacing: 0.04em !important;
+        text-transform: uppercase !important;
+        pointer-events: none;
+        opacity: 0.9 !important;
+    }
 
-    @media (max-width: 390px) {
-        .mg-cover-stage {
-            height: 320px !important;
+    @media (prefers-reduced-motion: reduce) {
+        .mg-cover-marquee-track {
+            animation: none !important;
         }
-        .mg-cover-card {
-            width: min(246px, 74vw) !important;
-            height: 286px !important;
-            border-radius: 24px !important;
-        }
-        .mg-cover-name { font-size: 1.18rem !important; }
     }
 
     /* ---------- Mobile drawer (sidebar) — light premium, matches site ---------- */
@@ -1237,13 +1297,16 @@
     .mg-hero3-card-sub { display: none !important; }
     .mg-hero3-card-badge { font-size: 9px !important; padding: 3px 6px !important; }
     .mg-cover-stage {
-        height: 318px !important;
+        height: 248px !important;
     }
     .mg-cover-card {
-        width: min(240px, 72vw) !important;
-        height: 284px !important;
-        border-radius: 24px !important;
+        width: min(158px, 50vw) !important;
+        height: 208px !important;
+        border-radius: 18px !important;
     }
+    .mg-cover-name { font-size: 0.9rem !important; }
+    .mg-cover-tagline { font-size: 10.5px !important; }
+    .mg-cover-chip { font-size: 9.5px !important; }
     .tn-product-name { font-size: 12.5px !important; }
     .tn-product-price { font-size: 14px !important; }
     .tn-deal-media { min-height: 96px !important; }
