@@ -4440,10 +4440,32 @@ body.gaget-store {
 
 /* Footer ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ mockup identical (no newsletter) */
 .tn-footer-credit {
-    border-top: 1px solid #eef2f7;
-    padding: 14px 16px 18px;
-    text-align: center;
-    background: #f8f9fc;
+    border-top: 1px solid #e2e8f0;
+    padding: 0;
+    text-align: left;
+    background: #eef2f7;
+}
+.tn-footer-credit-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px 16px;
+    padding: 16px 0 18px;
+}
+.tn-footer-copy {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .01em;
+    color: #64748b;
+}
+.tn-footer-credit-sep {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    flex-shrink: 0;
 }
 .powered-by,
 .powered-by--footer {
@@ -4451,7 +4473,8 @@ body.gaget-store {
     font-size: 12px;
     font-weight: 500;
     letter-spacing: .02em;
-    color: #94a3b8;
+    color: #64748b;
+    text-align: left;
 }
 .powered-by strong,
 .powered-by--footer strong {
@@ -7987,8 +8010,18 @@ body.gaget-store,
     }
     .tn-footer-brand {
         grid-column: 1 / -1;
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
     }
-    .tn-footer-tagline { max-width: 100%; }
+    .tn-footer-tagline {
+        max-width: 100%;
+        text-align: left;
+    }
+    .tn-footer-social {
+        justify-content: flex-start;
+    }
 
     /* Product detail */
     .pd-layout { gap: 1.25rem; }

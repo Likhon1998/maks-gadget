@@ -213,6 +213,10 @@
         </div>
     </div>
     <div class="tn-footer-credit">
-        @include('partials.powered-by', ['variant' => 'footer'])
+        <div class="tn-container tn-footer-credit-inner">
+            <p class="tn-footer-copy">&copy; {{ date('Y') }} {{ $storeName }}</p>
+            <span class="tn-footer-credit-sep" aria-hidden="true"></span>
+            @include('partials.powered-by', ['variant' => 'footer'])
+        </div>
     </div>
 </footer>
