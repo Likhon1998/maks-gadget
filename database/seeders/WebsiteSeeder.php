@@ -183,12 +183,15 @@ class WebsiteSeeder extends Seeder
 
             PromoBanner::create(array_merge($p, [
                 'shop_id' => $shop->id,
+                'placement' => 'deals',
                 'image_path' => $imagePath,
                 'button_text' => 'Shop Now',
                 'button_url' => $buttonUrl,
                 'is_active' => true,
             ]));
         }
+
+        $this->call(MidPromoBannerSeeder::class);
 
         foreach (['Apple', 'Samsung', 'Sony', 'Bose', 'Canon', 'Dell', 'Xiaomi', 'Nothing', 'Anker', 'JBL'] as $i => $name) {
             Brand::updateOrCreate(

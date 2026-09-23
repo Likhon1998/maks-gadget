@@ -4451,7 +4451,11 @@ body.gaget-store {
     align-items: center;
     justify-content: flex-start;
     gap: 8px 16px;
-    padding: 16px 0 18px;
+    padding: 16px 24px 18px;
+}
+.tn-footer-credit-inner.tn-container {
+    padding-left: 24px;
+    padding-right: 24px;
 }
 .tn-footer-copy {
     margin: 0;
@@ -4496,7 +4500,11 @@ body.gaget-store {
 }
 .tn-footer-shell {
     position: relative;
-    padding: 56px 0 52px;
+    padding: 56px 24px 52px;
+}
+.tn-footer-shell.tn-container {
+    padding-left: 24px;
+    padding-right: 24px;
 }
 .tn-footer-main {
     display: grid;
@@ -7610,30 +7618,46 @@ body.gaget-store,
     max-height: none !important;
 }
 
-/* -- Mid promo cards (between Flash Sale & New Arrivals) -- */
+/* -- Mid promo continuous marquee (between Flash Sale & New Arrivals) -- */
 .mg-midpromo {
     padding: 10px 0 24px;
 }
-.mg-midpromo-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.mg-midpromo-view {
-    flex: 1;
-    min-width: 0;
+.mg-midpromo-marquee {
     overflow: hidden;
-    container-type: inline-size;
+    width: 100%;
+    mask-image: linear-gradient(90deg, transparent, #000 2%, #000 98%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 2%, #000 98%, transparent);
 }
 .mg-midpromo-track {
     display: flex;
+    width: max-content;
     gap: 16px;
-    transition: transform .55s cubic-bezier(.22, 1, .36, 1);
+    animation: mg-midpromo-scroll 32s linear infinite;
     will-change: transform;
 }
+.mg-midpromo-marquee.is-paused .mg-midpromo-track,
+.mg-midpromo-marquee:hover .mg-midpromo-track {
+    animation-play-state: paused;
+}
+@keyframes mg-midpromo-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mg-midpromo-track {
+        animation: none;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .mg-midpromo-marquee {
+        mask-image: none;
+        -webkit-mask-image: none;
+    }
+    .mg-midpromo-card[aria-hidden="true"] { display: none; }
+}
 .mg-midpromo-card {
-    flex: 0 0 calc((100cqi - 32px) / 3);
-    width: calc((100cqi - 32px) / 3);
+    flex: 0 0 min(360px, 82vw);
+    width: min(360px, 82vw);
     height: 148px;
     border-radius: 12px;
     overflow: hidden;
@@ -7643,23 +7667,26 @@ body.gaget-store,
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
     transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
 }
+@media (min-width: 768px) {
+    .mg-midpromo-card {
+        flex-basis: 380px;
+        width: 380px;
+    }
+}
+@media (min-width: 1100px) {
+    .mg-midpromo-card {
+        flex-basis: 400px;
+        width: 400px;
+        height: 156px;
+    }
+    .mg-midpromo-track {
+        animation-duration: 40s;
+    }
+}
 .mg-midpromo-card:hover {
     border-color: #cbd5e1;
     box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
     transform: translateY(-1px);
-}
-@container (max-width: 899px) {
-    .mg-midpromo-card {
-        flex-basis: calc((100cqi - 16px) / 2);
-        width: calc((100cqi - 16px) / 2);
-    }
-}
-@container (max-width: 559px) {
-    .mg-midpromo-card {
-        flex-basis: 100cqi;
-        width: 100cqi;
-        height: 138px;
-    }
 }
 .mg-midpromo-link {
     display: grid;
@@ -8001,26 +8028,26 @@ body.gaget-store,
     }
 
     .tn-footer-shell {
-        padding: 36px 0 max(28px, env(safe-area-inset-bottom));
+        padding: 36px 16px max(28px, env(safe-area-inset-bottom));
         background: transparent;
     }
     .tn-footer-main {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 22px 16px !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 18px 12px !important;
     }
     .tn-footer-brand {
         grid-column: 1 / -1;
-        text-align: left;
+        text-align: center;
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
     }
     .tn-footer-tagline {
-        max-width: 100%;
-        text-align: left;
+        max-width: 32ch;
+        text-align: center;
     }
     .tn-footer-social {
-        justify-content: flex-start;
+        justify-content: center;
     }
 
     /* Product detail */

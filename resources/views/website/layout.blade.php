@@ -771,10 +771,10 @@
         .gaget-store .tn-brand-logo{height:44px!important;max-height:44px!important;max-width:120px!important;width:auto!important;object-fit:contain!important}
         .gaget-store .tn-brand-logo-frame{height:52px!important;max-width:140px!important;overflow:hidden!important}
         .gaget-store .pd-brand-logo{height:18px!important;max-height:18px!important;max-width:88px!important;width:auto!important;object-fit:contain!important}
-        .tn-footer-credit{border-top:1px solid #e2e8f0;padding:0;text-align:left;background:#eef2f7}
-        .tn-footer-credit-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px 16px;padding:14px 0 max(16px,env(safe-area-inset-bottom))}
+        .tn-footer-credit{border-top:1px solid #e2e8f0;padding:0;text-align:center;background:#eef2f7}
+        .tn-footer-credit-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 16px;padding:14px 0 max(16px,env(safe-area-inset-bottom))}
         .tn-footer-copy{margin:0;font-size:12px;font-weight:500;color:#64748b}
-        .powered-by,.powered-by--footer{margin:0;font-size:12px;font-weight:500;letter-spacing:.02em;color:#64748b;text-align:left}
+        .powered-by,.powered-by--footer{margin:0;font-size:12px;font-weight:500;letter-spacing:.02em;color:#64748b;text-align:center}
         .powered-by strong,.powered-by--footer strong{color:#0f172a;font-weight:800}
     </style>
 </head>

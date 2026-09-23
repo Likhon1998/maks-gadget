@@ -70,6 +70,9 @@ class ProductionSeeder extends Seeder
             'delivery_confirmation_amount' => 0,
         ])->save();
 
-        $this->command?->info('Production ready: admin only (no demo catalog/CMS).');
+        // Homepage mid-promo strip (3 continuous banners) — editable in CMS → Landing Page
+        $this->call(MidPromoBannerSeeder::class);
+
+        $this->command?->info('Production ready: admin + mid promo banners (CMS editable).');
     }
 }

@@ -515,56 +515,16 @@
 </section>
 @endif
 
-{{-- Mid promo cards (CMS → Landing Page → Mid promo banner) --}}
+{{-- Mid promo marquee (CMS → Landing Page → Mid promo banner) --}}
 @if(($midPromoBanners ?? collect())->isNotEmpty())
 @php
     $midPromoList = $midPromoBanners->values();
-    $midPromoCount = $midPromoList->count();
 @endphp
-<section class="mg-midpromo" aria-label="Featured promotions"
-    x-data="{
-        i: 0,
-        n: {{ $midPromoCount }},
-        per: 3,
-        timer: null,
-        measure(){
-            const w = this.$refs.view ? this.$refs.view.clientWidth : window.innerWidth;
-            this.per = w < 640 ? 1 : (w < 1024 ? 2 : 3);
-            if (this.i > this.max()) this.i = this.max();
-        },
-        max(){ return Math.max(0, this.n - this.per); },
-        shift(){
-            const card = this.$refs.track && this.$refs.track.querySelector('.mg-midpromo-card');
-            if (!card || !this.$refs.view) return 0;
-            const gap = parseFloat(getComputedStyle(this.$refs.track).columnGap || getComputedStyle(this.$refs.track).gap) || 16;
-            return card.getBoundingClientRect().width + gap;
-        },
-        go(to){
-            const m = this.max();
-            this.i = m === 0 ? 0 : ((to % (m + 1)) + (m + 1)) % (m + 1);
-            this.arm();
-        },
-        next(){ this.go(this.i >= this.max() ? 0 : this.i + 1); },
-        prev(){ this.go(this.i <= 0 ? this.max() : this.i - 1); },
-        arm(){
-            clearInterval(this.timer);
-            if (this.max() < 1) return;
-            this.timer = setInterval(() => {
-                this.i = this.i >= this.max() ? 0 : this.i + 1;
-            }, 4800);
-        },
-        pause(){ clearInterval(this.timer); },
-        resume(){ this.arm(); }
-    }"
-    x-init="measure(); arm();"
-    @resize.window="measure()"
-    @mouseenter="pause()"
-    @mouseleave="resume()"
->
+<section class="mg-midpromo" aria-label="Featured promotions">
     <div class="tn-container">
-        <div class="mg-midpromo-row">
-            <div class="mg-midpromo-view" x-ref="view">
-                <div class="mg-midpromo-track" x-ref="track" :style="'transform: translateX(-' + (i * shift()) + 'px)'">
+        <div class="mg-midpromo-marquee" @mouseenter="$el.classList.add('is-paused')" @mouseleave="$el.classList.remove('is-paused')">
+            <div class="mg-midpromo-track">
+                @foreach([0, 1] as $loopCopy)
                     @foreach($midPromoList as $idx => $banner)
                         @php
                             $isLight = ($banner->theme ?? 'dark') === 'light';
@@ -572,11 +532,11 @@
                             $sub = trim((string) ($banner->subtitle ?? ''));
                             $img = $banner->image_path ? public_storage_url($banner->image_path) : null;
                         @endphp
-                        <article class="mg-midpromo-card {{ $isLight ? 'is-light' : 'is-dark' }}">
-                            <a href="{{ $url }}" class="mg-midpromo-link" aria-label="{{ $banner->title }}">
+                        <article class="mg-midpromo-card {{ $isLight ? 'is-light' : 'is-dark' }}" @if($loopCopy === 1) aria-hidden="true" @endif>
+                            <a href="{{ $url }}" class="mg-midpromo-link" @if($loopCopy === 1) tabindex="-1" @endif aria-label="{{ $banner->title }}">
                                 <div class="mg-midpromo-media" aria-hidden="true">
                                     @if($img)
-                                        <img src="{{ $img }}" alt="" class="mg-midpromo-img" loading="{{ $idx < 3 ? 'eager' : 'lazy' }}">
+                                        <img src="{{ $img }}" alt="" class="mg-midpromo-img" loading="{{ $loopCopy === 0 && $idx < 3 ? 'eager' : 'lazy' }}">
                                     @else
                                         <div class="mg-midpromo-fallback"></div>
                                     @endif
@@ -618,7 +578,7 @@
                             </a>
                         </article>
                     @endforeach
-                </div>
+                @endforeach
             </div>
         </div>
     </div>

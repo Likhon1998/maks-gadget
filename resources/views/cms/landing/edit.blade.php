@@ -317,7 +317,7 @@
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Mid promo banner</h3>
-                    <p class="text-sm text-slate-500">Small promo cards between Flash Sale and New Arrivals. Add up to 12 — three show at a time and the rest slide through. Image ≈ 900×500 works best.</p>
+                    <p class="text-sm text-slate-500">Continuous sliding strip between Flash Sale and New Arrivals. Add at least 3 banners for a smooth loop (up to 12). Image ≈ 900×500 works best.</p>
                 </div>
                 <button type="button" @click="addMidPromo()" x-bind:disabled="midPromo.length >= 12" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">+ Mid banner</button>
             </div>
@@ -365,7 +365,7 @@
                         </div>
                     </div>
                 </template>
-                <p x-show="midPromo.length === 0" class="text-sm text-slate-400 py-2" x-cloak>No mid promo yet. Add a banner to show between Flash Sale and New Arrivals on the homepage.</p>
+                <p x-show="midPromo.length === 0" class="text-sm text-slate-400 py-2" x-cloak>No mid promo yet. Click “+ Mid banner” to add cards — they scroll continuously on the homepage.</p>
             </div>
         </div>
 
