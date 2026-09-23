@@ -562,15 +562,8 @@
                         this.orderSuccess = false;
                         return;
                     }
-                    if (!address || address.length < 20) {
-                        this.orderMessage = 'A complete delivery address is required (house/flat, road, and area).';
-                        this.orderSuccess = false;
-                        return;
-                    }
-                    const hasLetters = /[A-Za-z\u0980-\u09FF]{3,}/.test(address);
-                    const hasNumberOrArea = /\d|road|rd\.?|street|st\.?|lane|house|flat|apt|block|sector|area|bazar|goli|avenue/i.test(address);
-                    if (!hasLetters || !hasNumberOrArea) {
-                        this.orderMessage = 'Please enter a full address, e.g. House 12, Road 5, Gulshan, Dhaka.';
+                    if (!address) {
+                        this.orderMessage = 'Delivery address is required.';
                         this.orderSuccess = false;
                         return;
                     }
@@ -975,11 +968,11 @@
                     <textarea x-model="checkout.address"
                               required
                               autocomplete="street-address"
-                              placeholder="House/Flat, Road, Area, City (required for delivery)"
+                              placeholder="Enter your delivery address"
                               class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
-                              :class="(!checkout.address || String(checkout.address).trim().length < 20) && orderMessage && orderMessage.toLowerCase().includes('address') ? 'border-rose-400 ring-1 ring-rose-200' : ''"
+                              :class="!String(checkout.address || '').trim() && orderMessage && orderMessage.toLowerCase().includes('address') ? 'border-rose-400 ring-1 ring-rose-200' : ''"
                               rows="3"></textarea>
-                    <p class="mt-1 text-[11px] text-slate-500">Must include house/flat, road, and area so the courier can find you.</p>
+                    <p class="mt-1 text-[11px] text-slate-500">Required for delivery. Any address format is fine — saved address is used when available.</p>
                 </div>
 
                 <div>

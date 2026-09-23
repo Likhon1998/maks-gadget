@@ -828,40 +828,11 @@ class WebsiteController extends Controller
         $request->validate([
             'customer_name' => 'required|string|min:2|max:255',
             'customer_phone' => 'required|string|min:8|max:20',
-            'customer_address' => [
-                'required',
-                'string',
-                'min:20',
-                'max:1000',
-                function (string $attribute, mixed $value, \Closure $fail) {
-                    $address = trim(preg_replace('/\s+/u', ' ', (string) $value) ?? '');
-                    if (mb_strlen($address) < 20) {
-                        $fail('Please enter a complete delivery address (house/flat, road, and area).');
-
-                        return;
-                    }
-
-                    $lower = mb_strtolower($address);
-                    $blocked = ['n/a', 'na', 'none', 'test', 'asdf', 'xxx', 'address', 'dhaka only', 'home'];
-                    if (in_array($lower, $blocked, true)) {
-                        $fail('Please enter a real delivery address with house/flat, road, and area.');
-
-                        return;
-                    }
-
-                    // Need enough substance for a courier (letters + a number or area separator).
-                    $hasLetters = (bool) preg_match('/\p{L}{3,}/u', $address);
-                    $hasNumberOrArea = (bool) preg_match('/\d|road|rd\.?|street|st\.?|lane|ln\.?|house|flat|apt|block|sector|area|bazar|goli|avenue/i', $address);
-                    if (! $hasLetters || ! $hasNumberOrArea) {
-                        $fail('Delivery address must include house/flat details and area (e.g. House 12, Road 5, Gulshan, Dhaka).');
-                    }
-                },
-            ],
+            'customer_address' => 'required|string|max:1000',
             'delivery_zone' => 'nullable|string|in:inside_dhaka,outside_dhaka',
             'payment_method' => 'nullable|string|in:cash_on_delivery,confirmation_charge',
         ], [
-            'customer_address.required' => 'A complete delivery address is required to place your order.',
-            'customer_address.min' => 'Please enter a complete delivery address (at least 20 characters).',
+            'customer_address.required' => 'Delivery address is required to place your order.',
         ]);
 
         $deliveryAddress = trim(preg_replace('/\s+/u', ' ', (string) $request->customer_address) ?? '');
