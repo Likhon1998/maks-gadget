@@ -15,6 +15,7 @@ use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseReturnController extends Controller
 {
@@ -28,14 +29,14 @@ class PurchaseReturnController extends Controller
     public function index()
     {
         $returns = PurchaseReturn::where('shop_id', $this->shopId())
-            ->with('supplier')
+            ->with(['supplier', 'purchaseOrder'])
             ->latest()
             ->paginate(15);
 
         return view('supply.purchase-returns.index', compact('returns'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $this->stock->ensureDefaultLocations($this->shopId());
 
@@ -57,6 +58,31 @@ class PurchaseReturnController extends Controller
             ->groupBy('location_id')
             ->map(fn ($rows) => $rows->pluck('quantity', 'product_id'));
 
+        $selectedPo = null;
+        $prefillRows = [];
+        $returnableByProduct = [];
+
+        if ($request->filled('purchase_order_id')) {
+            $selectedPo = PurchaseOrder::where('shop_id', $this->shopId())
+                ->whereIn('status', ['partial', 'received'])
+                ->with(['supplier', 'items.product'])
+                ->find($request->purchase_order_id);
+
+            if ($selectedPo) {
+                $returnableByProduct = $selectedPo->returnableLines();
+                foreach ($returnableByProduct as $line) {
+                    $prefillRows[] = [
+                        'product_id' => (string) $line['product_id'],
+                        'quantity' => (int) $line['returnable'],
+                        'unit_cost' => (float) $line['unit_cost'],
+                        'max_qty' => (int) $line['returnable'],
+                        'received' => (int) $line['received'],
+                        'returned' => (int) $line['returned'],
+                    ];
+                }
+            }
+        }
+
         return view('supply.purchase-returns.create', [
             'suppliers' => $suppliers,
             'products' => $products,
@@ -64,6 +90,9 @@ class PurchaseReturnController extends Controller
             'locations' => $locations,
             'warehouseQty' => $warehouseQty,
             'defaultLocationId' => $this->stock->defaultStore($this->shopId())?->id,
+            'selectedPo' => $selectedPo,
+            'prefillRows' => $prefillRows,
+            'returnableByProduct' => $returnableByProduct,
         ]);
     }
 
@@ -100,10 +129,39 @@ class PurchaseReturnController extends Controller
                     ->where('is_active', true)
                     ->findOrFail($request->return_location_id);
 
+                $po = null;
+                $returnableByProduct = [];
+
                 if ($request->filled('purchase_order_id')) {
-                    $po = PurchaseOrder::where('shop_id', $this->shopId())->findOrFail($request->purchase_order_id);
+                    $po = PurchaseOrder::where('shop_id', $this->shopId())
+                        ->whereIn('status', ['partial', 'received'])
+                        ->findOrFail($request->purchase_order_id);
+
                     if ((int) $po->supplier_id !== (int) $request->supplier_id) {
-                        throw new \InvalidArgumentException('Linked PO belongs to a different supplier.');
+                        throw ValidationException::withMessages([
+                            'purchase_order_id' => 'Linked PO belongs to a different supplier.',
+                        ]);
+                    }
+
+                    $returnableByProduct = $po->returnableLines();
+                }
+
+                // Cap linked-PO returns so you can’t return more than was received (minus prior returns)
+                if ($po) {
+                    $requestedByProduct = [];
+                    foreach ($request->items as $item) {
+                        $pid = (int) $item['product_id'];
+                        $requestedByProduct[$pid] = ($requestedByProduct[$pid] ?? 0) + (int) $item['quantity'];
+                    }
+
+                    foreach ($requestedByProduct as $pid => $qty) {
+                        $max = (int) ($returnableByProduct[$pid]['returnable'] ?? 0);
+                        if ($qty > $max) {
+                            $name = $returnableByProduct[$pid]['name'] ?? ('Product #'.$pid);
+                            throw ValidationException::withMessages([
+                                'items' => "Cannot return {$qty} of {$name}. Only {$max} still returnable on this PO (received minus prior returns).",
+                            ]);
+                        }
                     }
                 }
 
@@ -133,7 +191,7 @@ class PurchaseReturnController extends Controller
                     $movement = $this->stock->returnPurchaseItem(
                         $product,
                         (int) $item['quantity'],
-                        'Purchase return ' . $return->return_number,
+                        'Purchase return '.$return->return_number,
                         Auth::id(),
                         $return->id,
                         $location->id,
@@ -150,11 +208,13 @@ class PurchaseReturnController extends Controller
 
                 $return->update(['total_amount' => $total]);
             });
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
 
         return redirect()->route('supply.purchase-returns.index')
-            ->with('success', 'Purchase return recorded. Stock and Accounts Payable updated.');
+            ->with('success', 'Purchase return recorded. Stock decreased and Accounts Payable reduced.');
     }
 }

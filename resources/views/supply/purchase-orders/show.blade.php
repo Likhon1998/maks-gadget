@@ -30,6 +30,13 @@
                 <button class="inline-flex items-center px-4 py-2 rounded-xl bg-red-50 border border-red-100 text-sm font-bold text-red-700 hover:bg-red-100">Cancel PO</button>
             </form>
         @endif
+        @if(in_array($order->status, ['partial', 'received'], true) && $order->items->sum('received_quantity') > 0)
+            <a href="{{ route('supply.purchase-returns.create', ['purchase_order_id' => $order->id]) }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                Return excess to supplier
+            </a>
+        @endif
         <a href="{{ route('supply.purchase-orders.index') }}" class="inline-flex items-center px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 hover:bg-gray-50">Back to list</a>
     </div>
 
@@ -97,6 +104,9 @@
     @elseif($order->status === 'received')
         <div class="p-6 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 font-semibold mb-8">
             Fully received. Stock is available on POS and the online store.
+            <span class="block mt-2 text-sm font-medium text-emerald-700">
+                Got extra units? Use <a href="{{ route('supply.purchase-returns.create', ['purchase_order_id' => $order->id]) }}" class="underline font-bold">Return excess to supplier</a>.
+            </span>
         </div>
     @elseif($order->status === 'cancelled')
         <div class="p-6 bg-red-50 border border-red-100 rounded-2xl text-red-800 font-semibold mb-8">
