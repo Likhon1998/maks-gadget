@@ -79,20 +79,24 @@
                     <x-image-file-preview
                         name="logo"
                         accept="image/*"
+                        :compress="false"
                         :existing="$settings->logo_path ? public_storage_url($settings->logo_path) : null"
-                        preview-class="h-14 max-w-full object-contain rounded-lg bg-black p-1 border border-slate-200"
+                        preview-class="h-9 w-auto max-w-[170px] object-contain"
                     />
-                    <p class="mt-1 text-[11px] text-slate-400">Header, footer, login, and admin sidebar. Black backgrounds are auto-removed. Preview shows before save.</p>
+                    <p class="mt-1 text-[11px] text-slate-400">Replaces the icon + store name in the website header and footer. Shown exactly as uploaded: no background removal, no cropping, no format change.</p>
+                    <x-poster-size size="640 × 140 px" ratio="wide, about 4.5:1">Header shows it 36 px tall (up to 170 px wide), footer 56 px tall. Other shapes still fit, just scaled down.</x-poster-size>
                 </div>
                 <div>
                     <label class="text-xs font-bold uppercase text-slate-500">Browser tab icon (favicon)</label>
                     <x-image-file-preview
                         name="favicon"
+                        :compress="false"
                         accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,image/x-icon,.ico"
                         :existing="($settings->favicon_path ? public_storage_url($settings->favicon_path) : ($settings->logo_path ? public_storage_url($settings->logo_path) : asset('favicon.svg')))"
-                        preview-class="h-10 w-10 rounded object-contain border border-slate-200 bg-white p-0.5"
+                        preview-class="h-10 w-10 object-contain"
                     />
-                    <p class="mt-1 text-[11px] text-slate-400">Text-less icon for the browser tab. Extra black padding is cropped automatically.</p>
+                    <p class="mt-1 text-[11px] text-slate-400">Browser tab, login page and admin sidebar (plus the header/footer when no full logo is set). Shown exactly as uploaded: no background removal, no cropping.</p>
+                    <x-poster-size size="512 × 512 px" ratio="square 1:1">Use a simple text-less icon; it is shown as small as 16 px in the tab.</x-poster-size>
                 </div>
                 <div>
                     <label class="text-xs font-bold uppercase text-slate-500">Currency</label>
@@ -299,6 +303,7 @@
                                                     b.preview = b._blob;
                                                 }
                                            ">
+                                    <x-poster-size size="800 × 450 px" ratio="16:9">Fills the card. Title sits on the left over a shade, so keep the product on the right. Phones trim a little from the sides.</x-poster-size>
                                 </div>
                             </div>
                             <input type="number" :name="'hero_side['+i+'][sort_order]'" x-model="b.sort_order" class="w-20 rounded-lg border-slate-200 text-sm" title="Sort order">
@@ -317,7 +322,7 @@
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Mid promo banner</h3>
-                    <p class="text-sm text-slate-500">Continuous sliding strip between Flash Sale and New Arrivals. Add at least 3 banners for a smooth loop (up to 12). Image ≈ 900×500 works best.</p>
+                    <p class="text-sm text-slate-500">Continuous sliding strip between Flash Sale and New Arrivals. Add at least 3 banners for a smooth loop (up to 12). Image size: 600 × 600 px (square).</p>
                 </div>
                 <button type="button" @click="addMidPromo()" x-bind:disabled="midPromo.length >= 12" class="rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">+ Mid banner</button>
             </div>
@@ -355,6 +360,7 @@
                                                     b.preview = b._blob;
                                                 }
                                            ">
+                                    <x-poster-size size="600 × 600 px" ratio="1:1, square">Fills the left part of the card; the headline and button show in the panel on the right, so don't put text in the image.</x-poster-size>
                                 </div>
                             </div>
                             <input type="number" :name="'mid_promo['+i+'][sort_order]'" x-model="b.sort_order" class="w-20 rounded-lg border-slate-200 text-sm" title="Sort order">
@@ -412,6 +418,7 @@
                                                 }
                                            ">
                                     <p class="mt-1 text-[10px] text-emerald-700 font-medium" x-show="b.preview" x-cloak>Preview before save</p>
+                                    <x-poster-size size="600 × 540 px" ratio="10:9">Product photo shown whole (never cropped) on the right side of the card. Use a plain background: transparent PNG backgrounds turn white after upload.</x-poster-size>
                                 </div>
                             </div>
                             <input type="number" :name="'banners['+i+'][sort_order]'" x-model="b.sort_order" class="w-20 rounded-lg border-slate-200 text-sm" title="Sort order">

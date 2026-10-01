@@ -69,7 +69,11 @@
                             ? (@filemtime(public_storage_path($footerIconPath)) ?: time())
                             : time();
                     @endphp
-                    @if($footerIcon)
+                    @if($storeLogo)
+                        <img src="{{ $storeLogo }}?v={{ @filemtime(public_storage_path($settings->logo_path)) ?: time() }}"
+                             alt="{{ $storeName }}"
+                             class="tn-footer-logo-wordmark">
+                    @elseif($footerIcon)
                         <img src="{{ $footerIcon }}?v={{ $footerIconVer }}"
                              alt="{{ $storeName }}"
                              class="tn-footer-logo-img"

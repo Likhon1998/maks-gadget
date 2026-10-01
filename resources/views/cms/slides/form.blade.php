@@ -7,32 +7,57 @@
           action="{{ $slide->exists ? route('cms.slides.update', $slide) : route('cms.slides.store') }}"
           enctype="multipart/form-data"
           class="max-w-3xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4"
-          x-data="{ saving: false }"
+          x-data="{
+              saving: false,
+              picked: null,
+              ratioOk: null,
+              checkPoster(e) {
+                  const input = e.target;
+                  if (input.name !== 'image' || !input.files || !input.files[0]) return;
+                  const url = URL.createObjectURL(input.files[0]);
+                  const img = new Image();
+                  img.onload = () => {
+                      this.picked = img.naturalWidth + ' × ' + img.naturalHeight + ' px';
+                      this.ratioOk = Math.abs(img.naturalWidth / img.naturalHeight - 21 / 9) < 0.03;
+                      URL.revokeObjectURL(url);
+                  };
+                  img.src = url;
+              }
+          }"
+          @change="checkPoster($event)"
           @submit="saving = true">
         @csrf
         @if($slide->exists) @method('PUT') @endif
 
-        <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600 leading-relaxed">
-            <p class="font-semibold text-slate-800">Poster size guide</p>
-            <ul class="mt-2 list-disc pl-5 space-y-1 text-[13px]">
-                <li><strong>Best size:</strong> <strong>1920 × 640</strong> px (ratio <strong>3:1</strong>)</li>
-                <li><strong>Also good:</strong> 1536×512, 2400×800 (same 3:1 ratio)</li>
-                <li><strong>Format:</strong> JPG or WebP (prefer JPG — large PNGs upload slowly)</li>
-                <li><strong>Target file size:</strong> under ~500 KB (auto-optimized on select)</li>
-                <li>Design text/layout inside the image — the site shows it edge-to-edge with no crop gaps.</li>
+        <div class="rounded-xl border-2 border-indigo-200 bg-indigo-50 p-4 text-sm text-slate-700 leading-relaxed">
+            <p class="text-xs font-bold uppercase tracking-wide text-indigo-700">Poster size (homepage frame)</p>
+            <p class="mt-1 text-2xl font-extrabold text-slate-900">1680 × 720 px <span class="text-base font-bold text-indigo-700">(21:9)</span></p>
+            <p class="mt-1 text-[13px] text-slate-600">The homepage frame is 21:9 on desktop, tablet and mobile. A 1680 × 720 poster fills it exactly on every screen, with no empty space and nothing cut off.</p>
+            <ul class="mt-3 list-disc pl-5 space-y-1 text-[13px]">
+                <li><strong>Same ratio also works:</strong> 1890 × 810, 1260 × 540</li>
+                <li><strong>Other ratios are not cropped</strong>, so they show dark empty bands at the top/bottom or sides</li>
+                <li><strong>Keep text large and centered:</strong> on phones the poster shows at about 360 × 155 px</li>
+                <li><strong>Format:</strong> JPG or WebP, under ~500 KB</li>
             </ul>
         </div>
 
         <div class="grid gap-4 md:grid-cols-2">
             <div class="md:col-span-2">
-                <label class="text-xs font-bold uppercase text-slate-500">Poster image {{ $slide->exists ? '' : '*' }}</label>
+                <label class="text-xs font-bold uppercase text-slate-500">Poster image — 1680 × 720 px {{ $slide->exists ? '' : '*' }}</label>
                 <x-image-file-preview
                     name="image"
                     :existing="$slide->image_path ? public_storage_url($slide->image_path) : null"
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     :required="! $slide->exists"
-                    preview-class="h-36 w-full rounded-xl object-cover border border-slate-200 bg-slate-50"
+                    preview-class="aspect-[21/9] w-full rounded-xl object-contain border border-slate-200 bg-[#0b1220]"
                 />
+                <p class="mt-1 text-[11px] text-slate-400">Preview uses the same 21:9 frame as the homepage.</p>
+                <p x-show="picked && ratioOk" x-cloak class="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+                    Selected image: <span x-text="picked"></span>. Correct 21:9 ratio, so it fills the frame with no empty space.
+                </p>
+                <p x-show="picked && ratioOk === false" x-cloak class="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800">
+                    Selected image: <span x-text="picked"></span>. This isn't 21:9, so dark empty bands will show around it. Use 1680 × 720 px for a perfect fit.
+                </p>
                 @error('image') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
             <div class="md:col-span-2">

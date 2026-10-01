@@ -1,6 +1,6 @@
 <x-cms-layout
     title="Home Posters"
-    subtitle="Compact full-design banners on the homepage. Add multiple posters — they rotate automatically."
+    subtitle="Homepage posters rotate automatically. Poster size: 1680 × 720 px (21:9), which fills the frame on every screen with no empty space."
     actionUrl="{{ route('cms.slides.create') }}"
     actionLabel="+ Add poster"
     previewUrl="{{ route('home') }}"

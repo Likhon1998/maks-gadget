@@ -1,6 +1,8 @@
 @php
     $headerName = $settings->store_name ?? config('app.name', 'Maks Gadget');
-    $headerIconPath = $settings->favicon_path ?: $settings->logo_path;
+    $headerLogoPath = $settings->logo_path ?? null;
+    $headerLogo = $headerLogoPath ? public_storage_url($headerLogoPath) : null;
+    $headerIconPath = $settings->favicon_path ?: $headerLogoPath;
     $headerIcon = $headerIconPath ? public_storage_url($headerIconPath) : null;
     $headerIconVer = $headerIconPath
         ? (@filemtime(public_storage_path($headerIconPath)) ?: time())
@@ -34,7 +36,11 @@
                 </button>
 
                 <a href="{{ route('home') }}" class="gaget-floatbar-logo" aria-label="{{ $headerName }}">
-                    @if($headerIcon)
+                    @if($headerLogo)
+                        <img src="{{ $headerLogo }}?v={{ @filemtime(public_storage_path($headerLogoPath)) ?: time() }}"
+                             alt="{{ $headerName }}"
+                             class="gaget-logo-wordmark">
+                    @elseif($headerIcon)
                         <img src="{{ $headerIcon }}?v={{ $headerIconVer }}"
                              alt="{{ $headerName }}"
                              class="gaget-logo-mark"
@@ -45,7 +51,9 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </span>
                     @endif
-                    <span class="gaget-logo-text">{{ $headerName }}</span>
+                    @unless($headerLogo)
+                        <span class="gaget-logo-text">{{ $headerName }}</span>
+                    @endunless
                 </a>
             </div>
 

@@ -31,6 +31,7 @@
                     preview-class="h-16 max-w-full rounded-lg object-cover border border-slate-200"
                 />
                 <p class="mt-1 text-[11px] text-slate-400">Leave empty to keep the current image. New selection previews before save.</p>
+                <x-poster-size size="1920 × 640 px" ratio="3:1">Faded background behind the blog page title; the height follows the text, so keep it simple with no text in the image.</x-poster-size>
                 @error('blog_hero_image') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
             <div>

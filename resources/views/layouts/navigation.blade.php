@@ -19,7 +19,7 @@
         @endphp
         <a href="{{ route('dashboard') }}" @click="sidebarOpen = false" class="sidebar-brand-link flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden" :title='sidebarCollapsed ? @json($navName) : null'>
             @if($navIcon)
-                <img src="{{ $navIcon }}?v={{ @filemtime(public_storage_path($navSettings->favicon_path ?: $navSettings->logo_path)) ?: time() }}" alt="" class="sidebar-brand-mark h-8 w-8 object-contain shrink-0 rounded-lg" width="32" height="32">
+                <img src="{{ $navIcon }}?v={{ @filemtime(public_storage_path($navSettings->favicon_path ?: $navSettings->logo_path)) ?: time() }}" alt="" class="sidebar-brand-mark h-8 w-8 object-contain shrink-0" width="32" height="32">
                 <span class="sidebar-brand-text truncate" x-show="!sidebarCollapsed">{{ $navName }}</span>
             @else
                 <span class="sidebar-brand-mark flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">

@@ -68,6 +68,7 @@
                 :existing="$blog->cover_image ? public_storage_url($blog->cover_image) : null"
                 preview-class="h-28 max-w-full rounded-xl object-cover border border-slate-100"
             />
+            <x-poster-size size="1200 × 750 px" ratio="16:10">Fills the article card. Phones trim a little from the top and bottom.</x-poster-size>
         </div>
 
         <div class="flex flex-wrap gap-4 pt-1">
