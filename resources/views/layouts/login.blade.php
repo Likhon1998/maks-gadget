@@ -309,5 +309,31 @@
 </head>
 <body class="neon-login antialiased">
     {{ $slot }}
+    <script>
+        (function () {
+            // Back/forward cache restores an old token, so always re-render a fresh form.
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) window.location.reload();
+            });
+
+            // A sign-in form left open longer than the session lifetime would otherwise hit "Page Expired".
+            // Interval-only (no refresh on submit) to avoid racing the POST on single-threaded dev servers.
+            setInterval(function () {
+                fetch(@json(route('csrf.token')), {
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' }
+                })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data || !data.csrf_token) return;
+                        var meta = document.querySelector('meta[name="csrf-token"]');
+                        if (meta) meta.content = data.csrf_token;
+                        document.querySelectorAll('input[name="_token"]').forEach(function (i) { i.value = data.csrf_token; });
+                    })
+                    .catch(function () {});
+            }, 15 * 60 * 1000);
+        })();
+    </script>
 </body>
 </html>

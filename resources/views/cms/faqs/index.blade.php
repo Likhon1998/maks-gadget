@@ -11,11 +11,11 @@
             @csrf
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Hero title</label>
-                <input name="faq_hero_title" value="{{ old('faq_hero_title', $settings->faq_hero_title ?? 'Frequently Asked Questions') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm" placeholder="Frequently Asked Questions">
+                <input name="faq_hero_title" value="{{ old('faq_hero_title', $settings->faq_hero_title) }}" placeholder="Frequently Asked Questions" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Help box title</label>
-                <input name="faq_help_title" value="{{ old('faq_help_title', $settings->faq_help_title ?? 'Still Need Help?') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="faq_help_title" value="{{ old('faq_help_title', $settings->faq_help_title) }}" placeholder="Still Need Help?" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div class="md:col-span-2">
                 <label class="text-[11px] font-bold uppercase text-slate-500">Hero subtitle</label>
@@ -27,7 +27,7 @@
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Help button label</label>
-                <input name="faq_help_button" value="{{ old('faq_help_button', $settings->faq_help_button ?? 'Contact Support') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="faq_help_button" value="{{ old('faq_help_button', $settings->faq_help_button) }}" placeholder="Contact Support" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div class="md:col-span-2 flex justify-end">
                 <button type="submit" class="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800">Save page settings</button>

@@ -13,7 +13,7 @@ class Product extends Model
 
     protected $fillable = [
         'shop_id', 'category_id', 'brand_id', 'name', 'barcode', 'sku',
-        'variant_group', 'color', 'color_hex', 'storage', 'ram',
+        'variant_group', 'color', 'color_hex', 'storage', 'ram', 'variant_type',
         'requires_imei',
         'cost_price', 'selling_price', 'original_price',
         'sale_price', 'sale_starts_at', 'sale_ends_at',
@@ -366,6 +366,33 @@ class Product extends Model
         return $name !== '' ? $name : (string) $this->name;
     }
 
+    /** Selected options in a short line, e.g. "White · With cable · 8GB/128GB". */
+    public function variantLabel(): string
+    {
+        $ram = normalize_memory_size($this->ram) ?? (filled($this->ram) ? (string) $this->ram : null);
+        $storage = normalize_memory_size($this->storage) ?? (filled($this->storage) ? (string) $this->storage : null);
+        $memory = implode('/', array_filter([$ram, $storage]));
+
+        return implode(' · ', array_filter([
+            trim((string) $this->color),
+            trim((string) $this->variant_type),
+            str_replace(' ', '', $memory),
+        ], fn ($part) => $part !== ''));
+    }
+
+    /** Storefront name plus the chosen options so cart lines of the same model stay distinguishable. */
+    public function cartDisplayName(): string
+    {
+        $name = $this->storefrontDisplayName();
+        if (! $this->variant_group) {
+            return $name;
+        }
+
+        $label = $this->variantLabel();
+
+        return $label !== '' ? $name.' ('.$label.')' : $name;
+    }
+
     /** Clean product title for receipts (without admin “— Color / Storage” suffix). */
     public function receiptDisplayName(): string
     {
@@ -388,6 +415,10 @@ class Product extends Model
 
         if (filled($this->color)) {
             $lines[] = ['label' => 'Color', 'value' => (string) $this->color];
+        }
+
+        if (filled($this->variant_type)) {
+            $lines[] = ['label' => 'Type', 'value' => (string) $this->variant_type];
         }
 
         $ram = normalize_memory_size($this->ram) ?? (filled($this->ram) ? (string) $this->ram : null);

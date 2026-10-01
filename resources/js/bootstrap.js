@@ -121,3 +121,11 @@ window.addEventListener('pageshow', (event) => {
         window.refreshCsrfToken();
     }
 });
+
+// Keeps the session alive and the token current while any tab stays open (session lifetime is 120 min).
+if (!window.__csrfHeartbeat) {
+    window.__csrfHeartbeat = setInterval(() => {
+        if (document.body?.classList?.contains('neon-login')) return;
+        window.refreshCsrfToken?.();
+    }, 10 * 60 * 1000);
+}

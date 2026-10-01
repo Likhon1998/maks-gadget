@@ -7,7 +7,7 @@
     <div class="text-center mb-8">
         <p class="text-xs font-bold tracking-[0.2em] uppercase text-blue-600">Order tracking</p>
         <h1 class="mt-2 text-3xl font-extrabold text-slate-900">Track your order</h1>
-        <p class="mt-2 text-sm text-slate-500">Enter your Order ID (WEB-…) and the phone number used at checkout.</p>
+        <p class="mt-2 text-sm text-slate-600">Enter your Order ID (WEB-…) and the phone number used at checkout.</p>
     </div>
 
     @if(session('error'))
@@ -35,15 +35,15 @@
         <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
             <div class="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Order</p>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-600">Order</p>
                     <p class="text-lg font-bold text-slate-900">{{ $tracking['invoice'] }}</p>
-                    <p class="text-sm text-slate-500">{{ $tracking['status_label'] }} · {{ $tracking['date'] }}</p>
+                    <p class="text-sm text-slate-600">{{ $tracking['status_label'] }} · {{ $tracking['date'] }}</p>
                 </div>
                 <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">{{ $tracking['status_label'] }}</span>
             </div>
             <p class="text-sm text-slate-600">{{ $tracking['where_is_product'] ?? '' }}</p>
             @if(!empty($tracking['courier']) || !empty($tracking['tracking_number']))
-                <p class="text-sm text-slate-500">
+                <p class="text-sm text-slate-600">
                     Courier: {{ $tracking['courier'] ?: '—' }}
                     @if(!empty($tracking['tracking_number']))
                         · Tracking #: {{ $tracking['tracking_number'] }}
@@ -59,10 +59,10 @@
                             <div>
                                 <p class="text-sm font-semibold text-slate-800">{{ $step['label'] ?? $step['status'] ?? 'Update' }}</p>
                                 @if(!empty($step['note']))
-                                    <p class="text-xs text-slate-500">{{ $step['note'] }}</p>
+                                    <p class="text-xs text-slate-600">{{ $step['note'] }}</p>
                                 @endif
                                 @if(!empty($step['at']))
-                                    <p class="text-[11px] text-slate-400">{{ $step['at'] }}</p>
+                                    <p class="text-[11px] text-slate-600">{{ $step['at'] }}</p>
                                 @endif
                             </div>
                         </li>
@@ -72,7 +72,7 @@
         </div>
     @endif
 
-    <p class="mt-6 text-center text-sm text-slate-500">
+    <p class="mt-6 text-center text-sm text-slate-600">
         Have an account?
         <a href="{{ route('website.account') }}" class="font-semibold text-blue-600 hover:text-blue-700">View all orders</a>
     </p>

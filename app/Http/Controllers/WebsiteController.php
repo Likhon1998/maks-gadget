@@ -575,6 +575,7 @@ class WebsiteController extends Controller
 
         $home = $this->website->homepageData();
         $settings = $home['settings'] ?? $this->website->settings();
+        $features = $home['features'] ?? collect();
 
         if ($request->boolean('ajax') || $request->ajax()) {
             $displayName = $product->storefrontDisplayName();
@@ -587,7 +588,8 @@ class WebsiteController extends Controller
                     'related',
                     'reviews',
                     'variantOptions',
-                    'settings'
+                    'settings',
+                    'features'
                 ))->render(),
                 'url' => route('website.product', $product),
                 'title' => $displayName.' | '.$storeName,
@@ -797,7 +799,7 @@ class WebsiteController extends Controller
             $unitPrice = (float) $product->currentPrice();
             $lines[] = [
                 'id' => $product->id,
-                'name' => $product->storefrontDisplayName(),
+                'name' => $product->cartDisplayName(),
                 'price' => $unitPrice,
                 'image' => $this->website->productImageUrl($product),
                 'qty' => $qty,

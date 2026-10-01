@@ -155,6 +155,7 @@ class ProductController extends Controller
             'color_hex' => 'nullable|string|max:7',
             'storage' => 'nullable|string|max:40',
             'ram' => 'nullable|string|max:40',
+            'variant_type' => 'nullable|string|max:80',
             'requires_imei' => 'nullable|boolean',
             'imei_list' => 'nullable|string|max:10000',
             'availability' => 'nullable|in:in_stock,pre_order,up_coming,out_of_stock',
@@ -190,6 +191,7 @@ class ProductController extends Controller
             $rules['variants.*.color_hex'] = 'nullable|string|max:7';
             $rules['variants.*.ram'] = 'nullable|string|max:40';
             $rules['variants.*.storage'] = 'nullable|string|max:40';
+            $rules['variants.*.variant_type'] = 'nullable|string|max:80';
             $rules['variants.*.cost_price'] = 'nullable|numeric|min:0';
             $rules['variants.*.selling_price'] = 'nullable|numeric|min:0';
             $rules['variants.*.stock_quantity'] = 'nullable|integer|min:0';
@@ -263,6 +265,7 @@ class ProductController extends Controller
                         'color_hex' => $validated['color_hex'] ?? null,
                         'storage' => $validated['storage'] ?? null,
                         'ram' => $validated['ram'] ?? null,
+                        'variant_type' => $validated['variant_type'] ?? null,
                     ]);
                     $data = $this->normalizeVariantFields($data);
                     $product = Product::create($data);
@@ -303,6 +306,7 @@ class ProductController extends Controller
                         'color_hex' => $row['color_hex'] ?? null,
                         'storage' => $row['storage'] ?? null,
                         'ram' => $row['ram'] ?? null,
+                        'variant_type' => $row['variant_type'] ?? null,
                         'cost_price' => $cost,
                         'selling_price' => $sell,
                     ]);
@@ -424,6 +428,7 @@ class ProductController extends Controller
             'color_hex' => 'nullable|string|max:7',
             'storage' => 'nullable|string|max:40',
             'ram' => 'nullable|string|max:40',
+            'variant_type' => 'nullable|string|max:80',
             'requires_imei' => 'nullable|boolean',
             'imei_list' => 'nullable|string|max:10000',
             'availability' => 'nullable|in:in_stock,pre_order,up_coming,out_of_stock',
@@ -556,6 +561,7 @@ class ProductController extends Controller
             'color_hex',
             'ram',
             'storage',
+            'variant_type',
             'variant_group',
             'short_description',
         ];
@@ -576,6 +582,7 @@ class ProductController extends Controller
                 '#16a34a',
                 '8GB',
                 '128GB',
+                '',
                 'samsung-s22',
                 'Demo phone — add photo later or paste image_url.',
             ],
@@ -593,8 +600,8 @@ class ProductController extends Controller
                 '',
                 '',
                 '',
-                '',
-                '',
+                'With cable',
+                'somostel-65w-gan',
                 'Fast GaN charger for phones and laptops.',
             ],
             [
@@ -610,6 +617,7 @@ class ProductController extends Controller
                 '',
                 'Black',
                 '#111827',
+                '',
                 '',
                 '',
                 '',
@@ -712,6 +720,8 @@ class ProductController extends Controller
             'picture' => 'image_url',
             'description' => 'short_description',
             'rom' => 'storage',
+            'type' => 'variant_type',
+            'package' => 'variant_type',
         ];
         $header = array_map(fn ($h) => $aliases[$h] ?? $h, $header);
 
@@ -825,6 +835,7 @@ class ProductController extends Controller
                         'color_hex' => filled($data['color_hex'] ?? null) ? trim((string) $data['color_hex']) : null,
                         'ram' => filled($data['ram'] ?? null) ? trim((string) $data['ram']) : null,
                         'storage' => filled($data['storage'] ?? null) ? trim((string) $data['storage']) : null,
+                        'variant_type' => filled($data['variant_type'] ?? null) ? trim((string) $data['variant_type']) : null,
                         'short_description' => filled($data['short_description'] ?? null) ? trim((string) $data['short_description']) : null,
                         'cost_price' => $cost,
                         'selling_price' => $sell,
@@ -968,7 +979,7 @@ class ProductController extends Controller
 
     private function normalizeVariantFields(array $data): array
     {
-        foreach (['variant_group', 'color', 'color_hex', 'storage', 'ram', 'sku', 'short_description'] as $key) {
+        foreach (['variant_group', 'color', 'color_hex', 'storage', 'ram', 'variant_type', 'sku', 'short_description'] as $key) {
             if (array_key_exists($key, $data)) {
                 $val = is_string($data[$key]) ? trim($data[$key]) : $data[$key];
                 $data[$key] = ($val === '' || $val === null) ? null : $val;

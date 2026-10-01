@@ -45,7 +45,7 @@
             <div class="md:col-span-2 pt-2"><p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Hero</p></div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Kicker</label>
-                <input name="contact_hero_kicker" value="{{ old('contact_hero_kicker', $settings->contact_hero_kicker ?? 'CONTACT US') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_hero_kicker" value="{{ old('contact_hero_kicker', $settings->contact_hero_kicker) }}" placeholder="CONTACT US" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Title</label>
@@ -59,19 +59,19 @@
             <div class="md:col-span-2 pt-2"><p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Info cards</p></div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Live chat title</label>
-                <input name="contact_chat_title" value="{{ old('contact_chat_title', $settings->contact_chat_title ?? 'Live Chat') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_chat_title" value="{{ old('contact_chat_title', $settings->contact_chat_title) }}" placeholder="Live Chat" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Live chat status</label>
-                <input name="contact_chat_status" value="{{ old('contact_chat_status', $settings->contact_chat_status ?? 'Available 24/7') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_chat_status" value="{{ old('contact_chat_status', $settings->contact_chat_status) }}" placeholder="Available 24/7" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div class="md:col-span-2">
                 <label class="text-[11px] font-bold uppercase text-slate-500">Live chat text</label>
-                <input name="contact_chat_text" value="{{ old('contact_chat_text', $settings->contact_chat_text ?? 'Chat with our support team in real-time.') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_chat_text" value="{{ old('contact_chat_text', $settings->contact_chat_text) }}" placeholder="Chat with our support team in real-time." class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Email card title</label>
-                <input name="contact_email_card_title" value="{{ old('contact_email_card_title', $settings->contact_email_card_title ?? 'Email Support') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_email_card_title" value="{{ old('contact_email_card_title', $settings->contact_email_card_title) }}" placeholder="Email Support" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Email card text</label>
@@ -79,41 +79,41 @@
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Phone card title</label>
-                <input name="contact_phone_card_title" value="{{ old('contact_phone_card_title', $settings->contact_phone_card_title ?? 'Call Us') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_phone_card_title" value="{{ old('contact_phone_card_title', $settings->contact_phone_card_title) }}" placeholder="Call Us" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Phone card text</label>
-                <input name="contact_phone_card_text" value="{{ old('contact_phone_card_text', $settings->contact_phone_card_text ?? 'Speak with our experts directly.') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_phone_card_text" value="{{ old('contact_phone_card_text', $settings->contact_phone_card_text) }}" placeholder="Speak with our experts directly." class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Hours title</label>
-                <input name="contact_hours_title" value="{{ old('contact_hours_title', $settings->contact_hours_title ?? 'Working Hours') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_hours_title" value="{{ old('contact_hours_title', $settings->contact_hours_title) }}" placeholder="Working Hours" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Weekday hours</label>
-                <input name="contact_hours_weekday" value="{{ old('contact_hours_weekday', $settings->contact_hours_weekday ?? 'Sat - Thu: 10:00 AM - 8:00 PM (BDT)') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_hours_weekday" value="{{ old('contact_hours_weekday', $settings->contact_hours_weekday) }}" placeholder="Sat - Thu: 10:00 AM - 8:00 PM (BDT)" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div class="md:col-span-2">
                 <label class="text-[11px] font-bold uppercase text-slate-500">Weekend hours</label>
-                <input name="contact_hours_weekend" value="{{ old('contact_hours_weekend', $settings->contact_hours_weekend ?? 'Fri: 3:00 PM - 8:00 PM (BDT)') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_hours_weekend" value="{{ old('contact_hours_weekend', $settings->contact_hours_weekend) }}" placeholder="Fri: 3:00 PM - 8:00 PM (BDT)" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
 
             <div class="md:col-span-2 pt-2"><p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Form & newsletter</p></div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Form title</label>
-                <input name="contact_form_title" value="{{ old('contact_form_title', $settings->contact_form_title ?? 'Send Us a Message') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_form_title" value="{{ old('contact_form_title', $settings->contact_form_title) }}" placeholder="Send Us a Message" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Form subtitle</label>
-                <input name="contact_form_subtitle" value="{{ old('contact_form_subtitle', $settings->contact_form_subtitle ?? 'Fill out the form and our team will respond shortly.') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_form_subtitle" value="{{ old('contact_form_subtitle', $settings->contact_form_subtitle) }}" placeholder="Fill out the form and our team will respond shortly." class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Newsletter title</label>
-                <input name="contact_newsletter_title" value="{{ old('contact_newsletter_title', $settings->contact_newsletter_title ?? 'Stay in the loop') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_newsletter_title" value="{{ old('contact_newsletter_title', $settings->contact_newsletter_title) }}" placeholder="Stay in the loop" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Newsletter text</label>
-                <input name="contact_newsletter_text" value="{{ old('contact_newsletter_text', $settings->contact_newsletter_text ?? 'Subscribe for deals and product updates.') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="contact_newsletter_text" value="{{ old('contact_newsletter_text', $settings->contact_newsletter_text) }}" placeholder="Subscribe for deals and product updates." class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
 
             <div class="md:col-span-2 pt-2"><p class="text-xs font-bold uppercase tracking-wider text-indigo-600">Social links</p></div>

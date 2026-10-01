@@ -98,6 +98,7 @@ class PosController extends Controller
                     'barcode' => $product->barcode,
                     'sku' => $product->sku,
                     'color' => $product->color,
+                    'variant_type' => $product->variant_type,
                     'ram' => $product->ram,
                     'storage' => $product->storage,
                     'selling_price' => $chargePrice,

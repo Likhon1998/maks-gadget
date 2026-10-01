@@ -121,7 +121,14 @@
     <p x-show="status" x-text="status" class="mt-1 text-[11px] font-medium text-indigo-600" x-cloak></p>
 
     <div x-show="preview" x-cloak class="mt-2 space-y-1">
-        <img :src="preview" alt="Selected image preview" class="{{ $previewClass }}">
+        @if(isset($overlay))
+            <div class="relative inline-block overflow-hidden {{ $overlay->attributes->get('class') }}">
+                <img :src="preview" alt="Selected image preview" class="{{ $previewClass }}">
+                {{ $overlay }}
+            </div>
+        @else
+            <img :src="preview" alt="Selected image preview" class="{{ $previewClass }}">
+        @endif
         <p class="text-[11px] font-medium text-emerald-700">Preview — click Save to keep this picture.</p>
     </div>
 </div>

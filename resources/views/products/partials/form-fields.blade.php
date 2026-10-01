@@ -3,9 +3,9 @@
     $product = $product ?? null;
     $isEdit = $product !== null;
     $defaultVariants = old('variants', [
-        ['barcode' => '', 'color' => 'Black', 'color_hex' => '#1e293b', 'ram' => '', 'storage' => '', 'cost_price' => '', 'selling_price' => '', 'stock_quantity' => 10, 'imei_list' => ''],
-        ['barcode' => '', 'color' => 'White', 'color_hex' => '#f8fafc', 'ram' => '', 'storage' => '', 'cost_price' => '', 'selling_price' => '', 'stock_quantity' => 10, 'imei_list' => ''],
-        ['barcode' => '', 'color' => 'Red', 'color_hex' => '#dc2626', 'ram' => '', 'storage' => '', 'cost_price' => '', 'selling_price' => '', 'stock_quantity' => 5, 'imei_list' => ''],
+        ['barcode' => '', 'color' => 'Black', 'color_hex' => '#1e293b', 'variant_type' => '', 'ram' => '', 'storage' => '', 'cost_price' => '', 'selling_price' => '', 'stock_quantity' => 10, 'imei_list' => ''],
+        ['barcode' => '', 'color' => 'White', 'color_hex' => '#f8fafc', 'variant_type' => '', 'ram' => '', 'storage' => '', 'cost_price' => '', 'selling_price' => '', 'stock_quantity' => 10, 'imei_list' => ''],
+        ['barcode' => '', 'color' => 'Red', 'color_hex' => '#dc2626', 'variant_type' => '', 'ram' => '', 'storage' => '', 'cost_price' => '', 'selling_price' => '', 'stock_quantity' => 5, 'imei_list' => ''],
     ]);
 @endphp
 
@@ -16,6 +16,7 @@
         colorHex: @js(old('color_hex', $product?->color_hex ?: '#2563eb')),
         storage: @js(old('storage', $product?->storage ?? '')),
         ram: @js(old('ram', $product?->ram ?? '')),
+        variantType: @js(old('variant_type', $product?->variant_type ?? '')),
         variantGroup: @js(old('variant_group', $product?->variant_group ?? '')),
         selling: @js(old('selling_price', $product?->selling_price ?? '')),
         autoGroup: true,
@@ -61,8 +62,20 @@
             this.variantUid++;
             this.variants.push({
                 _key: 'v' + this.variantUid,
-                barcode: '', color: '', color_hex: '#2563eb', ram: '', storage: '',
+                barcode: '', color: '', color_hex: '#2563eb', variant_type: '', ram: '', storage: '',
                 cost_price: '', selling_price: '', stock_quantity: 1, imei_list: '',
+                _files: [],
+            });
+        },
+        duplicateVariantRow(i) {
+            const src = this.variants[i];
+            if (!src) return;
+            this.variantUid++;
+            this.variants.splice(i + 1, 0, {
+                _key: 'v' + this.variantUid,
+                barcode: '', color: src.color, color_hex: src.color_hex, variant_type: src.variant_type,
+                ram: src.ram, storage: src.storage, cost_price: src.cost_price, selling_price: src.selling_price,
+                stock_quantity: src.stock_quantity, imei_list: '',
                 _files: [],
             });
         },
@@ -395,9 +408,9 @@
     {{-- Variants --}}
     <section class="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/80">
-            <h3 class="text-sm font-semibold text-slate-800">{{ $isEdit ? '4' : '5' }}. Color / size options</h3>
-            <p class="text-xs text-slate-500 mt-0.5" x-show="isSimple">Optional color or size for this single item.</p>
-            <p class="text-xs text-slate-500 mt-0.5" x-show="isMulti" x-cloak>Add one row per color/option. Each needs a unique barcode and can have many pictures.</p>
+            <h3 class="text-sm font-semibold text-slate-800">{{ $isEdit ? '4' : '5' }}. Color / type / size options</h3>
+            <p class="text-xs text-slate-500 mt-0.5" x-show="isSimple">Optional color, type (e.g. With cable) or size for this item.</p>
+            <p class="text-xs text-slate-500 mt-0.5" x-show="isMulti" x-cloak>Add one row per combination, e.g. Black + With cable, Black + Without cable, White + With cable. Each needs a unique barcode and can have many pictures.</p>
         </div>
         <div class="p-4 space-y-4">
             <div x-show="isMulti || {{ $isEdit ? 'true' : 'false' }}">
@@ -457,6 +470,14 @@
                     </div>
                 </div>
 
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Type / package (optional)</label>
+                    <input type="text" name="variant_type" x-model="variantType" list="variant-type-presets"
+                           class="block w-full rounded-lg border-slate-200 text-sm py-2.5"
+                           placeholder="e.g. With cable or Without cable">
+                    <p class="text-[11px] text-slate-400 mt-1">Use this for what's in the box (not the color), so one model can come in every color with or without a cable.</p>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Storage / size (optional)</label>
@@ -479,6 +500,10 @@
                 </div>
             </div>
 
+            <datalist id="variant-type-presets">
+                <option value="With cable"><option value="Without cable"><option value="Adapter only"><option value="Full box">
+            </datalist>
+
             @if(!$isEdit)
             <div x-show="isMulti" x-cloak class="space-y-3">
                 <div class="flex items-center justify-between gap-2">
@@ -492,10 +517,15 @@
                     <div class="rounded-xl border border-slate-200 p-4 bg-slate-50/60 space-y-3">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wide" x-text="'Option ' + (index + 1)"></span>
-                            <button type="button" @click="removeVariantRow(index)" x-show="variants.length > 1"
-                                    class="text-[11px] text-red-600 hover:text-red-700">Remove</button>
+                            <div class="flex items-center gap-3">
+                                <button type="button" @click="duplicateVariantRow(index)"
+                                        title="Copy this row to add the same color with a different type, or the reverse"
+                                        class="text-[11px] font-semibold text-blue-600 hover:text-blue-700">Duplicate</button>
+                                <button type="button" @click="removeVariantRow(index)" x-show="variants.length > 1"
+                                        class="text-[11px] text-red-600 hover:text-red-700">Remove</button>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2">
                             <div class="lg:col-span-2">
                                 <label class="block text-[10px] font-semibold text-slate-500 mb-1">Barcode *</label>
                                 <input type="text" :name="'variants['+index+'][barcode]'" x-model="row.barcode"
@@ -512,6 +542,12 @@
                                 <label class="block text-[10px] font-semibold text-slate-500 mb-1">Swatch</label>
                                 <input type="color" :name="'variants['+index+'][color_hex]'" x-model="row.color_hex"
                                        class="h-9 w-full rounded-md border border-slate-200 cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-semibold text-slate-500 mb-1">Type / package</label>
+                                <input type="text" :name="'variants['+index+'][variant_type]'" x-model="row.variant_type"
+                                       list="variant-type-presets"
+                                       class="block w-full rounded-md border-slate-200 text-sm py-2" placeholder="With cable">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-semibold text-slate-500 mb-1">RAM</label>

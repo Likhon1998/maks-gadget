@@ -60,7 +60,7 @@ class CmsBlog extends Model
             return public_storage_url($this->cover_image);
         }
 
-        return 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?w=800&q=80';
+        return \App\Services\WebsiteService::NO_PHOTO_URL;
     }
 
     public function viewsLabel(): string

@@ -23,11 +23,7 @@
                             <x-text-input id="description" name="description" type="text" class="mt-1 block w-full" :value="old('description')" placeholder="e.g. Power in your pocket." />
                         </div>
 
-                        <div class="mt-4">
-                            <x-input-label for="image" :value="__('Cover image')" />
-                            <input id="image" name="image" type="file" accept=".png,.jpg,.jpeg,.webp,.gif,image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700">
-                            <x-poster-size size="800 × 1040 px" ratio="portrait 10:13">Fills the tall "Shop by Category" card. The name and tagline cover the bottom third, so keep the subject in the upper middle.</x-poster-size>
-                        </div>
+                        @include('categories.partials.cover-image-field')
 
                         @include('categories.partials.icon-picker')
 

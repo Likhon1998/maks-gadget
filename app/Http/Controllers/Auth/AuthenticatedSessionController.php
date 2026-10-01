@@ -35,6 +35,11 @@ class AuthenticatedSessionController extends Controller
     {
         AuthSession::logout($request, 'admin');
 
-        return redirect()->route('admin.login');
+        return redirect()
+            ->route('admin.login')
+            ->withHeaders([
+                'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
+                'Pragma' => 'no-cache',
+            ]);
     }
 }

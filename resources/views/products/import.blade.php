@@ -209,7 +209,7 @@
                 </div>
                 <div class="csv-badge-opt">
                     <span class="uppercase tracking-wide text-[10px] font-extrabold opacity-80">Optional</span>
-                    <span>sku, category, brand, stock_quantity, alert_quantity, image_url, color, color_hex, ram, storage, variant_group, short_description</span>
+                    <span>sku, category, brand, stock_quantity, alert_quantity, image_url, color, color_hex, ram, storage, variant_type, variant_group, short_description</span>
                 </div>
             </div>
 

@@ -16,34 +16,14 @@
             'tone' => $banner->theme === 'light' ? 'light' : 'dark',
         ];
     });
-
-    // Keep 3-portion layout visible until CMS cards are added
-    if ($heroSideCards->isEmpty()) {
-        $heroSideCards = collect([
-            (object) [
-                'title' => 'New Arrivals',
-                'sub' => 'Fresh tech, just landed',
-                'url' => route('website.shop', ['filter' => 'new']),
-                'cta' => 'See new',
-                'badge' => 'New',
-                'image' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=640&q=80',
-                'tone' => 'dark',
-            ],
-            (object) [
-                'title' => 'Best Sellers',
-                'sub' => 'Most loved gadgets',
-                'url' => route('website.shop'),
-                'cta' => 'Shop',
-                'badge' => 'Hot',
-                'image' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=640&q=80',
-                'tone' => 'light',
-            ],
-        ]);
-    }
+    $hasHeroSlides = $heroSlides->isNotEmpty();
+    $hasHeroSide = $heroSideCards->isNotEmpty();
 @endphp
+@if($hasHeroSlides || $hasHeroSide)
 <section class="mg-hero3">
     <div class="tn-container">
-        <div class="mg-hero3-grid">
+        <div class="mg-hero3-grid{{ $hasHeroSlides && $hasHeroSide ? '' : ' is-solo' }}{{ $hasHeroSlides ? '' : ' is-side-only' }}">
+            @if($hasHeroSlides)
             <div
                 class="mg-hero3-slider tn-hero"
     @if($heroSlides->count() > 1)
@@ -71,7 +51,7 @@
     @endif
             >
                 <div class="tn-hero-track">
-    @forelse($heroSlides as $i => $slide)
+    @foreach($heroSlides as $i => $slide)
         @php
             $posterUrl = $slide->image_path ? public_storage_url($slide->image_path) : null;
             if ($posterUrl && $slide->image_path) {
@@ -100,32 +80,30 @@
             @else
                 <div class="tn-hero-fallback">
                                     <div class="tn-hero-fallback-inner">
-                        <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
-                        <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                        <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? 'our store' }}.</p>
-                        <div class="tn-hero-actions">
-                            <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
-                            <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
-                        </div>
+                        @if($slide->badge_text)
+                            <p class="tn-hero-kicker">{{ $slide->badge_text }}</p>
+                        @endif
+                        @if($slide->title)
+                            <h1 class="tn-hero-title">{{ $slide->title }}</h1>
+                        @endif
+                        @if($slide->description)
+                            <p class="tn-hero-sub">{{ $slide->description }}</p>
+                        @endif
+                        @if($slide->button_text || $slide->learn_more_text)
+                            <div class="tn-hero-actions">
+                                @if($slide->button_text)
+                                    <a href="{{ $link }}" class="tn-btn tn-btn-primary">{{ $slide->button_text }}</a>
+                                @endif
+                                @if($slide->learn_more_text)
+                                    <a href="{{ $slide->learn_more_url ?: route('website.shop') }}" class="tn-btn tn-btn-outline">{{ $slide->learn_more_text }}</a>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endif
         </div>
-    @empty
-                        <div class="tn-hero-slide is-active">
-            <div class="tn-hero-fallback">
-                                <div class="tn-hero-fallback-inner">
-                    <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
-                    <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
-                                    <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
-                    <div class="tn-hero-actions">
-                        <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
-                        <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endforelse
+    @endforeach
                 </div>
     @if($heroSlides->count() > 1)
                     <div class="tn-hero-dots" role="tablist" aria-label="Hero slides">
@@ -147,7 +125,9 @@
         </div>
     @endif
             </div>
+            @endif
 
+            @if($hasHeroSide)
             <aside class="mg-hero3-side" aria-label="Featured offers">
                 @foreach($heroSideCards->take(2) as $side)
                     <a href="{{ $side->url }}" class="mg-hero3-card is-{{ $side->tone }}">
@@ -168,9 +148,11 @@
                     </a>
                 @endforeach
             </aside>
+            @endif
         </div>
     </div>
 </section>
+@endif
 
 {{-- Service features — premium strip under hero --}}
 @if($features->isNotEmpty())
@@ -201,39 +183,6 @@
 @if($categories->isNotEmpty())
 @php
     $homeCopy = data_get($settings, 'home_copy') ?: [];
-    $catTaglines = [
-        'smartphones' => 'Power in your pocket.',
-        'phones' => 'Power in your pocket.',
-        'laptops' => 'Create. Work. Win.',
-        'tablets' => 'Light. Fast. Ready.',
-        'headphones' => 'Immersive sound.',
-        'earbuds' => 'Pure sound. Zero limits.',
-        'earphones' => 'Pure sound. Zero limits.',
-        'smartwatches' => 'Smarter. Healthier. You.',
-        'watches' => 'Smarter. Healthier. You.',
-        'cameras' => 'Capture every moment.',
-        'gaming' => 'Play without limits.',
-        'speakers' => 'Fill the room.',
-        'chargers-cables' => 'Power that lasts.',
-        'accessories' => 'Finish the look.',
-        'monitors' => 'See every detail.',
-        'drones' => 'Sky is the limit.',
-    ];
-    $catFallbacks = [
-        'phone' => 'https://images.unsplash.com/photo-1592890288564-766794220d53?w=900&q=85',
-        'laptop' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=85',
-        'tablet' => 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=900&q=85',
-        'headphones' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=900&q=85',
-        'earbuds' => 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=900&q=85',
-        'watch' => 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=900&q=85',
-        'camera' => 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=900&q=85',
-        'game' => 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=900&q=85',
-        'speaker' => 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=900&q=85',
-        'drone' => 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=900&q=85',
-        'monitor' => 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=900&q=85',
-        'mouse' => 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=900&q=85',
-        'plug' => 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=900&q=85',
-    ];
     $catThemes = ['is-ink', 'is-graphite', 'is-midnight', 'is-steel', 'is-ink', 'is-graphite', 'is-midnight', 'is-steel'];
     $coverCats = $categories->values();
     $coverTotal = $coverCats->count();
@@ -280,9 +229,8 @@
                 }
                 const x = d * 72;
                 const scale = abs === 0 ? 1 : (abs === 1 ? 0.84 : 0.72);
-                const opacity = abs === 0 ? 1 : (abs === 1 ? 0.9 : 0.55);
                 const z = 40 - abs;
-                return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) scale(${scale}); z-index:${z}; opacity:${opacity};`;
+                return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) scale(${scale}); z-index:${z}; opacity:1;`;
             }
             if (abs > 3) {
                 return 'opacity:0; visibility:hidden; pointer-events:none; transform: translate(-50%, -50%) scale(0.55);';
@@ -292,8 +240,7 @@
             const rot = d * -22;
             const scale = Math.max(0.72, 1 - abs * 0.1);
             const z = 50 - abs;
-            const opacity = abs === 0 ? 1 : (abs === 1 ? 0.9 : (abs === 2 ? 0.62 : 0.4));
-            return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:${opacity};`;
+            return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:1;`;
         },
         arm() {
             clearInterval(this.timer);
@@ -420,10 +367,8 @@
             @foreach($coverCats as $i => $category)
                 @php
                     $iconMeta = $category->iconMeta();
-                    $slug = $category->slug ?? \Illuminate\Support\Str::slug($category->name);
-                    $img = $ws->categoryImageUrl($category) ?: ($catFallbacks[$iconMeta['key']] ?? $catFallbacks['phone']);
-                    $tagline = trim((string) ($category->description ?? ''))
-                        ?: ($catTaglines[$slug] ?? ($catTaglines[$iconMeta['key']] ?? 'Explore the collection.'));
+                    $img = $ws->categoryImageUrl($category);
+                    $tagline = trim((string) ($category->description ?? ''));
                     $count = (int) ($category->products_count ?? 0);
                     $countLabel = $category->product_count_label
                         ?: ($count > 0 ? ($count >= 100 ? '100+ products' : $count.' products') : 'Shop now');
@@ -442,7 +387,9 @@
                     aria-label="{{ $category->name }}"
                 >
                     <div class="mg-cover-media">
-                        <img src="{{ $img }}" alt="{{ $category->name }}" class="mg-cover-img" loading="lazy" decoding="async" draggable="false">
+                        @if($img)
+                            <img src="{{ $img }}" alt="{{ $category->name }}" class="mg-cover-img" loading="lazy" decoding="async" draggable="false">
+                        @endif
                     </div>
                     <div class="mg-cover-veil" aria-hidden="true"></div>
                     <div class="mg-cover-shine" aria-hidden="true"></div>
@@ -455,7 +402,9 @@
                     <div class="mg-cover-foot">
                         <div class="mg-cover-foot-text">
                             <h3 class="mg-cover-name">{{ $category->name }}</h3>
-                            <p class="mg-cover-tagline">{{ $tagline }}</p>
+                            @if($tagline !== '')
+                                <p class="mg-cover-tagline">{{ $tagline }}</p>
+                            @endif
                         </div>
                     </div>
                     <div class="mg-cover-pager" x-show="active === {{ $i }}" x-cloak>
@@ -638,31 +587,6 @@
 {{-- Brands We Carry — continuous slow marquee --}}
 @if($brands->isNotEmpty())
 @php
-    $brandTaglines = [
-        'apple' => 'iPhone · iPad · Mac · Watch',
-        'samsung' => 'Galaxy · Tablets · Watches',
-        'xiaomi' => 'Smartphones · IoT · Accessories',
-        'oneplus' => 'Phones · Buds · Accessories',
-        'realme' => 'Smartphones · AIoT · Accessories',
-        'jbl' => 'Audio · Headphones · Speakers',
-        'anker' => 'Chargers · Power Banks · Cables',
-        'logitech' => 'Accessories · Keyboards · Mice',
-        'baseus' => 'Chargers · Cables · Car Accessories',
-        'boat' => 'Audio · Wearables · Accessories',
-        'sony' => 'Audio · Cameras · Gaming',
-        'bose' => 'Headphones · Speakers · Audio',
-        'dell' => 'Laptops · Monitors · PCs',
-        'hp' => 'Laptops · Printers · PCs',
-        'asus' => 'Laptops · Gaming · Components',
-        'lenovo' => 'Laptops · Tablets · PCs',
-        'acer' => 'Laptops · Monitors · PCs',
-        'canon' => 'Cameras · Lenses · Printers',
-        'gopro' => 'Action Cams · Mounts · Accessories',
-        'google' => 'Pixel · Nest · Accessories',
-        'razer' => 'Gaming · Keyboards · Mice',
-        'nothing' => 'Phones · Audio · Accessories',
-        'microsoft' => 'Surface · Accessories · Software',
-    ];
     $partnerBrands = $brands->values();
 @endphp
 <section class="tn-brands" aria-labelledby="tn-brands-heading">
@@ -685,8 +609,7 @@
                         $brandSlug = \Illuminate\Support\Str::slug($brand->name);
                         $logoUrl = $brand->logo_url
                             ?: ($brand->logo_path ? public_storage_url($brand->logo_path) : null);
-                        $tagline = trim((string) ($brand->tagline ?? ''))
-                            ?: ($brandTaglines[$brandSlug] ?? 'Gadgets · Accessories');
+                        $tagline = trim((string) ($brand->tagline ?? ''));
                     @endphp
                     <a href="{{ route('website.brand', $brandSlug) }}"
                        class="tn-brand-card"
@@ -707,7 +630,9 @@
                             @endif
                         </span>
                         <span class="tn-brand-name">{{ $brand->name }}</span>
-                        <span class="tn-brand-cats">{{ $tagline }}</span>
+                        @if($tagline !== '')
+                            <span class="tn-brand-cats">{{ $tagline }}</span>
+                        @endif
                     </a>
                 @endforeach
             @endforeach

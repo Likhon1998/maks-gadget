@@ -6,7 +6,7 @@
         <div>
             <p class="text-xs font-bold tracking-[0.15em] uppercase text-blue-600">Saved items</p>
             <h1 class="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900">Wishlist</h1>
-            <p class="mt-1 text-sm text-slate-500"><span x-text="wishlistCount"></span> item(s) saved for later</p>
+            <p class="mt-1 text-sm text-slate-600"><span x-text="wishlistCount"></span> item(s) saved for later</p>
         </div>
         <button type="button" x-show="wishlistCount>0" @click="wishlist=[]; saveWishlist()" class="text-xs font-semibold text-rose-600 hover:underline">Clear wishlist</button>
     </div>
@@ -15,7 +15,7 @@
         <div class="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-20 text-center">
             <svg class="w-12 h-12 mx-auto text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
             <p class="mt-4 text-slate-600 font-semibold">Your wishlist is empty</p>
-            <p class="mt-1 text-sm text-slate-400">Tap the heart on any product to save it here.</p>
+            <p class="mt-1 text-sm text-slate-600">Tap the heart on any product to save it here.</p>
             <a href="{{ route('website.shop') }}" class="mt-6 inline-flex rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700">Browse products</a>
         </div>
     </template>

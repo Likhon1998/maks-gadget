@@ -9,7 +9,7 @@
         : time();
     $navLinks = $mainNav ?? collect();
     $topLinks = $topBarNav ?? collect();
-    $offerText = $settings->special_offer_text ?? 'Special Offer!';
+    $offerText = trim((string) ($settings->special_offer_text ?? ''));
 @endphp
 
 <div class="gaget-sticky-header{{ $topLinks->isNotEmpty() ? ' has-topbar' : '' }}">
@@ -51,9 +51,7 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </span>
                     @endif
-                    @unless($headerLogo)
-                        <span class="gaget-logo-text">{{ $headerName }}</span>
-                    @endunless
+                    <span class="gaget-logo-text{{ $headerLogo ? ' gaget-logo-text--with-logo' : '' }}">{{ $headerName }}</span>
                 </a>
             </div>
 
@@ -446,10 +444,12 @@
                     </div>
                 @endauth
 
+                @if($offerText !== '')
                 <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-special-offer">
                     <span class="gaget-special-offer-ico" aria-hidden="true">🔥</span>
                     <span>{{ $offerText }}</span>
                 </a>
+                @endif
             </div>
         </div>
 

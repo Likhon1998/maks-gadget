@@ -427,7 +427,7 @@
                                 <div class="flex items-start justify-between gap-2">
                                     <div class="min-w-0">
                                         <p class="text-[13px] font-bold text-slate-900 break-all">{{ $order->invoice_no }}</p>
-                                        <p class="text-[10px] text-slate-400">#{{ $order->id }} · {{ asian_date($order->created_at, 'M j, Y') }}</p>
+                                        <p class="text-[10px] text-slate-600">#{{ $order->id }} · {{ asian_date($order->created_at, 'M j, Y') }}</p>
                                     </div>
                                     <span class="shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-extrabold
                                         @if($order->status === 'completed') bg-emerald-100 text-emerald-700
@@ -441,7 +441,7 @@
                                 </div>
                                 <p class="mt-2 text-[12px] font-medium text-slate-700 break-words">
                                     {{ $order->items->first()?->product?->name ?? 'Product' }}
-                                    <span class="text-slate-400">· {{ $order->items->sum('quantity') }} item(s)</span>
+                                    <span class="text-slate-600">· {{ $order->items->sum('quantity') }} item(s)</span>
                                 </p>
                                 <div class="mt-3 flex items-center justify-between gap-2">
                                     <p class="text-[14px] font-extrabold text-slate-900">{{ format_taka($order->total_amount, $currency) }}</p>
@@ -458,7 +458,7 @@
                     {{-- Desktop table --}}
                     <div class="hidden md:block overflow-x-auto max-w-full">
                         <table class="w-full text-[13px]">
-                            <thead class="border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-400">
+                            <thead class="border-b border-slate-100 text-[10px] uppercase tracking-wide text-slate-600">
                                 <tr>
                                     <th class="px-2 py-2.5 text-left">Order ID</th>
                                     <th class="px-2 py-2.5 text-left">Date</th>
@@ -474,7 +474,7 @@
                                     <tr class="{{ $highlightOrderId && (int) $highlightOrderId === (int) $order->id ? 'gaget-order-row-highlight' : '' }}">
                                         <td class="px-2 py-3 font-semibold text-slate-900">
                                             <span class="block break-all">{{ $order->invoice_no }}</span>
-                                            <span class="text-[10px] font-medium text-slate-400">#{{ $order->id }}</span>
+                                            <span class="text-[10px] font-medium text-slate-600">#{{ $order->id }}</span>
                                         </td>
                                         <td class="px-2 py-3 text-slate-600 whitespace-nowrap">{{ asian_date($order->created_at, 'M j, Y') }}</td>
                                         <td class="px-2 py-3">
@@ -520,27 +520,27 @@
                         <div class="mt-3 space-y-3 text-[13px]">
                             <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3 min-w-0">
                                 <div class="min-w-0">
-                                    <p class="text-[10px] uppercase tracking-wide text-slate-400">Name</p>
+                                    <p class="text-[10px] uppercase tracking-wide text-slate-600">Name</p>
                                     <p class="mt-1 font-semibold text-slate-900 break-words">{{ $customer?->name ?? auth()->user()->name }}</p>
                                 </div>
-                                <a href="{{ route('website.account.profile.edit') }}" class="shrink-0 text-slate-400 hover:text-blue-600" title="Edit">✎</a>
+                                <a href="{{ route('website.account.profile.edit') }}" class="shrink-0 text-slate-500 hover:text-blue-600" title="Edit">✎</a>
                             </div>
                             <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3 min-w-0">
                                 <div class="min-w-0">
-                                    <p class="text-[10px] uppercase tracking-wide text-slate-400">Email</p>
+                                    <p class="text-[10px] uppercase tracking-wide text-slate-600">Email</p>
                                     <p class="mt-1 font-semibold text-slate-900 break-all">{{ auth()->user()->email }}</p>
                                 </div>
-                                <a href="{{ route('website.account.profile.edit') }}" class="shrink-0 text-slate-400 hover:text-blue-600" title="Edit">✎</a>
+                                <a href="{{ route('website.account.profile.edit') }}" class="shrink-0 text-slate-500 hover:text-blue-600" title="Edit">✎</a>
                             </div>
                             <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-3 min-w-0">
                                 <div class="min-w-0">
-                                    <p class="text-[10px] uppercase tracking-wide text-slate-400">Phone</p>
+                                    <p class="text-[10px] uppercase tracking-wide text-slate-600">Phone</p>
                                     <p class="mt-1 font-semibold text-slate-900 break-all">{{ $customer?->phone ?: 'Not added yet' }}</p>
                                 </div>
-                                <a href="{{ route('website.account.profile.edit') }}" class="shrink-0 text-slate-400 hover:text-blue-600" title="Edit">✎</a>
+                                <a href="{{ route('website.account.profile.edit') }}" class="shrink-0 text-slate-500 hover:text-blue-600" title="Edit">✎</a>
                             </div>
                             <div class="min-w-0">
-                                <p class="text-[10px] uppercase tracking-wide text-slate-400">Member Since</p>
+                                <p class="text-[10px] uppercase tracking-wide text-slate-600">Member Since</p>
                                 <p class="mt-1 font-semibold text-slate-900">{{ $memberSince ?? now()->format('M j, Y') }}</p>
                             </div>
                         </div>

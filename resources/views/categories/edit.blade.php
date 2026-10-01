@@ -25,20 +25,7 @@
                         <x-input-error class="mt-2" :messages="$errors->get('description')" />
                     </div>
 
-                    <div class="mt-4">
-                        <x-input-label for="image" :value="__('Cover image')" />
-                        <x-image-file-preview
-                            name="image"
-                            id="image"
-                            :existing="$category->image_path ? public_storage_url($category->image_path) : null"
-                            accept=".png,.jpg,.jpeg,.webp,.gif,image/png,image/jpeg,image/webp,image/gif"
-                            input-class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700"
-                            preview-class="h-28 max-w-full object-cover rounded-lg border border-slate-200 bg-white"
-                        />
-                        <p class="mt-1 text-xs text-gray-500">Optional. Used on homepage category cover — otherwise a product image is used.</p>
-                        <x-poster-size size="800 × 1040 px" ratio="portrait 10:13">Fills the tall "Shop by Category" card. The name and tagline cover the bottom third, so keep the subject in the upper middle.</x-poster-size>
-                        <x-input-error class="mt-2" :messages="$errors->get('image')" />
-                    </div>
+                    @include('categories.partials.cover-image-field', ['category' => $category])
 
                     @include('categories.partials.icon-picker', ['category' => $category])
 

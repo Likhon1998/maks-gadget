@@ -1837,8 +1837,8 @@
                             <span x-text="item.name" :title="item.name"></span>
                             <span class="ci-sale-tag" x-show="item.on_sale" x-cloak>SALE</span>
                         </div>
-                        <div class="ci-sku" x-show="item.color || item.ram || item.storage" x-cloak
-                             x-text="[item.color, [item.ram, item.storage].filter(Boolean).join('/')].filter(Boolean).join(' · ')"></div>
+                        <div class="ci-sku" x-show="item.color || item.variant_type || item.ram || item.storage" x-cloak
+                             x-text="[item.color, item.variant_type, [item.ram, item.storage].filter(Boolean).join('/')].filter(Boolean).join(' · ')"></div>
                         <div class="ci-sku" x-show="item.sku || item.barcode" x-text="item.sku || item.barcode" x-cloak></div>
                         <div class="ci-sku" x-show="item.requires_imei && item.imeis && item.imeis.length" x-cloak
                              style="color:#c2410c;font-weight:600"
@@ -2676,21 +2676,7 @@ function posSystem() {
         page: 1,
         perPage: 15,
         brokenImages: {},
-        imageFallbacks: {
-            phone: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&q=80',
-            laptop: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&q=80',
-            tablet: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&q=80',
-            headphones: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600&q=80',
-            earbuds: 'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=600&q=80',
-            watch: 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600&q=80',
-            camera: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=600&q=80',
-            game: 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=600&q=80',
-            speaker: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&q=80',
-            charger: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=600&q=80',
-            accessory: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
-            monitor: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=600&q=80',
-            default: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
-        },
+        noPhotoUrl: @js(asset('images/no-photo.svg')),
         categories: @json($categories->map(fn ($c) => ['id' => $c->id, 'name' => $c->name, 'icon' => $c->icon])->values()),
         brands: @json($brands),
         products: @json($products),
@@ -2995,22 +2981,8 @@ function posSystem() {
             if (!product) return '';
             return this.normalizeImageUrl(product.image_url || product.image || '');
         },
-        fallbackImageFor(product) {
-            const key = String(product?.category_name || product?.category || '').toLowerCase();
-            const map = this.imageFallbacks;
-            if (key.includes('phone') || key.includes('mobile')) return map.phone;
-            if (key.includes('laptop')) return map.laptop;
-            if (key.includes('tablet') || key.includes('ipad')) return map.tablet;
-            if (key.includes('earbud')) return map.earbuds;
-            if (key.includes('headphone') || key.includes('audio')) return map.headphones;
-            if (key.includes('watch')) return map.watch;
-            if (key.includes('camera')) return map.camera;
-            if (key.includes('game')) return map.game;
-            if (key.includes('speaker')) return map.speaker;
-            if (key.includes('charg') || key.includes('cable')) return map.charger;
-            if (key.includes('monitor') || key.includes('display')) return map.monitor;
-            if (key.includes('accessor')) return map.accessory;
-            return map.default;
+        fallbackImageFor() {
+            return this.noPhotoUrl;
         },
         recoverProductImage(event, product) {
             const img = event?.target;
@@ -3482,6 +3454,7 @@ function posSystem() {
                         requires_imei: true,
                         imeis: [imei],
                         color: product.color || null,
+                        variant_type: product.variant_type || null,
                         ram: product.ram || null,
                         storage: product.storage || null,
                     });
@@ -3523,6 +3496,7 @@ function posSystem() {
                     requires_imei: false,
                     imeis: [],
                     color: product.color || null,
+                    variant_type: product.variant_type || null,
                     ram: product.ram || null,
                     storage: product.storage || null,
                 });

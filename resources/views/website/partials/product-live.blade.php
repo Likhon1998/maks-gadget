@@ -3,19 +3,21 @@
     $images = $ws->productImageUrls($product);
     $img = $images[0];
     $reviews = $reviews ?? collect();
-        $variantOptions = $variantOptions ?? ['colors' => [], 'combos' => [], 'storages' => [], 'rams' => []];
+        $variantOptions = $variantOptions ?? ['colors' => [], 'types' => [], 'combos' => [], 'storages' => [], 'rams' => []];
         $discountPct = $product->discountPercent();
         $currentPrice = $product->currentPrice();
         $compareAt = $product->compareAtPrice();
     $displayName = $product->storefrontDisplayName();
+    $cartName = $product->cartDisplayName();
     $hasVariantPicker = count($variantOptions['colors'] ?? []) > 0
+        || count($variantOptions['types'] ?? []) > 0
         || count($variantOptions['combos'] ?? []) > 0
         || count($variantOptions['storages'] ?? []) > 0
         || count($variantOptions['rams'] ?? []) > 0;
 @endphp
 
 {{-- Breadcrumbs --}}
-<nav class="text-xs text-slate-400 mb-3 flex flex-wrap items-center gap-1">
+<nav class="text-xs text-slate-600 mb-3 flex flex-wrap items-center gap-1">
     <a href="{{ route('home') }}">Home</a>
     <span>/</span>
     @if($product->category)
@@ -23,10 +25,10 @@
         <span>/</span>
     @endif
     @if($product->brand_name || $product->brand)
-        <span class="text-slate-500">{{ $product->brand_name ?? $product->brand?->name }}</span>
+        <span class="text-slate-600">{{ $product->brand_name ?? $product->brand?->name }}</span>
         <span>/</span>
     @endif
-    <span class="text-slate-600">{{ $displayName }}</span>
+    <span class="text-slate-800">{{ $displayName }}</span>
 </nav>
 
 <div class="pd-layout"
@@ -100,27 +102,27 @@
     <div class="pd-buy">
         <div class="pd-brand-row">
             @if($product->showsAsNew())
-                <span class="text-[10px] font-semibold uppercase bg-emerald-500 text-white px-2 py-0.5 rounded">New</span>
+                <span class="text-[10px] font-semibold uppercase bg-emerald-700 text-white px-2 py-0.5 rounded">New</span>
             @endif
             @if($product->brand?->logo_path)
                 <img src="{{ public_storage_url($product->brand->logo_path) }}"
                      alt="{{ $product->brand->name }}"
                      class="pd-brand-logo">
             @elseif($product->brand_name || $product->brand)
-                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">{{ $product->brand_name ?? $product->brand?->name }}</span>
+                <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide">{{ $product->brand_name ?? $product->brand?->name }}</span>
             @endif
             @if(($product->brand_name || $product->brand) && $product->brand?->logo_path)
-                <span class="text-xs font-medium text-slate-500">{{ $product->brand_name ?? $product->brand?->name }}</span>
+                <span class="text-xs font-medium text-slate-600">{{ $product->brand_name ?? $product->brand?->name }}</span>
             @endif
         </div>
 
         <h1 class="pd-title">{{ $displayName }}</h1>
 
         @if($product->rating > 0 || $reviews->isNotEmpty())
-            <div class="flex flex-wrap items-center gap-2 mb-2 text-xs text-slate-500">
+            <div class="flex flex-wrap items-center gap-2 mb-2 text-xs text-slate-600">
                 @php $stars = $product->rating > 0 ? round($product->rating) : (int) round($reviews->avg('rating')); @endphp
-                <span class="flex text-amber-400">
-                    @for($i=1;$i<=5;$i++)<span class="{{ $i<=$stars?'':'text-slate-200' }}">★</span>@endfor
+                <span class="flex text-amber-500">
+                    @for($i=1;$i<=5;$i++)<span class="{{ $i<=$stars?'':'text-slate-300' }}">★</span>@endfor
                 </span>
                 <span>({{ $product->review_count ?: $reviews->count() }} Reviews)</span>
             </div>
@@ -130,7 +132,7 @@
             <div class="flex flex-wrap items-baseline gap-2">
                 <span class="text-2xl font-bold text-slate-900">{{ $ws->formatPrice($currentPrice, $settings) }}</span>
                 @if($compareAt)
-                    <span class="text-sm text-slate-400 line-through">{{ $ws->formatPrice($compareAt, $settings) }}</span>
+                    <span class="text-sm text-slate-500 line-through">{{ $ws->formatPrice($compareAt, $settings) }}</span>
                     @if($discountPct > 0)
                         <span class="text-[10px] font-medium text-red-600 bg-red-50 border border-red-100 px-1.5 py-0.5 rounded">{{ $discountPct }}% OFF</span>
                     @endif
@@ -139,8 +141,8 @@
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
                 @if($product->availableStock() > 0)
                     <span class="text-slate-600">Availability:
-                        <span class="font-semibold text-emerald-600">In Stock</span>
-                        <span class="text-slate-400">({{ $product->availableStock() }} available)</span>
+                        <span class="font-semibold text-emerald-700">In Stock</span>
+                        <span class="text-slate-600">({{ $product->availableStock() }} available)</span>
                     </span>
                 @else
                     <span class="text-slate-600">Availability:
@@ -158,10 +160,11 @@
         @if($hasVariantPicker)
             @php
                 $hasColors = count($variantOptions['colors'] ?? []) > 0;
+                $hasTypes = count($variantOptions['types'] ?? []) > 0;
                 $hasCombos = count($variantOptions['combos'] ?? []) > 0;
                 $hasStorages = count($variantOptions['storages'] ?? []) > 0;
                 $hasRams = count($variantOptions['rams'] ?? []) > 0;
-                $storageBesideColor = $hasColors && ($hasCombos || $hasStorages);
+                $storageBesideColor = $hasColors && ! $hasTypes && ($hasCombos || $hasStorages);
             @endphp
             <div class="pd-variants {{ $storageBesideColor ? 'pd-variants--split' : '' }}">
                 @if($hasColors)
@@ -186,6 +189,28 @@
                     </div>
                 @elseif($product->color)
                     <p class="pd-meta-line">Color: <strong>{{ $product->color }}</strong></p>
+                @endif
+
+                @if($hasTypes)
+                    <div class="pd-variant-block pd-variant-block--full">
+                        <p class="pd-variant-label">Type</p>
+                        <div class="pd-option-row">
+                            @foreach($variantOptions['types'] as $opt)
+                                <a href="{{ $opt['url'] }}"
+                                   data-product-variant
+                                   data-no-loader
+                                   title="{{ $opt['label'] }}{{ empty($opt['available']) ? ' (out of stock)' : '' }}"
+                                   class="pd-option pd-option--storage {{ !empty($opt['active']) ? 'is-active' : '' }} {{ empty($opt['available']) ? 'is-disabled' : '' }}">
+                                    <span class="pd-option-main">{{ $opt['label'] }}</span>
+                                    @if(isset($opt['price']) && empty($opt['active']))
+                                        <span class="pd-option-sub">{{ $ws->formatPrice($opt['price'], $settings) }}</span>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @elseif($product->variant_type)
+                    <p class="pd-meta-line">Type: <strong>{{ $product->variant_type }}</strong></p>
                 @endif
 
                 @if($hasCombos)
@@ -247,10 +272,13 @@
                 @endif
             </div>
         @else
-            @if($product->color || $product->storage || $product->ram)
+            @if($product->color || $product->variant_type || $product->storage || $product->ram)
                 <div class="pd-meta-lines">
                     @if($product->color)
                         <p class="pd-meta-line">Color: <strong>{{ $product->color }}</strong></p>
+                    @endif
+                    @if($product->variant_type)
+                        <p class="pd-meta-line">Type: <strong>{{ $product->variant_type }}</strong></p>
                     @endif
                     @if($product->storage)
                         <p class="pd-meta-line">Storage: <strong>{{ normalize_memory_size($product->storage) ?? $product->storage }}</strong></p>
@@ -266,7 +294,7 @@
             $availableQty = max(0, (int) $product->availableStock());
             $cartItem = [
                 'id' => $product->id,
-                'name' => $displayName,
+                'name' => $cartName,
                 'price' => $currentPrice,
                 'image' => $img,
                 'stock' => $availableQty,
@@ -326,7 +354,7 @@
                     </button>
                 </div>
             @else
-                <p class="pd-oos">This variant is currently out of stock. Try another color or storage.</p>
+                <p class="pd-oos">This variant is currently out of stock. Try another color, type or storage.</p>
                 <button type="button"
                         class="pd-btn-wish pd-btn-wish--wide"
                         :class="inWishlist({{ $product->id }}) && 'is-active'"
@@ -340,22 +368,22 @@
             @endif
         </div>
 
+        @php $trustFeatures = collect($features ?? [])->take(4); @endphp
+        @if($trustFeatures->isNotEmpty())
         <div class="pd-trust">
-            @foreach([
-                ['Fast Delivery', 'COD available'],
-                ['30-Day Returns', 'Easy returns'],
-                ['1 Year Warranty', 'Manufacturer'],
-                ['Secure Checkout', 'Sign in · COD'],
-            ] as [$title, $sub])
+            @foreach($trustFeatures as $feature)
                 <div class="pd-trust-item">
                     <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     <div class="min-w-0">
-                        <p class="text-[11px] font-semibold text-slate-800 leading-tight">{{ $title }}</p>
-                        <p class="text-[10px] text-slate-500 leading-tight">{{ $sub }}</p>
+                        <p class="text-[11px] font-semibold text-slate-800 leading-tight">{{ $feature->title }}</p>
+                        @if($feature->subtitle)
+                            <p class="text-[10px] text-slate-600 leading-tight">{{ $feature->subtitle }}</p>
+                        @endif
                     </div>
                 </div>
             @endforeach
         </div>
+        @endif
     </div>
 </div>
 
@@ -367,12 +395,12 @@
             <div class="flex gap-5 border-b border-slate-100 mb-4">
                 @if($product->short_description)
                     <button type="button" @click="tab='description'"
-                            :class="tab==='description' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500'"
+                            :class="tab==='description' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600'"
                             class="pb-2 text-sm font-medium border-b-2 transition">Description</button>
                 @endif
                 @if($reviews->isNotEmpty())
                     <button type="button" @click="tab='reviews'"
-                            :class="tab==='reviews' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500'"
+                            :class="tab==='reviews' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600'"
                             class="pb-2 text-sm font-medium border-b-2 transition">Reviews ({{ $reviews->count() }})</button>
                 @endif
             </div>

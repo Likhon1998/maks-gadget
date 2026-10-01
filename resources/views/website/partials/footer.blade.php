@@ -1,8 +1,7 @@
 @php
     $storeName = $settings->store_name ?? config('app.name', 'Maks Gadget');
     $storeLogo = !empty($settings->logo_path) ? public_storage_url($settings->logo_path) : null;
-    $tagline = $settings->footer_tagline
-        ?? 'Your one-stop shop for the latest tech gadgets and accessories.';
+    $tagline = trim((string) ($settings->footer_tagline ?? ''));
 
     $socialRaw = data_get($settings, 'social_links') ?: [];
     $socialMap = [
@@ -73,6 +72,7 @@
                         <img src="{{ $storeLogo }}?v={{ @filemtime(public_storage_path($settings->logo_path)) ?: time() }}"
                              alt="{{ $storeName }}"
                              class="tn-footer-logo-wordmark">
+                        <span class="tn-footer-logo-text">{{ $storeName }}</span>
                     @elseif($footerIcon)
                         <img src="{{ $footerIcon }}?v={{ $footerIconVer }}"
                              alt="{{ $storeName }}"
@@ -90,7 +90,9 @@
                         <span class="tn-footer-logo-text">{{ $storeName }}</span>
                     @endif
                 </a>
-                <p class="tn-footer-tagline">{{ $tagline }}</p>
+                @if($tagline !== '')
+                    <p class="tn-footer-tagline">{{ $tagline }}</p>
+                @endif
 
                 @php
                     $socialLinks = collect($socialMap)->map(function ($meta, $key) use ($socialRaw) {

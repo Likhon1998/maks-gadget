@@ -12,12 +12,12 @@
 @section('title', $blog->title.' — '.($settings->store_name ?? config('app.name', 'Maks Gadget')))
 @section('content')
 <div class="max-w-7xl mx-auto px-4 py-8">
-    <p class="text-xs text-slate-400 mb-5">
-        <a href="{{ route('home') }}" class="hover:text-slate-600">Home</a>
+    <p class="text-xs text-slate-600 mb-5">
+        <a href="{{ route('home') }}" class="hover:text-slate-900">Home</a>
         <span class="mx-1">/</span>
-        <a href="{{ route('website.blogs') }}" class="hover:text-slate-600">Blog</a>
+        <a href="{{ route('website.blogs') }}" class="hover:text-slate-900">Blog</a>
         <span class="mx-1">/</span>
-        <span class="text-slate-600">{{ $blog->title }}</span>
+        <span class="text-slate-800">{{ $blog->title }}</span>
     </p>
 
     <div class="grid lg:grid-cols-12 gap-8">
@@ -26,7 +26,7 @@
                 <span class="text-[10px] font-bold uppercase tracking-wider {{ $colorMap[$blog->category->color ?? 'blue'] ?? $colorMap['blue'] }} px-2 py-0.5 rounded">{{ $blog->category->name }}</span>
             @endif
             <h1 class="mt-2 text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight leading-snug">{{ $blog->title }}</h1>
-            <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+            <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
                 @if($blog->author_name)<span>By {{ $blog->author_name }}</span>@endif
                 <span class="inline-flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -72,7 +72,7 @@
                         <li>
                             <a href="{{ route('website.blogs', ['category' => $cat->slug]) }}" class="flex justify-between text-sm text-slate-600 hover:text-blue-600">
                                 <span>{{ $cat->name }}</span>
-                                <span class="text-xs text-slate-400">({{ $cat->blogs_count }})</span>
+                                <span class="text-xs text-slate-600">({{ $cat->blogs_count }})</span>
                             </a>
                         </li>
                     @endforeach
@@ -90,7 +90,7 @@
                                 <img src="{{ $pop->coverUrl() }}" alt="" class="w-14 h-14 rounded-lg object-cover bg-slate-50 shrink-0">
                                 <div class="min-w-0">
                                     <p class="text-xs font-semibold text-slate-800 group-hover:text-blue-600 line-clamp-2">{{ $pop->title }}</p>
-                                    <p class="text-[11px] text-slate-400 mt-1">{{ optional($pop->published_at)->format('M d, Y') }}</p>
+                                    <p class="text-[11px] text-slate-600 mt-1">{{ optional($pop->published_at)->format('M d, Y') }}</p>
                                 </div>
                             </a>
                         </li>

@@ -8,35 +8,27 @@
         ?: 'Stay updated with the latest tech news, product reviews, and buying guides from '.$storeName.'.';
     $heroImage = data_get($settings, 'blog_hero_image')
         ? public_storage_url(data_get($settings, 'blog_hero_image'))
-        : 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=1600&q=80';
+        : null;
     $articlesTitle = data_get($settings, 'blog_articles_title') ?: 'Latest Articles';
     $newsletterTitle = data_get($settings, 'blog_newsletter_title') ?: 'Subscribe to Our Newsletter';
     $newsletterText = data_get($settings, 'blog_newsletter_text') ?: 'Get the latest deals and tech news delivered to your inbox.';
-    $features = [
-        [
-            'title' => data_get($settings, 'blog_feature_1_title') ?: 'Expert Reviews',
-            'text' => data_get($settings, 'blog_feature_1_text') ?: 'In-depth & honest',
-            'icon' => 'review',
-        ],
-        [
-            'title' => data_get($settings, 'blog_feature_2_title') ?: 'Buying Guides',
-            'text' => data_get($settings, 'blog_feature_2_text') ?: 'Smart picks for you',
-            'icon' => 'guide',
-        ],
-        [
-            'title' => data_get($settings, 'blog_feature_3_title') ?: 'Latest Updates',
-            'text' => data_get($settings, 'blog_feature_3_text') ?: 'Tech news, trends & more',
-            'icon' => 'updates',
-        ],
-    ];
+    $features = collect([
+        ['n' => 1, 'icon' => 'review'],
+        ['n' => 2, 'icon' => 'guide'],
+        ['n' => 3, 'icon' => 'updates'],
+    ])->map(fn ($f) => [
+        'title' => trim((string) data_get($settings, 'blog_feature_'.$f['n'].'_title')),
+        'text' => trim((string) data_get($settings, 'blog_feature_'.$f['n'].'_text')),
+        'icon' => $f['icon'],
+    ])->filter(fn ($f) => $f['title'] !== '')->values()->all();
     $blogCategories = $blogCategories ?? collect();
     $popularPosts = $popularPosts ?? collect();
     $blogSearch = $blogSearch ?? null;
     $activeBlogCategory = $activeBlogCategory ?? null;
     $badgeMap = [
         'blue' => 'bg-blue-600 text-white',
-        'emerald' => 'bg-emerald-600 text-white',
-        'amber' => 'bg-amber-500 text-white',
+        'emerald' => 'bg-emerald-700 text-white',
+        'amber' => 'bg-amber-700 text-white',
         'rose' => 'bg-rose-600 text-white',
         'violet' => 'bg-violet-600 text-white',
         'slate' => 'bg-slate-700 text-white',
@@ -56,11 +48,13 @@
 {{-- Hero --}}
 <section class="relative overflow-hidden border-b border-slate-100">
     <div class="absolute inset-0">
-        <img src="{{ $heroImage }}" alt="" class="h-full w-full object-cover object-center opacity-35">
+        @if($heroImage)
+            <img src="{{ $heroImage }}" alt="" class="h-full w-full object-cover object-center opacity-35">
+        @endif
         <div class="absolute inset-0 bg-gradient-to-r from-slate-100 via-slate-50/92 to-transparent"></div>
     </div>
     <div class="relative max-w-7xl mx-auto px-4 py-7 sm:py-8">
-        <p class="text-[10px] font-bold tracking-[0.18em] uppercase text-blue-500">{{ $heroKicker }}</p>
+        <p class="text-[10px] font-bold tracking-[0.18em] uppercase text-blue-700">{{ $heroKicker }}</p>
         <h1 class="mt-1 text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{{ $heroTitle }}</h1>
         <p class="mt-1.5 max-w-lg text-xs sm:text-[13px] text-slate-600 leading-relaxed">{{ $heroSub }}</p>
 
@@ -78,7 +72,9 @@
                     </span>
                     <div>
                         <p class="text-xs font-semibold text-slate-800 leading-none">{{ $feature['title'] }}</p>
-                        <p class="mt-0.5 text-[11px] text-slate-500 leading-none">{{ $feature['text'] }}</p>
+                        @if($feature['text'] !== '')
+                            <p class="mt-0.5 text-[11px] text-slate-600 leading-none">{{ $feature['text'] }}</p>
+                        @endif
                     </div>
                 </div>
             @endforeach
@@ -126,9 +122,9 @@
                                 <a href="{{ route('website.blog', $post->slug) }}" class="hover:text-blue-600 transition">{{ $post->title }}</a>
                             </h3>
                             @if($post->excerpt)
-                                <p class="mt-1.5 text-[11px] text-slate-500 leading-relaxed line-clamp-2">{{ $post->excerpt }}</p>
+                                <p class="mt-1.5 text-[11px] text-slate-600 leading-relaxed line-clamp-2">{{ $post->excerpt }}</p>
                             @endif
-                            <div class="mt-2.5 pt-2 border-t border-slate-50 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-slate-400">
+                            <div class="mt-2.5 pt-2 border-t border-slate-50 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-slate-600">
                                 <span class="inline-flex items-center gap-1">
                                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     {{ optional($post->published_at)->format('M d, Y') }}
@@ -141,7 +137,7 @@
                         </div>
                     </article>
                 @empty
-                    <p class="sm:col-span-2 xl:col-span-3 text-center text-slate-400 py-10 text-xs">No blog posts yet. Add posts from Admin → CMS → Blogs.</p>
+                    <p class="sm:col-span-2 xl:col-span-3 text-center text-slate-600 py-10 text-xs">No blog posts yet. Add posts from Admin → CMS → Blogs.</p>
                 @endforelse
             </div>
 
@@ -178,7 +174,7 @@
                                     <span class="w-6 h-6 rounded-md {{ $iconClass }} flex items-center justify-center text-[10px] font-bold shrink-0">{{ strtoupper(substr($cat->name, 0, 1)) }}</span>
                                     <span class="truncate">{{ $cat->name }}</span>
                                 </span>
-                                <span class="text-[10px] text-slate-400 shrink-0 ml-1.5">({{ $cat->blogs_count }})</span>
+                                <span class="text-[10px] text-slate-600 shrink-0 ml-1.5">({{ $cat->blogs_count }})</span>
                             </a>
                         </li>
                     @endforeach
@@ -201,7 +197,7 @@
                                 <img src="{{ $pop->coverUrl() }}" alt="" class="w-12 h-12 rounded-lg object-cover bg-slate-100 shrink-0">
                                 <div class="min-w-0">
                                     <p class="text-[11px] font-semibold text-slate-800 group-hover:text-blue-600 line-clamp-2 leading-snug transition">{{ $pop->title }}</p>
-                                    <p class="text-[10px] text-slate-400 mt-1">{{ optional($pop->published_at)->format('M d, Y') }}</p>
+                                    <p class="text-[10px] text-slate-600 mt-1">{{ optional($pop->published_at)->format('M d, Y') }}</p>
                                 </div>
                             </a>
                         </li>
@@ -213,9 +209,9 @@
             {{-- Newsletter --}}
             <div class="rounded-xl border border-blue-100 bg-blue-50/70 p-3.5">
                 <h3 class="text-xs font-bold text-slate-900">{{ $newsletterTitle }}</h3>
-                <p class="mt-1 text-[11px] text-slate-500 leading-relaxed">{{ $newsletterText }}</p>
+                <p class="mt-1 text-[11px] text-slate-600 leading-relaxed">{{ $newsletterText }}</p>
                 @if(session('newsletter_success'))
-                    <p class="mt-2 text-[11px] font-semibold text-emerald-600">{{ session('newsletter_success') }}</p>
+                    <p class="mt-2 text-[11px] font-semibold text-emerald-700">{{ session('newsletter_success') }}</p>
                 @endif
                 <form action="{{ route('website.newsletter') }}" method="POST" class="mt-2.5 space-y-2">
                     @csrf

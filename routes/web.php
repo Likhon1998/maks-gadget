@@ -86,7 +86,7 @@ Route::get('/csrf-token', function () {
 
 Route::post('/account/login', [StorefrontAuthController::class, 'login'])->name('website.account.login');
 Route::post('/account/register', [StorefrontAuthController::class, 'register'])->name('website.account.register');
-Route::post('/account/logout', [StorefrontAuthController::class, 'logout'])->name('website.account.logout');
+Route::match(['get', 'post'], '/account/logout', [StorefrontAuthController::class, 'logout'])->name('website.account.logout');
 Route::middleware('auth:web')->group(function () {
     Route::get('/account', [StorefrontAuthController::class, 'account'])->name('website.account');
     Route::get('/account/profile', [StorefrontAuthController::class, 'editProfile'])->name('website.account.profile.edit');

@@ -12,11 +12,11 @@
             @csrf
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Hero kicker</label>
-                <input name="blog_hero_kicker" value="{{ old('blog_hero_kicker', $settings->blog_hero_kicker ?? 'OUR BLOG') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm" placeholder="OUR BLOG">
+                <input name="blog_hero_kicker" value="{{ old('blog_hero_kicker', $settings->blog_hero_kicker) }}" placeholder="OUR BLOG" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Hero title</label>
-                <input name="blog_hero_title" value="{{ old('blog_hero_title', $settings->blog_hero_title ?? 'News & Articles') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm" placeholder="News & Articles">
+                <input name="blog_hero_title" value="{{ old('blog_hero_title', $settings->blog_hero_title) }}" placeholder="News &amp; Articles" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div class="md:col-span-2">
                 <label class="text-[11px] font-bold uppercase text-slate-500">Hero subtitle</label>
@@ -36,30 +36,30 @@
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Articles section title</label>
-                <input name="blog_articles_title" value="{{ old('blog_articles_title', $settings->blog_articles_title ?? 'Latest Articles') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm" placeholder="Latest Articles">
+                <input name="blog_articles_title" value="{{ old('blog_articles_title', $settings->blog_articles_title) }}" placeholder="Latest Articles" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
 
             <div class="md:col-span-2 rounded-xl border border-slate-100 bg-slate-50 p-4">
                 <p class="text-[11px] font-bold uppercase text-slate-500 mb-3">Hero feature highlights (3)</p>
                 <div class="grid gap-3 md:grid-cols-3">
                     <div>
-                        <input name="blog_feature_1_title" value="{{ old('blog_feature_1_title', $settings->blog_feature_1_title ?? 'Expert Reviews') }}" class="w-full rounded-xl border-slate-200 text-sm" placeholder="Expert Reviews">
-                        <input name="blog_feature_1_text" value="{{ old('blog_feature_1_text', $settings->blog_feature_1_text ?? 'In-depth & honest') }}" class="mt-2 w-full rounded-xl border-slate-200 text-sm" placeholder="In-depth & honest">
+                        <input name="blog_feature_1_title" value="{{ old('blog_feature_1_title', $settings->blog_feature_1_title) }}" placeholder="Expert Reviews" class="w-full rounded-xl border-slate-200 text-sm">
+                        <input name="blog_feature_1_text" value="{{ old('blog_feature_1_text', $settings->blog_feature_1_text) }}" placeholder="In-depth &amp; honest" class="mt-2 w-full rounded-xl border-slate-200 text-sm">
                     </div>
                     <div>
-                        <input name="blog_feature_2_title" value="{{ old('blog_feature_2_title', $settings->blog_feature_2_title ?? 'Buying Guides') }}" class="w-full rounded-xl border-slate-200 text-sm" placeholder="Buying Guides">
-                        <input name="blog_feature_2_text" value="{{ old('blog_feature_2_text', $settings->blog_feature_2_text ?? 'Smart picks for you') }}" class="mt-2 w-full rounded-xl border-slate-200 text-sm" placeholder="Smart picks for you">
+                        <input name="blog_feature_2_title" value="{{ old('blog_feature_2_title', $settings->blog_feature_2_title) }}" placeholder="Buying Guides" class="w-full rounded-xl border-slate-200 text-sm">
+                        <input name="blog_feature_2_text" value="{{ old('blog_feature_2_text', $settings->blog_feature_2_text) }}" placeholder="Smart picks for you" class="mt-2 w-full rounded-xl border-slate-200 text-sm">
                     </div>
                     <div>
-                        <input name="blog_feature_3_title" value="{{ old('blog_feature_3_title', $settings->blog_feature_3_title ?? 'Latest Updates') }}" class="w-full rounded-xl border-slate-200 text-sm" placeholder="Latest Updates">
-                        <input name="blog_feature_3_text" value="{{ old('blog_feature_3_text', $settings->blog_feature_3_text ?? 'Tech news, trends & more') }}" class="mt-2 w-full rounded-xl border-slate-200 text-sm" placeholder="Tech news, trends & more">
+                        <input name="blog_feature_3_title" value="{{ old('blog_feature_3_title', $settings->blog_feature_3_title) }}" placeholder="Latest Updates" class="w-full rounded-xl border-slate-200 text-sm">
+                        <input name="blog_feature_3_text" value="{{ old('blog_feature_3_text', $settings->blog_feature_3_text) }}" placeholder="Tech news, trends &amp; more" class="mt-2 w-full rounded-xl border-slate-200 text-sm">
                     </div>
                 </div>
             </div>
 
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Newsletter title</label>
-                <input name="blog_newsletter_title" value="{{ old('blog_newsletter_title', $settings->blog_newsletter_title ?? 'Subscribe to Our Newsletter') }}" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
+                <input name="blog_newsletter_title" value="{{ old('blog_newsletter_title', $settings->blog_newsletter_title) }}" placeholder="Subscribe to Our Newsletter" class="mt-1 w-full rounded-xl border-slate-200 text-sm">
             </div>
             <div>
                 <label class="text-[11px] font-bold uppercase text-slate-500">Newsletter text</label>

@@ -244,6 +244,9 @@
                 get wishlistCount() { return this.wishlist.length; },
                 init() {
                     this.syncCart({ silent: true });
+                    @if(session('session_expired'))
+                        this.$nextTick(() => this.flashToast('Your session expired for security. Please try again.'));
+                    @endif
                     try {
                         const params = new URLSearchParams(window.location.search);
                         if (params.get('signin') === '1' || params.get('signin') === 'true') {
@@ -773,8 +776,8 @@
         .gaget-store .pd-brand-logo{height:18px!important;max-height:18px!important;max-width:88px!important;width:auto!important;object-fit:contain!important}
         .tn-footer-credit{border-top:1px solid #e2e8f0;padding:0;text-align:center;background:#eef2f7}
         .tn-footer-credit-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 16px;padding:14px 0 max(16px,env(safe-area-inset-bottom))}
-        .tn-footer-copy{margin:0;font-size:12px;font-weight:500;color:#64748b}
-        .powered-by,.powered-by--footer{margin:0;font-size:12px;font-weight:500;letter-spacing:.02em;color:#64748b;text-align:center}
+        .tn-footer-copy{margin:0;font-size:12px;font-weight:500;color:#475569}
+        .powered-by,.powered-by--footer{margin:0;font-size:12px;font-weight:500;letter-spacing:.02em;color:#475569;text-align:center}
         .powered-by strong,.powered-by--footer strong{color:#0f172a;font-weight:800}
     </style>
 </head>
@@ -917,7 +920,7 @@
     <div class="absolute inset-0 bg-black/50" @click="checkoutStep !== 'success' && (checkoutOpen=false)"></div>
     <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] overflow-y-auto p-4 sm:p-6"
          :class="checkoutStep === 'success' && 'overflow-hidden'">
-        <button type="button" x-show="checkoutStep !== 'success'" @click="checkoutOpen=false" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+        <button type="button" x-show="checkoutStep !== 'success'" @click="checkoutOpen=false" class="absolute right-4 top-4 text-slate-500 hover:text-slate-800 text-2xl leading-none">&times;</button>
 
         {{-- Auth step (standalone account OR checkout) --}}
         <div x-show="checkoutStep==='auth'" x-cloak>
@@ -925,8 +928,8 @@
             <p class="text-sm text-slate-500 mt-1 mb-5" x-text="authPurpose === 'checkout' ? 'Create an account if needed, then sign in to place your order.' : 'Create an account anytime — then sign in to shop and track orders.'"></p>
 
             <div class="flex rounded-xl bg-slate-100 p-1 mb-5">
-                <button type="button" @click="authTab='login'; authMessage=''; authMessageOk=false" class="flex-1 rounded-lg py-2 text-sm font-semibold transition" :class="authTab==='login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'">Sign in</button>
-                <button type="button" @click="authTab='register'; authMessage=''; authMessageOk=false" class="flex-1 rounded-lg py-2 text-sm font-semibold transition" :class="authTab==='register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'">Create account</button>
+                <button type="button" @click="authTab='login'; authMessage=''; authMessageOk=false" class="flex-1 rounded-lg py-2 text-sm font-semibold transition" :class="authTab==='login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-700'">Sign in</button>
+                <button type="button" @click="authTab='register'; authMessage=''; authMessageOk=false" class="flex-1 rounded-lg py-2 text-sm font-semibold transition" :class="authTab==='register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-700'">Create account</button>
             </div>
 
             <div x-show="authTab==='login'" class="space-y-3">
@@ -948,7 +951,7 @@
                 </button>
             </div>
 
-            <p x-show="authMessage" x-text="authMessage" class="mt-3 text-sm text-center" :class="authMessageOk ? 'text-emerald-600' : 'text-rose-600'"></p>
+            <p x-show="authMessage" x-text="authMessage" class="mt-3 text-sm text-center" :class="authMessageOk ? 'text-emerald-700' : 'text-rose-600'"></p>
         </div>
 
         {{-- Order step --}}
@@ -1001,7 +1004,7 @@
                         <span class="text-slate-500">Delivery (<span x-text="deliveryQuote.zoneLabel"></span>)</span>
                         <span class="font-semibold" x-text="deliveryQuote.isFree ? 'FREE' : (currency + Math.round(Number(deliveryQuote.deliveryFee) || 0).toLocaleString())"></span>
                     </div>
-                    <p x-show="deliveryQuote.freeReason" x-text="deliveryQuote.freeReason" class="text-[11px] text-emerald-600 font-medium"></p>
+                    <p x-show="deliveryQuote.freeReason" x-text="deliveryQuote.freeReason" class="text-[11px] text-emerald-700 font-medium"></p>
                     <p x-show="!deliveryQuote.isFree && deliveryQuote.deliveryFee > 0" class="text-[11px] text-slate-500">Delivery is paid to the delivery person.</p>
                     <div class="flex justify-between border-t border-slate-200 pt-1.5 text-sm">
                         <span class="font-bold text-slate-800">Total</span>

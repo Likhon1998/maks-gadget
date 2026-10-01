@@ -5,7 +5,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -20,9 +19,16 @@ return Application::configure(basePath: dirname(__DIR__))
             'staff.only' => \App\Http\Middleware\EnsureNotStorefrontCustomer::class,
         ]);
 
+        // A stale token must never block signing out (shared admin/storefront session rotates tokens).
+        $middleware->validateCsrfTokens(except: [
+            'logout',
+            'account/logout',
+        ]);
+
         // Drop leftover staff sessions from the customer (web) guard on every request.
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\EnsureStorefrontWebGuardIsCustomer::class,
+            \App\Http\Middleware\PreventAuthenticatedPageCache::class,
         ]);
 
         // Guests: customers → storefront sign-in; staff routes → admin login.
@@ -43,20 +49,27 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->render(function (TokenMismatchException $e, Request $request) {
+        // Laravel converts TokenMismatchException into HttpException(419) before render callbacks run,
+        // so the CSRF handler must match on the 419 status, not the original exception class.
+        $exceptions->render(function (HttpException $e, Request $request) {
+            if ($e->getStatusCode() !== 419 && ! ($e->getPrevious() instanceof TokenMismatchException)) {
+                return null;
+            }
+
             if ($request->routeIs('website.account.logout') || $request->is('account/logout')) {
-                Auth::guard('web')->logout();
                 if ($request->hasSession()) {
-                    $otherStillLoggedIn = Auth::guard('admin')->check();
-                    if ($otherStillLoggedIn) {
-                        $request->session()->regenerateToken();
-                    } else {
-                        $request->session()->invalidate();
-                        $request->session()->regenerateToken();
-                    }
+                    \App\Support\AuthSession::logout($request, 'web');
                 }
 
-                return redirect()->route('home');
+                return redirect()->route('login');
+            }
+
+            if ($request->routeIs('logout') || $request->is('logout')) {
+                if ($request->hasSession()) {
+                    \App\Support\AuthSession::logout($request, 'admin');
+                }
+
+                return redirect()->route('admin.login');
             }
 
             if ($request->hasSession()) {
@@ -82,7 +95,8 @@ return Application::configure(basePath: dirname(__DIR__))
             return redirect()
                 ->back()
                 ->withInput($request->except('_token', 'password', 'password_confirmation'))
-                ->with('error', 'Your session expired for security. Please try again.');
+                ->with('error', 'Your session expired for security. Please try again.')
+                ->with('session_expired', true);
         });
 
         $exceptions->render(function (\Illuminate\Auth\Access\AuthorizationException $e, Request $request) {

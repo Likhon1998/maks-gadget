@@ -30,7 +30,7 @@
 {{-- Hero --}}
 <section class="relative overflow-hidden border-b border-slate-100 bg-gradient-to-br from-slate-50 via-blue-50/40 to-white">
     <div class="max-w-7xl mx-auto px-4 py-10 sm:py-12">
-        <nav class="text-xs text-slate-400 mb-4">
+        <nav class="text-xs text-slate-600 mb-4">
             <a href="{{ route('home') }}" class="hover:text-blue-600">Home</a>
             <span class="mx-1.5">›</span>
             <a href="{{ route('website.faqs') }}" class="hover:text-blue-600">Help Center</a>
@@ -74,7 +74,7 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $iconPaths['help'] }}"/></svg>
                             </span>
                             <span class="flex-1">All questions</span>
-                            <span class="text-xs tabular-nums opacity-70">({{ $faqCategories->sum('faqs_count') }})</span>
+                            <span class="text-xs tabular-nums">({{ $faqCategories->sum('faqs_count') }})</span>
                         </a>
                     </li>
                     @foreach($faqCategories as $cat)
@@ -86,7 +86,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $icon }}"/></svg>
                                 </span>
                                 <span class="flex-1 truncate">{{ $cat->name }}</span>
-                                <span class="text-xs tabular-nums opacity-70">({{ $cat->faqs_count }})</span>
+                                <span class="text-xs tabular-nums">({{ $cat->faqs_count }})</span>
                             </a>
                         </li>
                     @endforeach
@@ -100,9 +100,7 @@
                    class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-blue-600 px-4 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $iconPaths['headset'] }}"/></svg>
                     {{ $helpButton }}
-                </a>
-                <p class="mt-3 text-xs text-slate-400">We're here to help you 24/7.</p>
-            </div>
+                </a>            </div>
         </aside>
 
         {{-- FAQ list --}}
@@ -113,7 +111,7 @@
                 @endif
                 <input type="search" name="q" value="{{ $faqSearch }}" placeholder="Search FAQ..."
                        class="w-full rounded-xl border border-slate-200 bg-white pl-4 pr-12 py-3 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600" aria-label="Search">
+                <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-blue-600" aria-label="Search">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </button>
             </form>
@@ -141,7 +139,7 @@
                                 @click="open = open === {{ $i }} ? null : {{ $i }}">
                             <span class="text-sm sm:text-[15px] font-semibold leading-snug">{{ $faq->question }}</span>
                             <span class="shrink-0 w-7 h-7 rounded-full border border-slate-200 inline-flex items-center justify-center text-lg leading-none"
-                                  :class="open === {{ $i }} ? 'border-blue-200 text-blue-600 bg-blue-50' : 'text-slate-400'">
+                                  :class="open === {{ $i }} ? 'border-blue-200 text-blue-600 bg-blue-50' : 'text-slate-500'">
                                 <span x-text="open === {{ $i }} ? '−' : '+'"></span>
                             </span>
                         </button>
@@ -150,32 +148,31 @@
                         </div>
                     </div>
                 @empty
-                    <p class="px-5 py-16 text-center text-slate-400 text-sm">No FAQs found. Try another category or search.</p>
+                    <p class="px-5 py-16 text-center text-slate-600 text-sm">No FAQs found. Try another category or search.</p>
                 @endforelse
             </div>
         </div>
     </div>
 </div>
 
-{{-- Value props --}}
+{{-- Value props (CMS → Landing Page → Features) --}}
+@if(($features ?? collect())->isNotEmpty())
 <section class="border-t border-slate-100 bg-slate-50/80">
     <div class="max-w-7xl mx-auto px-4 py-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        @foreach([
-            ['title' => 'Fast Shipping', 'text' => 'Get your gadgets fast with our reliable shipping.', 'icon' => 'truck'],
-            ['title' => 'Easy Returns', 'text' => '30-day easy returns on most products.', 'icon' => 'refresh'],
-            ['title' => 'Secure Payments', 'text' => '100% secure payments with trusted methods.', 'icon' => 'shield'],
-            ['title' => '24/7 Support', 'text' => 'Our support team is always here to help.', 'icon' => 'headset'],
-        ] as $item)
+        @foreach($features as $feature)
             <div class="flex gap-3">
                 <span class="w-11 h-11 rounded-full bg-blue-50 text-blue-600 inline-flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $iconPaths[$item['icon']] }}"/></svg>
+                    @include('website.partials.feature-icon', ['icon' => $feature->icon])
                 </span>
                 <div>
-                    <h3 class="text-sm font-bold text-slate-900">{{ $item['title'] }}</h3>
-                    <p class="mt-0.5 text-xs text-slate-500 leading-relaxed">{{ $item['text'] }}</p>
+                    <h3 class="text-sm font-bold text-slate-900">{{ $feature->title }}</h3>
+                    @if($feature->subtitle)
+                        <p class="mt-0.5 text-xs text-slate-500 leading-relaxed">{{ $feature->subtitle }}</p>
+                    @endif
                 </div>
             </div>
         @endforeach
     </div>
 </section>
+@endif
 @endsection

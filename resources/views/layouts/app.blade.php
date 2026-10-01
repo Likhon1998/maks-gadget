@@ -414,19 +414,12 @@
             };
         }
 
-        setInterval(function () {
-            if (typeof window.refreshCsrfToken === 'function') {
-                window.refreshCsrfToken();
-            } else {
-                fetch('/refresh-session', {
-                    method: 'GET',
-                    credentials: 'same-origin',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
-                }).catch(function () {});
+        window.addEventListener('pageshow', function (e) {
+            // Restored from back/forward cache (e.g. Back after logout): reload so auth is re-checked.
+            if (e.persisted) {
+                window.location.reload();
+                return;
             }
-        }, 10 * 60 * 1000);
-
-        window.addEventListener('pageshow', function () {
             if (typeof window.refreshCsrfToken === 'function') {
                 window.refreshCsrfToken();
             }
