@@ -526,12 +526,29 @@ class ProductController extends Controller
             abort(403, 'Unauthorized access.');
         }
 
-        $product->load('galleryImages');
-        foreach ($product->imagePaths() as $path) {
-            Storage::disk('public')->delete($path);
+        if ($product->hasTransactionHistory()) {
+            DB::transaction(function () use ($product) {
+                $product->imeis()->available()->delete();
+                // Frees the unique barcode so it can be reused by a new product.
+                $product->forceFill([
+                    'barcode' => Str::limit($product->barcode, 200, '').'#deleted-'.$product->id,
+                    'is_published' => false,
+                ])->save();
+                $product->delete();
+            });
+
+            return redirect()->route('products.index')
+                ->with('success', 'Product removed from inventory. Its past sales and stock history are kept.');
         }
 
-        $product->delete();
+        $product->load('galleryImages');
+        $paths = $product->imagePaths();
+
+        $product->forceDelete();
+
+        foreach ($paths as $path) {
+            Storage::disk('public')->delete($path);
+        }
 
         return redirect()->route('products.index')->with('success', 'Product deleted from inventory!');
     }

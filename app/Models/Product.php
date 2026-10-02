@@ -5,11 +5,13 @@ namespace App\Models;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'shop_id', 'category_id', 'brand_id', 'name', 'barcode', 'sku',
@@ -86,6 +88,23 @@ class Product extends Model
             $this->image_2,
             $this->image_3,
         ]));
+    }
+
+    /**
+     * Sales, exchanges, purchases or stock moves reference this product,
+     * so it must be archived (soft-deleted) instead of removed.
+     */
+    public function hasTransactionHistory(): bool
+    {
+        $id = $this->getKey();
+
+        return DB::table('order_items')->where('product_id', $id)->exists()
+            || DB::table('exchanges')->where('new_product_id', $id)->orWhere('return_product_id', $id)->exists()
+            || DB::table('orders')->where('return_product_id', $id)->exists()
+            || DB::table('purchase_order_items')->where('product_id', $id)->exists()
+            || DB::table('purchase_return_items')->where('product_id', $id)->exists()
+            || DB::table('stock_transfer_items')->where('product_id', $id)->exists()
+            || DB::table('stock_movements')->where('product_id', $id)->exists();
     }
 
     public function galleryImages()
