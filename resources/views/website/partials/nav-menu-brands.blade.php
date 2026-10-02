@@ -21,7 +21,7 @@
                    style="--i: {{ min($i, 14) }};">
                     <span class="gaget-mega-icon gaget-mega-icon--brand" aria-hidden="true">
                         @if($brand->logo_url)
-                            <img src="{{ $brand->logo_url }}" alt="" loading="lazy" decoding="async">
+                            <img src="{{ $brand->logo_url }}" alt="" class="gaget-mega-logo" loading="lazy" decoding="async">
                         @else
                             {{ mb_strtoupper(mb_substr($brand->name, 0, 1)) }}
                         @endif

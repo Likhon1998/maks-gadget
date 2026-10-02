@@ -373,8 +373,8 @@ body.gaget-store {
     scrollbar-width: thin;
 }
 .gaget-nav-dropdown-menu.gaget-mega--brands {
-    width: 540px;
-    max-width: min(540px, 92vw);
+    width: 600px;
+    max-width: min(600px, 92vw);
 }
 .gaget-mega--brands .gaget-mega-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -449,16 +449,22 @@ body.gaget-store {
 }
 .gaget-mega-svg { width: 17px; height: 17px; }
 .gaget-mega-icon--brand {
+    width: 60px;
+    height: 36px;
+    padding: 4px 6px;
+    border-radius: 9px;
     background: #fff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #e8edf3;
     color: #0f172a;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 800;
     overflow: hidden;
 }
-.gaget-mega-icon--brand img {
-    width: 22px;
-    height: 22px;
+.gaget-mega-icon--brand .gaget-mega-logo {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
     object-fit: contain;
 }
 .gaget-mega-name {
@@ -7434,7 +7440,7 @@ body.gaget-store,
 }
 
 /* Don't let this global rule blow up brand/product logos (height:auto + full width). */
-.gaget-store img:not(.tn-brand-logo):not(.tn-blog-img):not(.tn-trending-img):not(.tn-hero-img):not(.mg-cover-img):not(.mg-cats-img):not(.gaget-cart-line__img):not(.pd-brand-logo):not(.pd-color-thumb):not(.pd-related-img):not(.pd-zoom-img):not(.gaget-logo-mark):not(.gaget-logo-wordmark):not(.tn-footer-logo-wordmark):not(.gaget-me-img),
+.gaget-store img:not(.tn-brand-logo):not(.tn-blog-img):not(.tn-trending-img):not(.tn-hero-img):not(.mg-cover-img):not(.mg-cats-img):not(.gaget-cart-line__img):not(.pd-brand-logo):not(.pd-color-thumb):not(.pd-related-img):not(.pd-zoom-img):not(.gaget-logo-mark):not(.gaget-logo-wordmark):not(.tn-footer-logo-wordmark):not(.gaget-me-img):not(.gaget-mega-logo),
 .gaget-store video {
     max-width: 100%;
     height: auto;
