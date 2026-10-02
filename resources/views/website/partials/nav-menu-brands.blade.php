@@ -19,9 +19,16 @@
                 <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}"
                    class="gaget-mega-item"
                    style="--i: {{ min($i, 14) }};">
+                    @php
+                        // Generated text-only wordmarks are unreadable at tile size; use the initial instead.
+                        $brandLogo = $brand->logo_url;
+                        if ($brand->logo_path === 'brands/'.\Illuminate\Support\Str::slug($brand->name).'.svg') {
+                            $brandLogo = null;
+                        }
+                    @endphp
                     <span class="gaget-mega-icon gaget-mega-icon--brand" aria-hidden="true">
-                        @if($brand->logo_url)
-                            <img src="{{ $brand->logo_url }}" alt="" class="gaget-mega-logo" loading="lazy" decoding="async">
+                        @if($brandLogo)
+                            <img src="{{ $brandLogo }}" alt="" class="gaget-mega-logo" loading="lazy" decoding="async">
                         @else
                             {{ mb_strtoupper(mb_substr($brand->name, 0, 1)) }}
                         @endif
