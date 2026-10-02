@@ -105,9 +105,31 @@ class User extends Authenticatable
 
     public function avatarInitials(): string
     {
-        $name = trim($this->name ?: 'CU');
+        $words = preg_split('/\s+/u', trim((string) $this->name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
-        return strtoupper(substr($name, 0, 2));
+        if ($words === []) {
+            return 'CU';
+        }
+
+        $first = mb_substr($words[0], 0, 1);
+        $last = count($words) > 1 ? mb_substr(end($words), 0, 1) : mb_substr($words[0], 1, 1);
+
+        return mb_strtoupper($first.$last);
+    }
+
+    /**
+     * Stable 0–5 palette index so a customer's initials avatar keeps the same colour.
+     */
+    public function avatarTone(): int
+    {
+        return crc32(mb_strtolower(trim((string) ($this->email ?: $this->name)))) % 6;
+    }
+
+    public function firstName(): string
+    {
+        $words = preg_split('/\s+/u', trim((string) $this->name), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return $words[0] ?? 'Account';
     }
 
     public function isShopOwner(): bool

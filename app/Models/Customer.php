@@ -92,4 +92,35 @@ class Customer extends Model
 
         return preg_replace('/\D+/', '', $raw) ?: $raw;
     }
+
+    /**
+     * Bangladesh mobile in local form (01XXXXXXXXX), accepting +880 / 880 prefixes.
+     * Returns '' when the number is not a valid BD mobile.
+     */
+    public static function bdMobile(?string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone) ?? '';
+        if (str_starts_with($digits, '880')) {
+            $digits = '0'.substr($digits, 3);
+        } elseif (strlen($digits) === 10 && str_starts_with($digits, '1')) {
+            $digits = '0'.$digits;
+        }
+
+        return preg_match('/^01[3-9]\d{8}$/', $digits) ? $digits : '';
+    }
+
+    /** Same subscriber number regardless of +880 / 0 prefix or formatting. */
+    public static function samePhone(?string $a, ?string $b): bool
+    {
+        $da = self::normalizePhone($a);
+        $db = self::normalizePhone($b);
+        if ($da === '' || $db === '') {
+            return false;
+        }
+        if (strlen($da) >= 10 && strlen($db) >= 10) {
+            return substr($da, -10) === substr($db, -10);
+        }
+
+        return $da === $db;
+    }
 }

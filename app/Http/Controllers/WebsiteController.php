@@ -694,12 +694,27 @@ class WebsiteController extends Controller
         return back()->with('contact_success', 'Thanks! Your message has been sent. We\'ll get back to you soon.');
     }
 
-    public function trackOrder()
+    public function trackOrder(Request $request)
     {
+        $invoice = trim((string) $request->query('invoice', ''));
+        $phone = trim((string) $request->query('phone', ''));
+        $tracking = null;
+        $error = null;
+
+        if ($invoice !== '' && $phone !== '') {
+            $order = $this->findTrackableOrder($invoice, $phone);
+            if ($order) {
+                $tracking = $this->trackingView($order);
+            } else {
+                $error = 'No order found for that Order ID and phone number.';
+            }
+        }
+
         return view('website.track-order', array_merge($this->website->homepageData(), [
-            'tracking' => null,
-            'invoiceNo' => request('invoice'),
-            'phone' => request('phone'),
+            'tracking' => $tracking,
+            'trackError' => $error,
+            'invoiceNo' => $invoice,
+            'phone' => $phone,
         ]));
     }
 
@@ -710,31 +725,98 @@ class WebsiteController extends Controller
             'phone' => ['required', 'string', 'max:32'],
         ]);
 
+        return redirect()->route('website.track', [
+            'invoice' => strtoupper(trim($data['invoice_no'])),
+            'phone' => trim($data['phone']),
+        ]);
+    }
+
+    /** Forgotten Order ID: list the latest online orders placed with a mobile number. */
+    public function findGuestOrders(Request $request)
+    {
+        $data = $request->validate([
+            'find_phone' => ['required', 'string', 'max:32'],
+        ], [
+            'find_phone.required' => 'Enter the mobile number you ordered with.',
+        ]);
+
         $shopId = $this->website->shopId();
         abort_unless($shopId, 404);
 
-        $invoice = trim($data['invoice_no']);
-        $phone = Customer::normalizePhone($data['phone']);
+        $notFound = fn () => redirect()->route('website.track')
+            ->withInput()
+            ->with('findError', 'No orders found for this mobile number. Use the same number you entered at checkout.');
+
+        $mobile = Customer::bdMobile($data['find_phone']);
+        if ($mobile === '') {
+            return redirect()->route('website.track')
+                ->withInput()
+                ->with('findError', 'Enter a valid mobile number (01XXXXXXXXX).');
+        }
+
+        $customerIds = Customer::where('shop_id', $shopId)->wherePhone($mobile)->pluck('id');
+
+        if ($customerIds->isEmpty()) {
+            return $notFound();
+        }
+
+        $orders = Order::where('shop_id', $shopId)
+            ->onlineOrders()
+            ->whereIn('customer_id', $customerIds)
+            ->latest('id')
+            ->limit(10)
+            ->get(['id', 'invoice_no', 'status', 'total_amount', 'created_at']);
+
+        if ($orders->isEmpty()) {
+            return $notFound();
+        }
+
+        $labels = $this->tracking->statusLabels();
+
+        return redirect()->route('website.track')
+            ->withInput()
+            ->with('foundOrders', $orders->map(fn (Order $o) => [
+                'invoice' => $o->invoice_no,
+                'status' => $labels[$o->status] ?? ucfirst(str_replace('_', ' ', (string) $o->status)),
+                'total' => (float) $o->total_amount,
+                'date' => asian_datetime($o->created_at, 'd M Y'),
+                'url' => route('website.track', ['invoice' => $o->invoice_no, 'phone' => $mobile]),
+            ])->all());
+    }
+
+    /** Online order matching both the Order ID and the phone used at checkout. */
+    private function findTrackableOrder(string $invoice, string $phone): ?Order
+    {
+        $shopId = $this->website->shopId();
+        abort_unless($shopId, 404);
 
         $order = Order::where('shop_id', $shopId)
             ->onlineOrders()
-            ->where('invoice_no', $invoice)
+            ->where('invoice_no', strtoupper(trim($invoice)))
             ->with(['customer', 'items.product', 'statusLogs'])
             ->first();
 
-        if (! $order || ! $order->customer || Customer::normalizePhone($order->customer->phone) !== $phone) {
-            return back()
-                ->withInput()
-                ->with('error', 'No order found for that Order ID and phone number.');
+        if (! $order || ! $order->customer || ! Customer::samePhone($order->customer->phone, $phone)) {
+            return null;
         }
 
-        $payload = $this->tracking->trackingPayload($order);
+        return $order;
+    }
 
-        return view('website.track-order', array_merge($this->website->homepageData(), [
-            'tracking' => $payload,
-            'invoiceNo' => $invoice,
-            'phone' => $data['phone'],
-        ]));
+    private function trackingView(Order $order): array
+    {
+        $total = (float) $order->total_amount;
+        $paid = (float) ($order->paid_amount ?? 0);
+
+        return array_merge($this->tracking->trackingPayload($order), [
+            'total_amount' => $total,
+            'delivery_charge' => (float) ($order->delivery_charge ?? 0),
+            'paid_amount' => $paid,
+            'due_amount' => max(0, $total - $paid),
+            'payment_label' => $order->payment_method === DeliveryChargeService::PAY_CONFIRMATION
+                ? 'Confirmation charge + balance on delivery'
+                : 'Cash on delivery',
+        ]);
     }
 
     public function wishlist()
@@ -817,9 +899,11 @@ class WebsiteController extends Controller
 
     public function checkout(Request $request)
     {
-        $user = $request->user();
-        if (! $user?->isStorefrontCustomer()) {
-            return response()->json(['success' => false, 'message' => 'Please sign in to place an order.', 'auth_required' => true], 401);
+        $user = $request->user('web');
+        $isMember = (bool) $user?->isStorefrontCustomer();
+        // A staff session on the storefront checks out as a guest, never as the staff user.
+        if (! $isMember) {
+            $user = null;
         }
 
         $shopId = $this->website->shopId();
@@ -830,42 +914,85 @@ class WebsiteController extends Controller
         $request->validate([
             'customer_name' => 'required|string|min:2|max:255',
             'customer_phone' => 'required|string|min:8|max:20',
-            'customer_address' => 'required|string|max:1000',
+            'customer_email' => 'nullable|email|max:255',
+            'customer_address' => 'required|string|min:5|max:1000',
             'delivery_zone' => 'nullable|string|in:inside_dhaka,outside_dhaka',
             'payment_method' => 'nullable|string|in:cash_on_delivery,confirmation_charge',
         ], [
             'customer_address.required' => 'Delivery address is required to place your order.',
+            'customer_address.min' => 'Please enter a complete delivery address.',
+            'customer_phone.min' => 'Enter a valid mobile number (01XXXXXXXXX).',
         ]);
 
         $deliveryAddress = trim(preg_replace('/\s+/u', ' ', (string) $request->customer_address) ?? '');
         $request->merge(['customer_address' => $deliveryAddress]);
 
-        $customer = Customer::where('shop_id', $shopId)
-            ->where('user_id', $user->id)
-            ->first();
+        if ($isMember) {
+            $customer = Customer::where('shop_id', $shopId)
+                ->where('user_id', $user->id)
+                ->first();
 
-        if (! $customer) {
-            $customer = Customer::create([
-                'shop_id' => $shopId,
-                'user_id' => $user->id,
-                'name' => $request->customer_name,
-                'email' => $user->email,
-                'phone' => $request->customer_phone,
-                'address' => $request->customer_address,
-            ]);
+            if (! $customer) {
+                $customer = Customer::create([
+                    'shop_id' => $shopId,
+                    'user_id' => $user->id,
+                    'name' => $request->customer_name,
+                    'email' => $user->email,
+                    'phone' => $request->customer_phone,
+                    'address' => $request->customer_address,
+                ]);
+            } else {
+                $customer->update([
+                    'name' => $request->customer_name,
+                    'phone' => $request->customer_phone,
+                    'address' => $request->customer_address,
+                    'email' => $user->email,
+                ]);
+            }
+
+            $user->update(['name' => $request->customer_name]);
         } else {
-            $customer->update([
-                'name' => $request->customer_name,
-                'phone' => $request->customer_phone,
-                'address' => $request->customer_address,
-                'email' => $user->email,
-            ]);
+            $mobile = Customer::bdMobile($request->customer_phone);
+            if ($mobile === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Enter a valid mobile number (01XXXXXXXXX).',
+                    'errors' => ['customer_phone' => ['Enter a valid mobile number (01XXXXXXXXX).']],
+                ], 422);
+            }
+            $request->merge(['customer_phone' => $mobile]);
+
+            // Reuse the same CRM record for repeat guests / walk-in POS customers with this number.
+            $customer = Customer::where('shop_id', $shopId)->wherePhone($mobile)->orderByRaw('user_id IS NULL DESC')->first();
+
+            if (! $customer) {
+                $customer = Customer::create([
+                    'shop_id' => $shopId,
+                    'user_id' => null,
+                    'name' => $request->customer_name,
+                    'email' => $request->customer_email,
+                    'phone' => $mobile,
+                    'address' => $request->customer_address,
+                ]);
+            } else {
+                // Admin screens and receipts read the delivery address from the customer record.
+                $updates = [
+                    'name' => $request->customer_name,
+                    'address' => $request->customer_address,
+                ];
+                if ($customer->user_id === null && $request->customer_email) {
+                    $updates['email'] = $request->customer_email;
+                }
+                $customer->update($updates);
+            }
         }
 
-        $user->update(['name' => $request->customer_name]);
-
-        $shopAdmin = \App\Models\User::where('shop_id', $shopId)->whereIn('role', ['admin', 'shop_owner', 'Shop Owner'])->first();
-        $fallbackUserId = $shopAdmin?->id ?? $user->id;
+        $shopAdmin = \App\Models\User::where('shop_id', $shopId)->whereIn('role', ['admin', 'shop_owner', 'Shop Owner'])->first()
+            ?? \App\Models\User::where('shop_id', $shopId)->whereNotIn('role', ['customer', 'Customer'])->orderBy('id')->first();
+        $fallbackUserId = $shopAdmin?->id ?? $user?->id;
+        if (! $fallbackUserId) {
+            return response()->json(['success' => false, 'message' => 'Store is not ready to take orders yet. Please contact us.'], 503);
+        }
 
         // Resolve cart against live catalog prices/stock (never trust client prices).
         $resolvedLines = [];
@@ -968,6 +1095,9 @@ class WebsiteController extends Controller
 
             return response()->json([
                 'success' => true,
+                'guest' => ! $isMember,
+                'track_url' => route('website.track', ['invoice' => $order->invoice_no, 'phone' => $customer->phone]),
+                'phone' => $customer->phone,
                 'order_id' => $order->id,
                 'invoice' => $order->invoice_no,
                 'delivery_fee' => $deliveryFee,

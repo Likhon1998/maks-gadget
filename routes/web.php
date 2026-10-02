@@ -71,8 +71,10 @@ Route::get('/search/suggest', [WebsiteController::class, 'searchSuggest'])->name
 Route::get('/category/{slug}', [WebsiteController::class, 'category'])->name('website.category');
 Route::get('/brand/{slug}', [WebsiteController::class, 'brand'])->name('website.brand');
 Route::get('/product/{product}', [WebsiteController::class, 'product'])->name('website.product');
-Route::get('/track-order', [WebsiteController::class, 'trackOrder'])->name('website.track');
-Route::post('/track-order', [WebsiteController::class, 'trackOrderLookup'])->name('website.track.lookup');
+Route::get('/track-order', [WebsiteController::class, 'trackOrder'])->middleware('throttle:30,1')->name('website.track');
+Route::post('/track-order', [WebsiteController::class, 'trackOrderLookup'])->middleware('throttle:20,1')->name('website.track.lookup');
+Route::post('/track-order/find', [WebsiteController::class, 'findGuestOrders'])->middleware('throttle:6,1')->name('website.track.find');
+Route::post('/checkout', [WebsiteController::class, 'checkout'])->middleware('throttle:10,1')->name('website.checkout');
 
 /*
 | Public CSRF refresh — storefront customers + guests need this after login / tab sleep.
@@ -92,7 +94,6 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/account/profile', [StorefrontAuthController::class, 'editProfile'])->name('website.account.profile.edit');
     Route::put('/account/profile', [StorefrontAuthController::class, 'updateProfile'])->name('website.account.profile.update');
     Route::delete('/account/profile', [StorefrontAuthController::class, 'destroyAccount'])->name('website.account.profile.destroy');
-    Route::post('/checkout', [WebsiteController::class, 'checkout'])->name('website.checkout');
 });
 Route::get('/page/{slug}', [WebsiteController::class, 'page'])->name('website.page');
 Route::get('/blog', [WebsiteController::class, 'blogs'])->name('website.blogs');
