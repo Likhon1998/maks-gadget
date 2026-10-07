@@ -16,6 +16,7 @@ use App\Services\AccountService;
 use App\Services\BakiService;
 use App\Services\CounterSessionService;
 use App\Services\EmiService;
+use App\Services\OrderRefundService;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +31,7 @@ class PosController extends Controller
         protected StockService $stock,
         protected BakiService $baki,
         protected EmiService $emi,
+        protected OrderRefundService $refunds,
     ) {}
     /**
      * Load the POS Terminal
@@ -91,6 +93,7 @@ class PosController extends Controller
                 $availableImeis = $product->requires_imei
                     ? $product->availableImeis->pluck('imei')->values()->all()
                     : [];
+                $imeiPairs = $product->requires_imei ? $this->imeiPairs($product) : (object) [];
 
                 return [
                     'id' => $product->id,
@@ -110,6 +113,7 @@ class PosController extends Controller
                     'reserved_stock' => $product->reservedStock(),
                     'requires_imei' => (bool) $product->requires_imei,
                     'available_imeis' => $availableImeis,
+                    'imei_pairs' => $imeiPairs,
                     'image' => $imagePath,
                     'image_url' => $imageUrl,
                     'category_id' => $product->category_id,
@@ -150,10 +154,10 @@ class PosController extends Controller
         }
 
         // 🚀 CATCH EXCHANGE PARAMETERS (If redirected from Sales Ledger)
-        $exchangeOrder = $request->query('exchange_order');
-        $returnProduct = $request->query('return_product');
-        $returnQty = $request->query('return_qty');
-        $credit = $request->query('credit', 0);
+        $exchangeOrder = $request->filled('exchange_order') ? (int) $request->query('exchange_order') : null;
+        $returnProduct = $request->filled('return_product') ? (int) $request->query('return_product') : null;
+        $returnQty = (int) $request->query('return_qty', 0);
+        $credit = (float) $request->query('credit', 0);
 
         return view('pos.index', compact(
             'categories',
@@ -221,6 +225,7 @@ class PosController extends Controller
             'mobile_paid' => 'nullable|numeric|min:0',
             'discount_amount' => 'nullable|numeric|min:0',
             'is_baki' => 'nullable|boolean',
+            'baki_pay_now' => 'nullable|numeric|min:0',
             'is_emi' => 'nullable|boolean',
             'emi_months' => 'nullable|integer|min:1|max:36',
             'emi_down_payment' => 'nullable|numeric|min:0',
@@ -318,8 +323,17 @@ class PosController extends Controller
             // Sale / product discounts may be combined with Baki or EMI (financed on net bill).
 
             // 🚀 EXCHANGE MATH & SECURITY
-            $isExchange = $request->is_exchange ?? false;
-            $exchangeCredit = (float) ($request->exchange_credit ?? 0);
+            $isExchange = $request->boolean('is_exchange');
+            $exchangeCredit = 0.0;
+            if ($isExchange) {
+                $exchange = $this->refunds->resolveExchange(
+                    (int) $request->exchange_for_order_id,
+                    (int) $request->return_product_id,
+                    (int) $request->return_qty,
+                    $user,
+                );
+                $exchangeCredit = $exchange['credit'];
+            }
 
             if ($isExchange && $chargeTotal < $exchangeCredit) {
                 throw new \Exception("Exchange Blocked: Cart total must equal or exceed the return credit. No cash refunds allowed.");
@@ -418,11 +432,15 @@ class PosController extends Controller
                     throw new \Exception('Customer name and mobile are required for BAKI.');
                 }
                 $previousBalance = round((float) $customer->baki_balance, 2);
-                $bakiPool = $this->baki->resolvePool($previousBalance, $payableAmount, $paidAmountInput);
+                // Customer may hand over more than they want to settle now; the rest is change.
+                $bakiPayNow = $request->filled('baki_pay_now')
+                    ? min($paidAmountInput, max(0, round((float) $request->baki_pay_now, 2)))
+                    : $paidAmountInput;
+                $bakiPool = $this->baki->resolvePool($previousBalance, $payableAmount, $bakiPayNow);
                 $creditAmount = $bakiPool['credit'];
                 $towardPrevious = $bakiPool['toward_previous'];
                 $paidAmount = $bakiPool['toward_bill']; // amount applied to this invoice
-                $changeAmount = $bakiPool['change'];
+                $changeAmount = round($bakiPool['change'] + ($paidAmountInput - $bakiPayNow), 2);
                 $payableAmount = $bakiPool['bill'];
             }
 
@@ -548,7 +566,7 @@ class PosController extends Controller
                     foreach ($imeis as $imei) {
                         $row = ProductImei::query()
                             ->where('product_id', $product->id)
-                            ->where('imei', $imei)
+                            ->matching($imei)
                             ->available()
                             ->lockForUpdate()
                             ->first();
@@ -631,21 +649,7 @@ class PosController extends Controller
 
             $customer?->refresh();
 
-            $stockUpdates = Product::where('shop_id', $shopId)
-                ->whereIn('id', array_values(array_unique($touchedProductIds)))
-                ->with('availableImeis')
-                ->get()
-                ->map(fn (Product $p) => [
-                    'id' => (int) $p->id,
-                    'stock_quantity' => (int) $p->availableStock(),
-                    'physical_stock' => (int) $p->physicalStock(),
-                    'reserved_stock' => (int) $p->reservedStock(),
-                    'available_imeis' => $p->requires_imei
-                        ? $p->availableImeis->pluck('imei')->values()->all()
-                        : [],
-                ])
-                ->values()
-                ->all();
+            $stockUpdates = $this->stockUpdatesFor($shopId, $touchedProductIds);
 
             return response()->json([
                 'success' => true,
@@ -674,6 +678,138 @@ class PosController extends Controller
                 'message' => $e->getMessage()
             ], 400);
         }
+    }
+
+    /** Live stock figures the POS grid uses after a sale, refund or exchange. */
+    protected function stockUpdatesFor(int $shopId, array $productIds): array
+    {
+        return Product::where('shop_id', $shopId)
+            ->whereIn('id', array_values(array_unique(array_map('intval', $productIds))))
+            ->with('availableImeis')
+            ->get()
+            ->map(fn (Product $p) => [
+                'id' => (int) $p->id,
+                'stock_quantity' => (int) $p->availableStock(),
+                'physical_stock' => (int) $p->physicalStock(),
+                'reserved_stock' => (int) $p->reservedStock(),
+                'available_imeis' => $p->requires_imei
+                    ? $p->availableImeis->pluck('imei')->values()->all()
+                    : [],
+                'imei_pairs' => $p->requires_imei ? $this->imeiPairs($p) : (object) [],
+            ])
+            ->values()
+            ->all();
+    }
+
+    /** Map of IMEI 1 => IMEI 2 for available dual-IMEI units. */
+    protected function imeiPairs(Product $product): object
+    {
+        return (object) $product->availableImeis
+            ->filter(fn (ProductImei $row) => filled($row->imei2))
+            ->mapWithKeys(fn (ProductImei $row) => [$row->imei => $row->imei2])
+            ->all();
+    }
+
+    /**
+     * Find past sales by invoice number or customer mobile for refund / exchange at the counter.
+     */
+    public function searchOrders(Request $request)
+    {
+        $user = Auth::user();
+        abort_unless($user->canAccessPos(), 403);
+        $q = trim((string) $request->query('q', ''));
+        if (mb_strlen($q) < 3) {
+            return response()->json(['orders' => []]);
+        }
+
+        $digits = preg_replace('/\D+/', '', $q);
+        $query = Order::where('shop_id', $user->shop_id)
+            ->with(['items.product', 'customer'])
+            ->where(function ($w) use ($q, $digits) {
+                $w->where('invoice_no', 'like', '%'.$q.'%');
+                if (strlen($digits) >= 6) {
+                    $w->orWhereHas('customer', fn ($c) => $c->where('phone', 'like', '%'.substr($digits, -10).'%'));
+                }
+            });
+
+        if (! $user->isAdminUser()) {
+            $query->whereNotNull('counter_id');
+            if ($user->counter_id) {
+                $query->where('counter_id', $user->counter_id);
+            }
+        }
+
+        $orders = $query->latest('id')->limit(8)->get()
+            ->map(fn (Order $order) => $this->orderReturnPayload($order))
+            ->values();
+
+        return response()->json(['orders' => $orders]);
+    }
+
+    /** Full refund from the POS terminal (same rules as the Sales Ledger). */
+    public function refundOrder(Order $order)
+    {
+        $user = Auth::user();
+        abort_unless($user->canAccessPos(), 403);
+        $order->loadMissing('items.product');
+        $refundCash = $this->refunds->refundableCash($order);
+
+        try {
+            $this->refunds->refund($order, $user);
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], $e->getStatusCode());
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Invoice {$order->invoice_no} refunded. Stock restored.",
+            'refund_cash' => $refundCash,
+            'order' => $this->orderReturnPayload($order->fresh(['items.product', 'customer'])),
+            'stock_updates' => $this->stockUpdatesFor($user->shop_id, $order->items->pluck('product_id')->all()),
+        ]);
+    }
+
+    protected function orderReturnPayload(Order $order): array
+    {
+        $tz = config('app.display_timezone', config('app.timezone', 'Asia/Dhaka'));
+        $refundBlock = $this->refunds->refundBlockReason($order);
+        $exchangeBlock = $this->refunds->exchangeBlockReason($order);
+
+        $items = $order->items->map(function (OrderItem $item) use ($order) {
+            $returned = $this->refunds->returnedQty($order, (int) $item->product_id);
+            $returnable = max(0, (int) $item->quantity - $returned);
+
+            return [
+                'product_id' => (int) $item->product_id,
+                'name' => $item->product?->receiptDisplayName() ?? $item->product?->name ?? 'Product #'.$item->product_id,
+                'qty' => (int) $item->quantity,
+                'returned' => $returned,
+                'returnable' => $returnable,
+                'unit_price' => (float) $item->unit_price,
+                'unit_credit' => $this->refunds->exchangeCredit($order, $item, 1),
+            ];
+        })->values();
+
+        return [
+            'id' => (int) $order->id,
+            'invoice_no' => $order->invoice_no,
+            'date' => $order->created_at?->copy()->timezone($tz)->format('d M Y, h:i A'),
+            'status' => (string) $order->status,
+            'customer_name' => $order->customer?->name,
+            'customer_phone' => $order->customer?->phone,
+            'net' => round($order->netPayable(), 2),
+            'baki' => round((float) ($order->credit_amount ?? 0), 2),
+            'refund_cash' => $this->refunds->refundableCash($order),
+            'is_exchange_receipt' => (bool) $order->is_exchange_receipt,
+            'can_refund' => $refundBlock === null,
+            'refund_block' => $refundBlock,
+            'can_exchange' => $exchangeBlock === null && $items->sum('returnable') > 0,
+            'exchange_block' => $exchangeBlock ?? ($items->sum('returnable') > 0 ? null : 'All items were already returned.'),
+            'items' => $items,
+            'receipt_url' => route('pos.receipt', $order),
+        ];
     }
 
     /**
@@ -862,7 +998,8 @@ class PosController extends Controller
                 $lineGross = round($lineGross, 2);
                 $autoSaleDiscount = max(0, round($lineGross - $chargeGross, 2));
                 $paid = max(0, (float) ($offlineOrder['paid_amount'] ?? ($lineGross - $autoSaleDiscount)));
-                $exchangeCredit = max(0, (float) ($offlineOrder['exchange_credit'] ?? 0));
+                // Exchanges need the live original invoice — never accept offline exchange credit.
+                $exchangeCredit = 0.0;
                 $requestedDiscount = max(0, (float) ($offlineOrder['discount_amount'] ?? 0));
                 if ($autoSaleDiscount > 0) {
                     $requestedDiscount = max($requestedDiscount, $autoSaleDiscount);

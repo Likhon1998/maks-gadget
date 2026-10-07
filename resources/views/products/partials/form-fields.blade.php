@@ -22,7 +22,11 @@
         autoGroup: true,
         productMode: @js(old('product_mode', $isEdit ? 'simple' : '')),
         requiresImei: @js((bool) old('requires_imei', $product?->requires_imei ?? false)),
-        imeiText: @js(old('imei_list', ($isEdit && $product) ? $product->availableImeis()->pluck('imei')->implode("\n") : '')),
+        imeiText: @js(old('imei_list', ($isEdit && $product) ? $product->availableImeiLines() : '')),
+        simpleQty: @js((int) old('stock_quantity', $isEdit ? ($product?->stock_quantity ?? 0) : 0)),
+        simpleUnits: [],
+        dualImei: true,
+        imeiUid: 0,
         variantUid: {{ count($defaultVariants) }},
         variants: @js(collect($defaultVariants)->values()->map(function ($row, $i) {
             return array_merge($row, ['_key' => 'v'.($i + 1)]);
@@ -64,7 +68,7 @@
                 _key: 'v' + this.variantUid,
                 barcode: '', color: '', color_hex: '#2563eb', variant_type: '', ram: '', storage: '',
                 cost_price: '', selling_price: '', stock_quantity: 1, imei_list: '',
-                _files: [],
+                _files: [], _units: this.parseImeiUnits('', 1),
             });
         },
         duplicateVariantRow(i) {
@@ -76,7 +80,90 @@
                 barcode: '', color: src.color, color_hex: src.color_hex, variant_type: src.variant_type,
                 ram: src.ram, storage: src.storage, cost_price: src.cost_price, selling_price: src.selling_price,
                 stock_quantity: src.stock_quantity, imei_list: '',
-                _files: [],
+                _files: [], _units: this.parseImeiUnits('', src.stock_quantity),
+            });
+        },
+        initImeiUnits() {
+            this.variants.forEach((row) => { row._units = this.parseImeiUnits(row.imei_list, row.stock_quantity); });
+            this.simpleUnits = this.parseImeiUnits(this.imeiText, this.simpleQty);
+            const lines = String(this.imeiText || '') + this.variants.map((r) => r.imei_list || '').join('\n');
+            if (lines.trim() !== '') this.dualImei = /[\/|\t]/.test(lines);
+            this.$watch('simpleQty', (qty) => this.syncImeiCount(this.simpleUnits, qty));
+        },
+        newImeiUnit(a = '', b = '') {
+            this.imeiUid++;
+            return { _k: 'u' + this.imeiUid, a, b };
+        },
+        parseImeiUnits(text, qty) {
+            const units = String(text || '').split(/[\r\n,;]+/).map((line) => {
+                const parts = line.split(/[\/|\t]+/).map((p) => p.replace(/\s+/g, '')).filter(Boolean);
+                return parts.length ? this.newImeiUnit(parts[0], parts[1] || '') : null;
+            }).filter(Boolean);
+            const want = Math.min(500, Math.max(0, parseInt(qty, 10) || 0));
+            while (units.length < want) units.push(this.newImeiUnit());
+            return units;
+        },
+        syncImeiCount(units, qty) {
+            const want = Math.min(500, Math.max(0, parseInt(qty, 10) || 0));
+            while (units.length < want) units.push(this.newImeiUnit());
+            while (units.length > want && !units[units.length - 1].a && !units[units.length - 1].b) units.pop();
+        },
+        addImeiUnit(units) {
+            units.push(this.newImeiUnit());
+        },
+        removeImeiUnit(units, i) {
+            units.splice(i, 1);
+        },
+        imeiFilled(units) {
+            return units.filter((u) => (u.a || u.b)).length;
+        },
+        serializeImeis(units) {
+            return units.map((u) => {
+                const a = String(u.a || '').replace(/\s+/g, '');
+                const b = this.dualImei ? String(u.b || '').replace(/\s+/g, '') : '';
+                if (!a && !b) return '';
+                return a && b ? a + ' / ' + b : (a || b);
+            }).filter(Boolean).join('\n');
+        },
+        allImeiValues() {
+            const list = [];
+            const collect = (units) => units.forEach((u) => {
+                if (u.a) list.push(String(u.a).replace(/\s+/g, ''));
+                if (this.dualImei && u.b) list.push(String(u.b).replace(/\s+/g, ''));
+            });
+            if (this.isMulti) this.variants.forEach((r) => collect(r._units || []));
+            else collect(this.simpleUnits);
+            return list;
+        },
+        imeiInputClass(value) {
+            const v = String(value || '').replace(/\s+/g, '');
+            if (!v) return 'border-slate-200';
+            if (this.allImeiValues().filter((x) => x === v).length > 1) return 'border-red-400 bg-red-50 text-red-700';
+            if (!/^\d{14,17}$/.test(v)) return 'border-amber-300 bg-amber-50';
+            return 'border-emerald-300';
+        },
+        focusNextImei(event) {
+            const list = event.target.closest('[data-imei-list]');
+            if (!list) return;
+            const inputs = Array.from(list.querySelectorAll('input[data-imei-input]')).filter((el) => el.offsetParent !== null);
+            const next = inputs[inputs.indexOf(event.target) + 1];
+            if (next) next.focus();
+        },
+        pasteImeis(units, index, field, event) {
+            const text = (event.clipboardData || window.clipboardData)?.getData('text') || '';
+            if (!/[\r\n\t\/|]/.test(text)) return;
+            event.preventDefault();
+            const rows = text.split(/[\r\n]+/).filter((l) => l.trim() !== '');
+            rows.forEach((line, n) => {
+                const parts = line.split(/[\/|\t,;]+/).map((p) => p.replace(/\s+/g, '')).filter(Boolean);
+                const i = index + n;
+                while (units.length <= i) units.push(this.newImeiUnit());
+                if (field === 'b' && parts.length === 1) {
+                    units[i].b = parts[0];
+                } else {
+                    units[i].a = parts[0] || '';
+                    if (parts[1]) units[i].b = parts[1];
+                }
             });
         },
         removeVariantRow(i) {
@@ -194,7 +281,7 @@
             }
         },
      }"
-     x-init="syncGroup()">
+     x-init="syncGroup(); initImeiUnits()">
 
     @if(!$isEdit)
     {{-- Step 0: choose type first --}}
@@ -405,10 +492,39 @@
         </div>
     </section>
 
+    {{-- IMEI --}}
+    <section class="rounded-xl border border-slate-200 bg-white overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/80">
+            <h3 class="text-sm font-semibold text-slate-800">{{ $isEdit ? '4' : '5' }}. IMEI tracking (optional)</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Only for phones. Leave off for cables &amp; accessories.</p>
+        </div>
+        <div class="p-4 space-y-3">
+            <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input type="hidden" name="requires_imei" value="0">
+                <input type="checkbox" name="requires_imei" value="1" x-model="requiresImei"
+                       class="rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                This product requires an IMEI / serial when selling
+            </label>
+            <label x-show="requiresImei" x-cloak class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                <input type="checkbox" x-model="dualImei" class="rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                Each phone has 2 IMEI numbers (dual SIM)
+            </label>
+            <template x-if="requiresImei && isSimple">
+                <div>
+                    @include('products.partials.imei-units', ['units' => 'simpleUnits', 'nameAttr' => 'name="imei_list"'])
+                </div>
+            </template>
+            @error('imei_list') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+            <p class="text-[11px] text-slate-500" x-show="requiresImei && isMulti" x-cloak>
+                Enter each phone's IMEI on its color / option below.
+            </p>
+        </div>
+    </section>
+
     {{-- Variants --}}
     <section class="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/80">
-            <h3 class="text-sm font-semibold text-slate-800">{{ $isEdit ? '4' : '5' }}. Color / type / size options</h3>
+            <h3 class="text-sm font-semibold text-slate-800">{{ $isEdit ? '5' : '6' }}. Color / type / size options</h3>
             <p class="text-xs text-slate-500 mt-0.5" x-show="isSimple">Optional color, type (e.g. With cable) or size for this item.</p>
             <p class="text-xs text-slate-500 mt-0.5" x-show="isMulti" x-cloak>Add one row per combination, e.g. Black + With cable, Black + Without cable, White + With cable. Each needs a unique barcode and can have many pictures.</p>
         </div>
@@ -508,6 +624,10 @@
             <div x-show="isMulti" x-cloak class="space-y-3">
                 <div class="flex items-center justify-between gap-2">
                     <p class="text-xs font-semibold text-slate-700">Variants <span class="font-normal text-slate-500">(barcode + stock + photos each)</span></p>
+                    <label x-show="requiresImei" x-cloak class="ml-auto inline-flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                        <input type="checkbox" x-model="dualImei" class="rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                        2 IMEIs per phone
+                    </label>
                     <button type="button" @click="addVariantRow()"
                             class="text-xs font-semibold text-orange-700 hover:text-orange-800 px-2 py-1 rounded-md border border-orange-200 bg-orange-50">
                         + Add color / option
@@ -576,6 +696,7 @@
                             <div>
                                 <label class="block text-[10px] font-semibold text-slate-500 mb-1">Opening qty</label>
                                 <input type="number" min="0" :name="'variants['+index+'][stock_quantity]'" x-model="row.stock_quantity"
+                                       @input="syncImeiCount(row._units, row.stock_quantity)"
                                        class="block w-full rounded-md border-slate-200 text-sm py-2">
                             </div>
                         </div>
@@ -583,12 +704,15 @@
                             <label class="block text-[10px] font-semibold text-slate-500 mb-1.5">Pictures for this color (add as many as you want)</label>
                             @include('products.partials.variant-image-uploads')
                         </div>
-                        <div x-show="requiresImei">
-                            <label class="block text-[10px] font-semibold text-slate-500 mb-1">IMEI numbers (one per line)</label>
-                            <textarea :name="'variants['+index+'][imei_list]'" x-model="row.imei_list" rows="2"
-                                      class="block w-full rounded-md border-slate-200 text-sm font-mono"
-                                      placeholder="356938035643809&#10;356938035643810"></textarea>
-                        </div>
+                        <template x-if="requiresImei">
+                            <div>
+                                @include('products.partials.imei-units', ['units' => 'row._units', 'nameAttr' => ':name="\'variants[\'+index+\'][imei_list]\'"'])
+                            </div>
+                        </template>
+                        <button type="button" x-show="!requiresImei" @click="requiresImei = true"
+                                class="text-[11px] font-semibold text-orange-700 hover:text-orange-800">
+                            Selling phones? Turn on IMEI entry for each unit →
+                        </button>
                     </div>
                 </template>
                 @error('variants') <p class="text-red-500 text-xs">{{ $message }}</p> @enderror
@@ -598,36 +722,10 @@
         </div>
     </section>
 
-    {{-- IMEI --}}
+    {{-- Store description --}}
     <section class="rounded-xl border border-slate-200 bg-white overflow-hidden">
         <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/80">
-            <h3 class="text-sm font-semibold text-slate-800">{{ $isEdit ? '4b' : '6' }}. IMEI tracking (optional)</h3>
-            <p class="text-xs text-slate-500 mt-0.5">Only for phones. Leave off for cables &amp; accessories.</p>
-        </div>
-        <div class="p-4 space-y-3">
-            <label class="inline-flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                <input type="hidden" name="requires_imei" value="0">
-                <input type="checkbox" name="requires_imei" value="1" x-model="requiresImei"
-                       class="rounded border-slate-300 text-orange-600 focus:ring-orange-500">
-                This product requires an IMEI / serial when selling
-            </label>
-            <div x-show="requiresImei && isSimple" x-cloak>
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Available IMEI list (one per line)</label>
-                <textarea name="imei_list" x-model="imeiText" rows="4"
-                          class="block w-full rounded-lg border-slate-200 text-sm font-mono"
-                          placeholder="356938035643809&#10;356938035643810"></textarea>
-                @error('imei_list') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-            </div>
-            <p class="text-[11px] text-slate-500" x-show="requiresImei && isMulti" x-cloak>
-                Enter IMEIs on each variant row above.
-            </p>
-        </div>
-    </section>
-
-    {{-- 5. Store description --}}    {{-- 5. Store description --}}
-    <section class="rounded-xl border border-slate-200 bg-white overflow-hidden">
-        <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/80">
-            <h3 class="text-sm font-semibold text-slate-800">5. Store description & visibility</h3>
+            <h3 class="text-sm font-semibold text-slate-800">{{ $isEdit ? '6' : '7' }}. Store description & visibility</h3>
             <p class="text-xs text-slate-500 mt-0.5">Shown under Description on the product page.</p>
         </div>
         <div class="p-4 space-y-4">
@@ -667,7 +765,7 @@
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1.5">Opening quantity</label>
                         <input type="number" name="stock_quantity" min="0" step="1"
-                               value="{{ old('stock_quantity', 0) }}"
+                               x-model="simpleQty"
                                :disabled="isMulti"
                                class="block w-full rounded-lg border-slate-200 text-sm py-2.5"
                                placeholder="e.g. 10">

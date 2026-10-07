@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Services\AccountService;
 use App\Services\BakiService;
 use App\Services\OnlineOrderTrackingService;
+use App\Services\OrderRefundService;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -86,6 +87,7 @@ class SalesLedgerController extends Controller
             'onlineStats' => $onlineStats,
             'physicalCount' => $physicalOrders->count(),
             'onlineCount' => $onlineOrders->count(),
+            'todayKey' => now()->timezone(config('app.display_timezone', config('app.timezone', 'Asia/Dhaka')))->format('Y-m-d'),
             'csrfToken' => csrf_token(),
         ]);
     }
@@ -103,12 +105,27 @@ class SalesLedgerController extends Controller
             ->where('exchange_for_order_id', $order->id)
             ->exists();
 
+        $localAt = $order->created_at?->copy()->timezone(config('app.display_timezone', config('app.timezone', 'Asia/Dhaka')));
+        $units = (int) $order->items->sum('quantity');
+        $firstItem = $order->items->first();
+
         return [
             'id' => $order->id,
             'invoice' => $order->invoice_no,
             'created_at' => asian_datetime($order->created_at, 'd M y, h:i A'),
+            'date_key' => $localAt?->format('Y-m-d'),
+            'date_label' => $localAt?->format('d M Y'),
+            'time_label' => $localAt?->format('h:i A'),
             'status' => $order->status,
             'payment_method' => (string) $order->payment_method,
+            'gross' => round($gross, 2),
+            'net' => round($netRevenue, 2),
+            'collected' => max(0, round($netRevenue - $credit, 2)),
+            'units' => $units,
+            'item_summary' => $firstItem
+                ? (($firstItem->product->name ?? 'Item').($order->items->count() > 1 ? ' +'.($order->items->count() - 1).' more' : ''))
+                : '—',
+            'counter' => $order->counter->name ?? null,
             'gross_amount' => format_taka_number($gross),
             'discount_amount' => $discount,
             'discount_amount_fmt' => format_taka_number($discount),
@@ -139,6 +156,7 @@ class SalesLedgerController extends Controller
                 $order->customer?->name,
                 $order->customer?->phone,
                 $order->user?->name,
+                ...$order->items->map(fn ($item) => $item->product->name ?? '')->all(),
             ]))),
         ];
     }
@@ -224,101 +242,21 @@ class SalesLedgerController extends Controller
         return $order->status === 'completed' || (float) $order->paid_amount > 0;
     }
 
-    public function refund(Order $order)
+    public function refund(Order $order, OrderRefundService $refunds)
     {
-        $user = Auth::user();
-
-        if ($order->shop_id !== $user->shop_id) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $isOnline = $order->isOnlineOrder();
-
-        if ($isOnline && ! $user->isAdminUser()) {
-            abort(403, 'Only admins can refund online orders.');
-        }
-
-        if (! $isOnline && ! $user->isAdminUser() && $user->counter_id && (int) $order->counter_id !== (int) $user->counter_id) {
-            abort(403, 'You can only refund sales from your counter.');
-        }
-
-        if (in_array($order->status, ['refunded', 'cancelled', 'returned'])) {
-            return back()->with('error', 'This order has already been voided or refunded.');
-        }
-
-        if ($order->is_exchange_receipt) {
-            return back()->with('error', 'Exchange receipts cannot be refunded. Adjust from the original sale if needed.');
-        }
-
-        if (Order::where('shop_id', $order->shop_id)->where('exchange_for_order_id', $order->id)->exists()) {
-            return back()->with('error', 'This order was already exchanged. Refunding it would double-restock and cash-out incorrectly.');
-        }
-
-        if ($order->created_at < now()->subDays(7)) {
-            return back()->with('error', 'The 7-day refund window has expired for this order.');
-        }
-
-        if ($isOnline) {
-            if ($order->status !== 'completed') {
-                return back()->with('error', 'Refund is only available after the order is delivered. Use Returned if it is not delivered yet.');
-            }
-
-            if (! $this->moneyWasCollected($order)) {
-                return back()->with('error', 'No payment was collected yet. Use Returned if the package came back unpaid (COD).');
-            }
-        }
-
         try {
-            DB::beginTransaction();
-
-            $order->update([
-                'status' => 'refunded',
-                'paid_amount' => 0,
-            ]);
-
-            foreach ($order->items as $item) {
-                $product = $item->product;
-
-                if ($product) {
-                    $this->stock->restockForDocument(
-                        $product,
-                        $item->quantity,
-                        'Refund - '.$order->invoice_no,
-                        'order_refund',
-                        $order->id,
-                        'order_refund',
-                        Auth::id(),
-                    );
-                }
-            }
-
-            $order->load('items.product', 'counter');
-            $this->baki->reverseSaleCredit($order, Auth::id());
-            $this->accounts->postOrderRefund($order);
-
-            if ($isOnline) {
-                $this->tracking->upsertLatestLog(
-                    $order,
-                    'refunded',
-                    'Order refunded after payment collection.',
-                    $order->shipping_courier,
-                    $order->shipping_tracking_no,
-                    Auth::id(),
-                );
-            }
-
-            DB::commit();
-
-            $channel = $isOnline ? 'online' : 'physical';
-
-            return redirect()
-                ->route('sales.index', ['channel' => $channel])
-                ->with('success', "Order {$order->invoice_no} has been refunded, stock restored, and money reversed.");
+            $refunds->refund($order, Auth::user());
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return back()->with('error', 'Failed to process refund. '.$e->getMessage());
         }
+
+        return redirect()
+            ->route('sales.index', ['channel' => $order->isOnlineOrder() ? 'online' : 'physical'])
+            ->with('success', "Order {$order->invoice_no} has been refunded, stock restored, and money reversed.");
     }
 
     /**

@@ -584,18 +584,33 @@
                     <td class="text-right" style="font-weight:700">{{ $paymentLabel }}{{ ($order->is_emi ?? false) ? ' / EMI' : (($order->is_baki ?? false) ? ' / BAKI' : '') }}</td>
                 </tr>
                 @if(! $isVoid)
-                    @php $tenderLines = $order->tenderLines(); @endphp
+                    @php
+                        $tenderLines = $order->tenderLines();
+                        $changeGiven = max(0, round((float) ($order->change_amount ?? 0), 2));
+                        $tenderGross = round(collect($tenderLines)->sum('amount'), 2);
+                        $settledNow = max(0, round($order->netPayable() - $creditDue, 2));
+                        // BAKI/EMI store only the cash applied to the bill; show what the customer actually handed over.
+                        $changeOutsideTender = $changeGiven > 0.009 && $tenderGross + 0.05 < $settledNow + $changeGiven;
+                        if ($changeOutsideTender) {
+                            $cashIndex = collect($tenderLines)->search(fn ($l) => $l['key'] === 'cash');
+                            if ($cashIndex !== false) {
+                                $tenderLines[$cashIndex]['amount'] = round($tenderLines[$cashIndex]['amount'] + $changeGiven, 2);
+                            } else {
+                                array_unshift($tenderLines, ['key' => 'cash', 'label' => 'Cash', 'amount' => $changeGiven]);
+                            }
+                        }
+                    @endphp
                     @if(count($tenderLines) > 0)
                         @foreach($tenderLines as $line)
                             <tr>
-                                <td class="lbl">{{ $line['label'] }}</td>
+                                <td class="lbl">{{ $line['label'] }}{{ $changeGiven > 0.009 ? ' received' : '' }}</td>
                                 <td class="text-right" style="font-weight:700">{{ format_taka($line['amount']) }}</td>
                             </tr>
                         @endforeach
                     @endif
                 @endif
                 <tr>
-                    <td class="lbl">Amount paid</td>
+                    <td class="lbl">{{ ($changeOutsideTender ?? false) && ! $isVoid ? 'Paid toward bill' : 'Amount paid' }}</td>
                     <td class="text-right" style="font-weight:700">
                         {{ format_taka($isVoid ? 0 : $amountPaid) }}
                     </td>

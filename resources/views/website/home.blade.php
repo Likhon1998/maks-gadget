@@ -248,7 +248,7 @@
             this.timer = setInterval(() => { this.next(); }, 4200);
         },
         onPointerDown(e) {
-            if (this.total < 2) return;
+            if (this.total < 1) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             this.dragging = true;
             this.dragMoved = false;
@@ -264,7 +264,17 @@
         },
         onPointerUp(e) {
             if (!this.dragging) return;
+            const tapped = e.type === 'pointerup' && !this.dragMoved;
             this.dragging = false;
+            if (tapped) {
+                const card = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-cover-url]');
+                if (card && this.$refs.coverStage.contains(card)) {
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
+                    this.dragDelta = 0;
+                    window.location.href = card.dataset.coverUrl;
+                    return;
+                }
+            }
             const threshold = Math.min(64, Math.max(36, window.innerWidth * 0.1));
             if (this.dragDelta <= -threshold) this.next();
             else if (this.dragDelta >= threshold) this.prev();
@@ -328,11 +338,11 @@
                                 $count = (int) ($category->products_count ?? 0);
                                 $countLabel = $count > 0 ? ($count >= 100 ? '100+' : $count.'+') : 'New';
                             @endphp
-                            <button
-                                type="button"
+                            <a
+                                href="{{ route('website.category', $category->slug ?? $category->id) }}"
                                 class="mg-cover-marquee-item{{ $loopPass === 1 ? ' mg-cover-marquee-item--dup' : '' }}"
                                 :class="{ 'is-active': active === {{ $i }} }"
-                                @click="go({{ $i }})"
+                                draggable="false"
                                 tabindex="{{ $loopPass === 0 ? 0 : -1 }}"
                                 aria-hidden="{{ $loopPass === 0 ? 'false' : 'true' }}"
                             >
@@ -343,7 +353,7 @@
                                     <span class="mg-cover-marquee-name">{{ $category->name }}</span>
                                     <span class="mg-cover-marquee-count">{{ $countLabel }}</span>
                                 </span>
-                            </button>
+                            </a>
                         @endforeach
                     @endforeach
                 </div>
@@ -378,9 +388,9 @@
                 <article
                     class="mg-cover-card {{ $theme }}"
                     data-cover-i="{{ $i }}"
+                    data-cover-url="{{ $url }}"
                     :class="{ 'is-active': active === {{ $i }}, 'is-dragging': dragging }"
                     :style="styleFor({{ $i }})"
-                    @click="active === {{ $i }} ? openCategory(@js($url)) : go({{ $i }})"
                     role="link"
                     tabindex="0"
                     @keydown.enter.prevent="openCategory(@js($url))"

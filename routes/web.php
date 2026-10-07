@@ -155,6 +155,8 @@ Route::middleware([
     Route::get('/pos/receipt/{order}', [PosController::class, 'receipt'])->name('pos.receipt');
     Route::get('/pos/customer-lookup', [PosController::class, 'lookupCustomer'])->name('pos.customer-lookup');
     Route::post('/pos/sync-offline', [PosController::class, 'syncOffline'])->name('pos.sync');
+    Route::get('/pos/orders/search', [PosController::class, 'searchOrders'])->name('pos.orders.search');
+    Route::post('/pos/orders/{order}/refund', [PosController::class, 'refundOrder'])->name('pos.orders.refund');
     Route::get('/pos/settings', [PosSettingsController::class, 'edit'])->name('pos.settings.edit');
     Route::put('/pos/settings', [PosSettingsController::class, 'update'])->name('pos.settings.update');
 

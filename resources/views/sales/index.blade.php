@@ -22,9 +22,10 @@
              'onlineHubUrl' => route('online-orders.index'),
              'posUrl' => route('pos.index'),
              'csrf' => $csrfToken ?? csrf_token(),
+             'todayKey' => $todayKey ?? null,
          ]))"
          x-cloak>
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
 
             @if (session('success'))
                 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)" class="bg-green-500 text-white p-3 rounded-lg shadow-sm font-bold flex justify-between items-center text-sm">
@@ -39,187 +40,219 @@
                 </div>
             @endif
 
-            {{-- Instant tabs --}}
-            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-1.5 inline-flex gap-1 w-full sm:w-auto">
+            {{-- Tabs + period filter --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-1 inline-flex gap-1 w-full sm:w-auto">
                 <button type="button" @click="setChannel('physical')"
-                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition"
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition"
                         :class="channel === 'physical' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     Physical (POS)
-                    <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full"
+                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
                           :class="channel === 'physical' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'"
                           x-text="physicalCount"></span>
                 </button>
                 <button type="button" @click="setChannel('online')"
                         x-show="canViewOnline"
-                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition"
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-[13px] font-medium transition"
                         :class="channel === 'online' ? 'bg-indigo-600 text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50'">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
                     Online Orders
-                    <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full"
+                    <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
                           :class="channel === 'online' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'"
                           x-text="onlineCount"></span>
                 </button>
             </div>
+                <div x-show="channel === 'physical'" class="inline-flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm self-start sm:self-auto">
+                    <template x-for="p in periods" :key="p.key">
+                        <button type="button" @click="period = p.key"
+                                class="px-3 py-1 rounded-lg text-xs font-medium transition"
+                                :class="period === p.key ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-900'"
+                                x-text="p.label"></button>
+                    </template>
+                </div>
+            </div>
 
-            {{-- Physical stats --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4" x-show="channel === 'physical'">
-                <div class="bg-orange-50 border border-orange-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                    <div>
-                        <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest">Cancelled Orders</p>
-                        <h3 class="text-2xl font-black text-orange-900" x-text="physicalStats.cancelled"></h3>
-                    </div>
-                    <div class="w-10 h-10 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                    </div>
+            {{-- Physical summary strip --}}
+            <div x-show="channel === 'physical'"
+                 class="bg-white border border-slate-200 rounded-xl shadow-sm grid grid-cols-2 md:grid-cols-5 divide-x divide-y md:divide-y-0 divide-slate-100 overflow-hidden">
+                <div class="px-4 py-2.5">
+                    <p class="text-[11px] font-medium text-slate-500">Net sales</p>
+                    <p class="text-[15px] font-semibold text-slate-900 tabular-nums leading-tight" x-text="money(physicalSummary.net)"></p>
+                    <p class="text-[10px] text-slate-400" x-text="physicalSummary.count + ' sale(s) · ' + physicalSummary.units + ' unit(s)'"></p>
                 </div>
-                <div class="bg-red-50 border border-red-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                    <div>
-                        <p class="text-[10px] font-black text-red-600 uppercase tracking-widest">Returned Orders</p>
-                        <h3 class="text-2xl font-black text-red-900" x-text="physicalStats.returned"></h3>
-                    </div>
-                    <div class="w-10 h-10 bg-red-100 text-red-500 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"/></svg>
-                    </div>
+                <div class="px-4 py-2.5">
+                    <p class="text-[11px] font-medium text-slate-500">Collected</p>
+                    <p class="text-[15px] font-semibold text-emerald-700 tabular-nums leading-tight" x-text="money(physicalSummary.collected)"></p>
+                    <p class="text-[10px] text-slate-400">Cash, card &amp; bKash</p>
                 </div>
-                <div class="bg-rose-50 border border-rose-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                    <div>
-                        <p class="text-[10px] font-black text-rose-600 uppercase tracking-widest">Refunded Orders</p>
-                        <h3 class="text-2xl font-black text-rose-900" x-text="physicalStats.refunded"></h3>
-                    </div>
-                    <div class="w-10 h-10 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                    </div>
+                <div class="px-4 py-2.5">
+                    <p class="text-[11px] font-medium text-slate-500">Baki due</p>
+                    <p class="text-[15px] font-semibold text-orange-700 tabular-nums leading-tight" x-text="money(physicalSummary.baki)"></p>
+                    <p class="text-[10px] text-slate-400" x-text="physicalSummary.bakiCount + ' sale(s) on credit'"></p>
+                </div>
+                <div class="px-4 py-2.5">
+                    <p class="text-[11px] font-medium text-slate-500">Discounts</p>
+                    <p class="text-[15px] font-semibold text-amber-700 tabular-nums leading-tight" x-text="money(physicalSummary.discount)"></p>
+                    <p class="text-[10px] text-slate-400">Off list price</p>
+                </div>
+                <div class="px-4 py-2.5 col-span-2 md:col-span-1">
+                    <p class="text-[11px] font-medium text-slate-500">Refunds &amp; returns</p>
+                    <p class="text-[15px] font-semibold text-rose-700 tabular-nums leading-tight" x-text="physicalSummary.voided"></p>
+                    <p class="text-[10px] text-slate-400" x-text="money(physicalSummary.voidedValue) + ' reversed'"></p>
                 </div>
             </div>
 
             {{-- Online stats + status chips --}}
-            <div x-show="channel === 'online'" class="space-y-3">
+            <div x-show="channel === 'online'" class="space-y-2">
                 <div class="grid grid-cols-2 xl:grid-cols-5 gap-3">
-                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl shadow-sm">
-                        <p class="text-[10px] font-black text-amber-600 uppercase tracking-widest">Needs packing</p>
-                        <h3 class="text-2xl font-black text-amber-900 mt-1" x-text="onlineStats.pending"></h3>
+                    <div class="bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl shadow-sm">
+                        <p class="text-[11px] font-medium text-amber-700">Needs packing</p>
+                        <h3 class="text-[15px] font-semibold text-amber-900 leading-tight" x-text="onlineStats.pending"></h3>
                     </div>
-                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl shadow-sm">
-                        <p class="text-[10px] font-black text-blue-600 uppercase tracking-widest">Packing now</p>
-                        <h3 class="text-2xl font-black text-blue-900 mt-1" x-text="onlineStats.processing"></h3>
+                    <div class="bg-blue-50 border border-blue-200 px-4 py-2.5 rounded-xl shadow-sm">
+                        <p class="text-[11px] font-medium text-blue-700">Packing now</p>
+                        <h3 class="text-[15px] font-semibold text-blue-900 leading-tight" x-text="onlineStats.processing"></h3>
                     </div>
-                    <div class="bg-purple-50 border border-purple-200 p-4 rounded-xl shadow-sm">
-                        <p class="text-[10px] font-black text-purple-600 uppercase tracking-widest">Out for delivery</p>
-                        <h3 class="text-2xl font-black text-purple-900 mt-1" x-text="onlineStats.shipped"></h3>
+                    <div class="bg-purple-50 border border-purple-200 px-4 py-2.5 rounded-xl shadow-sm">
+                        <p class="text-[11px] font-medium text-purple-700">Out for delivery</p>
+                        <h3 class="text-[15px] font-semibold text-purple-900 leading-tight" x-text="onlineStats.shipped"></h3>
                     </div>
-                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl shadow-sm">
-                        <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Delivered</p>
-                        <h3 class="text-2xl font-black text-emerald-900 mt-1" x-text="onlineStats.completed"></h3>
+                    <div class="bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-xl shadow-sm">
+                        <p class="text-[11px] font-medium text-emerald-700">Delivered</p>
+                        <h3 class="text-[15px] font-semibold text-emerald-900 leading-tight" x-text="onlineStats.completed"></h3>
                     </div>
-                    <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl shadow-sm col-span-2 xl:col-span-1">
-                        <p class="text-[10px] font-black text-sky-600 uppercase tracking-widest">COD with courier</p>
-                        <h3 class="text-xl font-black text-sky-900 mt-1" x-text="'৳' + Math.round(Number(onlineStats.cod_outstanding) || 0).toLocaleString()"></h3>
+                    <div class="bg-sky-50 border border-sky-200 px-4 py-2.5 rounded-xl shadow-sm col-span-2 xl:col-span-1">
+                        <p class="text-[11px] font-medium text-sky-700">COD with courier</p>
+                        <h3 class="text-[15px] font-semibold text-sky-900 leading-tight" x-text="'৳' + Math.round(Number(onlineStats.cod_outstanding) || 0).toLocaleString()"></h3>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <template x-for="tab in statusTabs" :key="tab.key">
                         <button type="button" @click="status = tab.key"
-                                class="px-3 py-1.5 rounded-lg text-xs font-bold border"
+                                class="px-3 py-1.5 rounded-lg text-xs font-medium border"
                                 :class="status === tab.key ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'"
                                 x-text="tab.label"></button>
                     </template>
                 </div>
             </div>
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-100">
-                <div class="p-3 border-b border-gray-100 bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-3">
-                    <h3 class="font-bold text-gray-700 text-sm" x-text="channel === 'online' ? 'Online Order History' : 'POS Transaction History'"></h3>
+            <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-slate-200">
+                <div class="px-5 py-3 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-3">
+                    <div>
+                        <h3 class="font-semibold text-slate-800 text-sm" x-text="channel === 'online' ? 'Online order history' : 'POS transactions'"></h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5"
+                           x-text="channel === 'online'
+                               ? (filteredOnline.length + ' of ' + online.length + ' orders')
+                               : (periodLabel() + ' · ' + filteredPhysical.length + ' of ' + physical.length + ' sales · newest first')"></p>
+                    </div>
                     <div class="flex w-full md:w-auto gap-2">
                         <div class="relative flex-1 md:flex-none">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                                <svg class="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             </div>
                             <input type="text" x-model="search" x-ref="search"
-                                   :placeholder="channel === 'online' ? 'Invoice, phone, tracking…' : 'Invoice or Mobile...'"
+                                   :placeholder="channel === 'online' ? 'Invoice, phone, tracking…' : 'Invoice, customer, mobile or product…'"
                                    autocomplete="off"
-                                   class="pl-8 w-full md:w-56 border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 text-sm py-1.5">
+                                   class="pl-9 w-full md:w-72 border-slate-200 rounded-xl shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-[13px] py-1.5">
                         </div>
                         <button type="button" x-show="search || (channel === 'online' && status !== 'all')" @click="search = ''; status = 'all'"
-                                class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-200 border border-gray-200">Clear</button>
+                                class="px-3.5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-medium hover:bg-slate-200">Clear</button>
                     </div>
                 </div>
 
                 {{-- PHYSICAL TABLE --}}
                 <div class="overflow-x-auto" x-show="channel === 'physical'">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date & Time</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Invoice No</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Customer Details</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Product Revenue</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status/Payment</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Cashier</th>
-                                <th class="px-4 py-2.5 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">Action</th>
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="bg-slate-50/80 border-b border-slate-100">
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Invoice</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Customer</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Items</th>
+                                <th class="px-5 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Amount</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Payment</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Cashier</th>
+                                <th class="px-5 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-100">
                             <template x-for="order in filteredPhysical" :key="'p-' + order.id">
-                                <tr class="hover:bg-gray-50 transition" :class="order.is_voided ? 'bg-red-50/30' : ''">
-                                    <td class="px-4 py-2.5 whitespace-nowrap text-xs text-gray-500 font-medium" x-text="order.created_at"></td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap text-sm font-black tracking-tight" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-indigo-600'">
-                                        <span x-text="order.invoice"></span>
-                                        <template x-if="order.is_exchange_receipt">
-                                            <br><span class="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded uppercase tracking-widest mt-1 inline-block">Exchange Receipt</span>
-                                        </template>
+                                <tr class="hover:bg-slate-50/70 transition align-top" :class="order.is_voided ? 'bg-rose-50/40' : ''">
+                                    <td class="px-5 py-3 whitespace-nowrap">
+                                        <div class="text-[13px] font-semibold font-mono" :class="order.is_voided ? 'text-rose-500 line-through' : 'text-indigo-600'" x-text="order.invoice"></div>
+                                        <div class="text-[11px] text-slate-500 mt-1">
+                                            <span x-text="order.date_label"></span> · <span x-text="order.time_label"></span>
+                                        </div>
+                                        <span x-show="order.is_exchange_receipt" class="mt-1.5 inline-flex text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">Exchange receipt</span>
                                     </td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap">
+                                    <td class="px-5 py-3 whitespace-nowrap">
                                         <template x-if="order.customer_name">
                                             <div>
-                                                <div class="text-xs font-bold text-gray-900" x-text="order.customer_name"></div>
-                                                <div class="text-[11px] text-gray-500 mt-0.5 font-mono" x-text="order.customer_phone"></div>
+                                                <div class="text-[13px] font-medium text-slate-800" x-text="order.customer_name"></div>
+                                                <div class="text-[11px] text-slate-500 mt-1 font-mono" x-text="order.customer_phone"></div>
                                             </div>
                                         </template>
                                         <template x-if="!order.customer_name">
-                                            <span class="text-xs text-gray-400 italic font-medium">Guest Customer</span>
+                                            <span class="text-xs text-slate-400 italic">Walk-in customer</span>
                                         </template>
                                     </td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap">
-                                        <div class="text-sm font-black tracking-tight" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-gray-900'">
-                                            <span class="text-gray-400 text-xs mr-0.5">৳</span><span x-text="order.product_revenue"></span>
+                                    <td class="px-5 py-3">
+                                        <div class="text-[13px] text-slate-700 max-w-[220px] truncate" :title="order.items.map(i => i.qty + '× ' + i.name).join(', ')" x-text="order.item_summary"></div>
+                                        <div class="text-[11px] text-slate-400 mt-1" x-text="order.units + ' unit(s)'"></div>
+                                    </td>
+                                    <td class="px-5 py-3 whitespace-nowrap text-right">
+                                        <div class="text-[13px] font-semibold tabular-nums" :class="order.is_voided ? 'text-rose-500 line-through' : 'text-slate-900'" x-text="money(order.net)"></div>
+                                        <div x-show="order.discount_amount > 0" class="text-[11px] text-slate-400 mt-0.5 tabular-nums">
+                                            <span class="line-through" x-text="money(order.gross)"></span>
+                                            <span class="text-amber-600 font-medium" x-text="' −' + money(order.discount_amount)"></span>
                                         </div>
-                                        <template x-if="order.discount_amount > 0">
-                                            <div class="text-[9px] text-amber-600 font-bold mt-0.5" x-text="'− ৳' + order.discount_amount_fmt + ' discount'"></div>
-                                        </template>
-                                        <template x-if="order.credit_amount > 0">
-                                            <div class="text-[9px] text-orange-700 font-bold mt-0.5" x-text="'BAKI ৳' + order.credit_amount_fmt + ' due'"></div>
-                                        </template>
-                                        <template x-if="order.delivery_charge > 0">
-                                            <div class="text-[9px] text-indigo-500 font-bold mt-0.5" x-text="'+ ৳' + order.delivery_charge_fmt + ' Courier'"></div>
-                                        </template>
+                                        <div x-show="order.exchange_credit > 0" class="text-[11px] text-amber-700 font-medium mt-0.5" x-text="'Exchange credit −' + money(order.exchange_credit)"></div>
                                     </td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
-                                              :class="physicalBadgeClass(order)"
-                                              x-text="physicalBadgeLabel(order)"></span>
+                                    <td class="px-5 py-3 whitespace-nowrap">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border"
+                                                  :class="physicalBadgeClass(order)"
+                                                  x-text="physicalBadgeLabel(order)"></span>
+                                            <span x-show="order.credit_amount > 0 && !order.is_voided && (order.payment_method || '').toLowerCase() !== 'baki'" class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border bg-orange-50 text-orange-700 border-orange-200">Baki</span>
+                                        </div>
+                                        <div x-show="!order.is_voided" class="text-[11px] mt-1.5 tabular-nums">
+                                            <span class="text-emerald-700 font-medium" x-text="'Paid ' + money(order.collected)"></span>
+                                            <span x-show="order.credit_amount > 0" class="text-orange-700 font-medium" x-text="' · Due ' + money(order.credit_amount)"></span>
+                                        </div>
                                     </td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap text-xs text-gray-500 font-medium" x-text="order.cashier"></td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap text-right">
-                                        <div class="inline-flex justify-end gap-2">
+                                    <td class="px-5 py-3 whitespace-nowrap">
+                                        <div class="text-[13px] text-slate-600" x-text="order.cashier"></div>
+                                        <div class="text-[11px] text-slate-400 mt-1" x-show="order.counter" x-text="order.counter"></div>
+                                    </td>
+                                    <td class="px-5 py-3 whitespace-nowrap text-right">
+                                        <div class="inline-flex justify-end items-center gap-2">
                                             <button type="button" @click="window.open(order.receipt_url, 'ReceiptWindow', 'width=400,height=600')"
-                                                    class="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 px-2.5 py-1 rounded text-xs font-bold">Receipt</button>
+                                                    class="inline-flex items-center gap-1.5 text-slate-700 hover:text-indigo-700 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 px-2.5 py-1 rounded-lg text-xs font-medium transition">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                                Receipt
+                                            </button>
                                             <template x-if="order.can_return">
                                                 <button type="button" @click="openReturnModal(order)"
-                                                        class="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-100 px-2.5 py-1 rounded text-xs font-bold">Return / Exchange</button>
+                                                        class="inline-flex items-center gap-1.5 text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg text-xs font-medium transition">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                    Return
+                                                </button>
                                             </template>
                                             <template x-if="order.is_exchange_receipt && !order.is_voided">
-                                                <span class="inline-flex items-center gap-1 text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded text-xs font-bold">Final Sale</span>
+                                                <span class="text-[11px] font-medium text-slate-400 px-2">Final sale</span>
                                             </template>
                                             <template x-if="order.return_expired">
-                                                <span class="inline-flex items-center gap-1 text-gray-400 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded text-xs font-bold">Expired</span>
+                                                <span class="text-[11px] font-medium text-slate-400 px-2" title="Return window is 7 days">Return expired</span>
                                             </template>
                                         </div>
                                     </td>
                                 </tr>
                             </template>
                             <tr x-show="filteredPhysical.length === 0">
-                                <td colspan="7" class="px-4 py-10 text-center text-sm text-gray-500">No POS sales found matching your criteria.</td>
+                                <td colspan="7" class="px-5 py-16 text-center">
+                                    <div class="text-sm font-bold text-slate-600">No sales found</div>
+                                    <div class="text-xs text-slate-400 mt-1" x-text="search ? 'Try another invoice, name or mobile number.' : 'No counter sales in this period yet.'"></div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -227,24 +260,24 @@
 
                 {{-- ONLINE TABLE --}}
                 <div class="overflow-x-auto" x-show="channel === 'online'">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Order</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Customer</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Revenue</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Fulfillment</th>
-                                <th class="px-4 py-2.5 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">Payment</th>
-                                <th class="px-4 py-2.5 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Date</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Order</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Customer</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Revenue</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Fulfillment</th>
+                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Payment</th>
+                                <th class="px-5 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-100">
                             <template x-for="order in filteredOnline" :key="'o-' + order.id">
                                 <tr class="hover:bg-gray-50 transition" :class="order.is_voided ? 'bg-red-50/30' : ''">
-                                    <td class="px-4 py-2.5 whitespace-nowrap text-xs text-gray-500 font-medium" x-text="order.created_at"></td>
-                                    <td class="px-4 py-2.5">
-                                        <a :href="order.show_url" class="text-sm font-black tracking-tight" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-indigo-600 hover:underline'" x-text="order.invoice"></a>
+                                    <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-500 font-medium" x-text="order.created_at"></td>
+                                    <td class="px-5 py-3.5">
+                                        <a :href="order.show_url" class="text-[13px] font-semibold" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-indigo-600 hover:underline'" x-text="order.invoice"></a>
                                         <div class="mt-1 text-[11px] text-gray-500 space-y-0.5">
                                             <template x-for="(item, idx) in order.items.slice(0, 2)" :key="order.id + '-i-' + idx">
                                                 <div class="truncate max-w-[200px]" x-text="'▪ ' + item.qty + '× ' + item.name"></div>
@@ -252,32 +285,32 @@
                                             <div class="text-gray-400" x-show="order.items.length > 2" x-text="'+' + (order.items.length - 2) + ' more'"></div>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-2.5">
-                                        <div class="text-xs font-bold text-gray-900" x-text="order.customer_name"></div>
+                                    <td class="px-5 py-3.5">
+                                        <div class="text-[13px] font-medium text-slate-800" x-text="order.customer_name"></div>
                                         <div class="text-[11px] text-gray-500 mt-0.5 font-mono" x-text="order.customer_phone"></div>
                                         <div class="text-[10px] text-gray-400 mt-1 max-w-[180px] truncate" x-show="order.customer_address" :title="order.customer_address" x-text="order.customer_address"></div>
                                     </td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap">
-                                        <div class="text-sm font-black" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-gray-900'" x-text="'৳' + order.product_revenue"></div>
+                                    <td class="px-5 py-3.5 whitespace-nowrap">
+                                        <div class="text-[13px] font-semibold" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-gray-900'" x-text="'৳' + order.product_revenue"></div>
                                         <template x-if="order.discount_amount > 0">
-                                            <div class="text-[9px] text-amber-600 font-bold mt-0.5" x-text="'− ৳' + order.discount_amount_fmt + ' discount'"></div>
+                                            <div class="text-[9px] text-amber-600 font-medium mt-0.5" x-text="'− ৳' + order.discount_amount_fmt + ' discount'"></div>
                                         </template>
-                                        <div class="text-[9px] font-bold mt-0.5" :class="order.delivery_charge > 0 ? 'text-indigo-500' : 'text-gray-400'"
+                                        <div class="text-[10px] font-medium mt-0.5" :class="order.delivery_charge > 0 ? 'text-indigo-500' : 'text-gray-400'"
                                              x-text="order.delivery_charge > 0 ? ('+ ৳' + order.delivery_charge_fmt + ' delivery') : 'Free delivery'"></div>
                                     </td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap">
-                                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border" :class="onlineStatusClass(order.status)" x-text="onlineStatusLabel(order.status)"></span>
+                                    <td class="px-5 py-3.5 whitespace-nowrap">
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="onlineStatusClass(order.status)" x-text="onlineStatusLabel(order.status)"></span>
                                         <p class="text-[10px] text-purple-700 font-bold mt-1" x-show="order.status === 'shipped' && order.shipping_courier" x-text="order.shipping_courier"></p>
                                         <p class="text-[10px] text-gray-500 font-mono" x-show="order.shipping_tracking_no" x-text="order.shipping_tracking_no"></p>
                                     </td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap">
-                                        <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 border border-gray-200" x-text="order.payment_method"></span>
+                                    <td class="px-5 py-3.5 whitespace-nowrap">
+                                        <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-gray-100 text-gray-700 border border-gray-200" x-text="order.payment_method"></span>
                                     </td>
-                                    <td class="px-4 py-2.5 whitespace-nowrap text-right">
+                                    <td class="px-5 py-3.5 whitespace-nowrap text-right">
                                         <div class="inline-flex flex-col sm:flex-row gap-1.5 justify-end">
-                                            <a :href="order.show_url" class="inline-flex items-center justify-center text-white bg-indigo-600 hover:bg-indigo-700 px-2.5 py-1 rounded text-xs font-bold">Manage & track</a>
+                                            <a :href="order.show_url" class="inline-flex items-center justify-center text-white bg-indigo-600 hover:bg-indigo-700 px-2.5 py-1 rounded text-xs font-medium">Manage & track</a>
                                             <button type="button" @click="window.open(order.receipt_url, 'ReceiptWindow', 'width=400,height=600')"
-                                                    class="inline-flex items-center justify-center text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 px-2.5 py-1 rounded text-xs font-bold">Receipt</button>
+                                                    class="inline-flex items-center justify-center text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 px-2.5 py-1 rounded text-xs font-medium">Receipt</button>
                                             <template x-if="order.can_mark_returned">
                                                 <form method="POST" :action="order.return_url"
                                                       :data-confirm="'Mark ' + order.invoice + ' as Returned? Stock will come back. No cash refund (COD not collected).'"
@@ -285,7 +318,7 @@
                                                       data-confirm-ok="Mark returned"
                                                       data-confirm-tone="warning">
                                                     <input type="hidden" name="_token" :value="csrf">
-                                                    <button type="submit" class="inline-flex w-full items-center justify-center text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded text-xs font-bold">Returned</button>
+                                                    <button type="submit" class="inline-flex w-full items-center justify-center text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded text-xs font-medium">Returned</button>
                                                 </form>
                                             </template>
                                             <template x-if="order.can_refund">
@@ -295,7 +328,7 @@
                                                       data-confirm-ok="Refund"
                                                       data-confirm-tone="danger">
                                                     <input type="hidden" name="_token" :value="csrf">
-                                                    <button type="submit" class="inline-flex w-full items-center justify-center text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 px-2.5 py-1 rounded text-xs font-bold">Refund</button>
+                                                    <button type="submit" class="inline-flex w-full items-center justify-center text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 px-2.5 py-1 rounded text-xs font-medium">Refund</button>
                                                 </form>
                                             </template>
                                         </div>
@@ -307,10 +340,6 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
-
-                <div class="px-4 py-2.5 border-t border-gray-50 text-[11px] text-gray-400"
-                     x-text="'Showing ' + (channel === 'online' ? filteredOnline.length : filteredPhysical.length) + ' of ' + (channel === 'online' ? online.length : physical.length) + ' loaded · instant filter'">
                 </div>
             </div>
         </div>
@@ -391,6 +420,14 @@
                 onlineHubUrl: cfg.onlineHubUrl,
                 posUrl: cfg.posUrl,
                 csrf: cfg.csrf,
+                todayKey: cfg.todayKey || null,
+                period: 'all',
+                periods: [
+                    { key: 'today', label: 'Today' },
+                    { key: '7d', label: '7 days' },
+                    { key: '30d', label: '30 days' },
+                    { key: 'all', label: 'All' },
+                ],
                 search: '',
                 status: 'all',
                 statusTabs: [
@@ -415,7 +452,42 @@
                 },
                 get filteredPhysical() {
                     const q = (this.search || '').trim().toLowerCase();
-                    return this.physical.filter(o => !q || (o.search_blob || '').includes(q));
+                    return this.physical.filter(o => this.inPeriod(o) && (!q || (o.search_blob || '').includes(q)));
+                },
+                get physicalSummary() {
+                    const s = { count: 0, units: 0, net: 0, collected: 0, baki: 0, bakiCount: 0, discount: 0, voided: 0, voidedValue: 0 };
+                    this.filteredPhysical.forEach(o => {
+                        if (o.is_voided) {
+                            s.voided++;
+                            s.voidedValue += Number(o.net) || 0;
+                            return;
+                        }
+                        s.count++;
+                        s.units += Number(o.units) || 0;
+                        s.net += Number(o.net) || 0;
+                        s.collected += Number(o.collected) || 0;
+                        s.discount += Number(o.discount_amount) || 0;
+                        if (Number(o.credit_amount) > 0) {
+                            s.baki += Number(o.credit_amount);
+                            s.bakiCount++;
+                        }
+                    });
+                    return s;
+                },
+                inPeriod(o) {
+                    if (this.period === 'all' || !o.date_key || !this.todayKey) return true;
+                    const days = Math.round((Date.parse(this.todayKey) - Date.parse(o.date_key)) / 86400000);
+                    if (this.period === 'today') return days === 0;
+                    if (this.period === '7d') return days >= 0 && days < 7;
+                    if (this.period === '30d') return days >= 0 && days < 30;
+                    return true;
+                },
+                periodLabel() {
+                    return ({ today: 'Today', '7d': 'Last 7 days', '30d': 'Last 30 days', all: 'Last ' + this.physical.length + ' sales loaded' })[this.period] || '';
+                },
+                money(value) {
+                    const n = Math.round((Number(value) || 0) * 100) / 100;
+                    return '৳' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
                 },
                 get filteredOnline() {
                     const q = (this.search || '').trim().toLowerCase();
@@ -459,6 +531,8 @@
                     if (m === 'cash') return 'Cash';
                     if (m === 'card') return 'Card';
                     if (m === 'bkash') return 'bKash';
+                    if (m === 'baki') return 'Full Baki';
+                    if (m === 'emi') return 'EMI';
                     return order.payment_method || 'Paid';
                 },
                 physicalBadgeClass(order) {
@@ -469,6 +543,9 @@
                     if (m === 'cash') return 'bg-green-100 text-green-800 border-green-200';
                     if (m === 'card') return 'bg-blue-100 text-blue-800 border-blue-200';
                     if (m === 'bkash') return 'bg-pink-100 text-pink-800 border-pink-200';
+                    if (m === 'baki') return 'bg-orange-100 text-orange-800 border-orange-200';
+                    if (m === 'emi') return 'bg-violet-100 text-violet-800 border-violet-200';
+                    if (m.includes('+')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
                     return 'bg-gray-100 text-gray-800 border-gray-200';
                 },
                 onlineStatusLabel(status) {

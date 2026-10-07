@@ -43,6 +43,54 @@ class WebsiteController extends Controller
             $query->whereHas('category', fn ($q) => $q->whereSlugOrId($request->category));
         }
 
+        $this->applyShopFilters($query, $request);
+
+        if ($request->filter === 'deals') {
+            $query->onSale();
+        } elseif ($request->filter === 'new') {
+            $query->newArrivals();
+        } elseif (in_array($request->filter, ['bestsellers', 'best'], true)) {
+            $query->trending()->orderByDesc('review_count');
+        }
+
+        $sort = $request->query('sort', 'featured');
+        match ($sort) {
+            'price_asc' => $query->orderBy('selling_price')->orderBy('id'),
+            'price_desc' => $query->orderByDesc('selling_price')->orderBy('id'),
+            'name' => $query->orderBy('name')->orderBy('id'),
+            'latest' => $query->latest('id'),
+            'bestsellers' => $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
+            default => $request->filter === 'new'
+                ? $query->latest('id')
+                : $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
+        };
+
+        $this->website->applyVariantGroupListing($query);
+        $products = $query->paginate(12)->withQueryString();
+
+        $pageTitle = match ($request->filter) {
+            'deals' => 'Deals',
+            'new' => 'New Arrivals',
+            'bestsellers', 'best' => 'Best Sellers',
+            default => 'Shop',
+        };
+
+        if ($request->boolean('ajax') || $request->ajax()) {
+            return $this->listingJson($request, $products, $pageTitle);
+        }
+
+        $sidebar = $this->shopSidebarData($shopId);
+
+        return view('website.shop', array_merge($this->website->homepageData(), $sidebar, compact(
+            'products',
+            'pageTitle',
+            'sort',
+        )));
+    }
+
+    /** Brand, search, price, storage and RAM filters from the shop sidebar. */
+    protected function applyShopFilters($query, Request $request): void
+    {
         $brandIds = array_values(array_filter(array_map('intval', (array) $request->input('brands', []))));
         if ($brandIds) {
             $query->whereIn('brand_id', $brandIds);
@@ -94,58 +142,35 @@ class WebsiteController extends Controller
                 }
             });
         }
+    }
 
-        if ($request->filter === 'deals') {
-            $query->onSale();
-        } elseif ($request->filter === 'new') {
-            $query->newArrivals();
-        } elseif (in_array($request->filter, ['bestsellers', 'best'], true)) {
-            $query->trending()->orderByDesc('review_count');
-        }
-
-        $sort = $request->query('sort', 'featured');
+    /** Sorting for category and brand listings (default: latest). */
+    protected function applyListingSort($query, string $sort): void
+    {
         match ($sort) {
             'price_asc' => $query->orderBy('selling_price')->orderBy('id'),
             'price_desc' => $query->orderByDesc('selling_price')->orderBy('id'),
             'name' => $query->orderBy('name')->orderBy('id'),
-            'latest' => $query->latest('id'),
-            'bestsellers' => $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
-            default => $request->filter === 'new'
-                ? $query->latest('id')
-                : $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
+            'featured', 'bestsellers' => $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
+            default => $query->latest()->orderByDesc('id'),
         };
+    }
 
-        $this->website->applyVariantGroupListing($query);
-        $products = $query->paginate(12)->withQueryString();
+    /** JSON payload used by the live shop listing (pagination, sort, filters). */
+    protected function listingJson(Request $request, $products, string $pageTitle)
+    {
+        $products->appends('ajax', null);
+        $countFrom = $products->firstItem() ?? 0;
+        $countTo = $products->lastItem() ?? 0;
+        $countTotal = $products->total();
+        $settings = $this->website->settings();
 
-        $pageTitle = match ($request->filter) {
-            'deals' => 'Deals',
-            'new' => 'New Arrivals',
-            'bestsellers', 'best' => 'Best Sellers',
-            default => 'Shop',
-        };
-
-        if ($request->boolean('ajax') || $request->ajax()) {
-            $countFrom = $products->firstItem() ?? 0;
-            $countTo = $products->lastItem() ?? 0;
-            $countTotal = $products->total();
-            $settings = $this->website->settings();
-
-            return response()->json([
-                'html' => view('website.partials.shop-results', compact('products', 'settings'))->render(),
-                'count_text' => "Showing {$countFrom}–{$countTo} of ".format_taka_number($countTotal).' products',
-                'title' => $pageTitle,
-                'url' => $request->fullUrlWithoutQuery(['ajax']),
-            ]);
-        }
-
-        $sidebar = $this->shopSidebarData($shopId);
-
-        return view('website.shop', array_merge($this->website->homepageData(), $sidebar, compact(
-            'products',
-            'pageTitle',
-            'sort',
-        )));
+        return response()->json([
+            'html' => view('website.partials.shop-results', compact('products', 'settings'))->render(),
+            'count_text' => "Showing {$countFrom}–{$countTo} of ".format_taka_number($countTotal).' products',
+            'title' => $pageTitle,
+            'url' => $request->fullUrlWithoutQuery(['ajax']),
+        ]);
     }
 
     public function searchSuggest(Request $request)
@@ -228,18 +253,21 @@ class WebsiteController extends Controller
             $query->availableForSale();
         }
 
-        $this->applyCategoryFilters($query, $request, $filterConfig, $category);
+        if ($showSidebar) {
+            $this->applyCategoryFilters($query, $request, $filterConfig, $category);
+        } else {
+            $this->applyShopFilters($query, $request);
+        }
 
-        $sort = $request->query('sort', 'latest');
-        match ($sort) {
-            'price_asc' => $query->orderBy('selling_price'),
-            'price_desc' => $query->orderByDesc('selling_price'),
-            'name' => $query->orderBy('name'),
-            default => $query->latest(),
-        };
+        $sort = (string) $request->query('sort', 'latest');
+        $this->applyListingSort($query, $sort);
 
         $this->website->applyVariantGroupListing($query);
         $products = $query->paginate(12)->withQueryString();
+
+        if ($request->boolean('ajax') || $request->ajax()) {
+            return $this->listingJson($request, $products, $category->name);
+        }
 
         $sidebarFacets = $showSidebar
             ? $this->buildSidebarFacets($category, $filterConfig)
@@ -485,7 +513,7 @@ class WebsiteController extends Controller
         return $facets;
     }
 
-    public function brand(string $slug)
+    public function brand(string $slug, Request $request)
     {
         $shopId = $this->website->shopId();
         abort_unless($shopId, 404);
@@ -527,17 +555,29 @@ class WebsiteController extends Controller
                 $q->where('brand_id', $brand->id)
                     ->orWhereRaw('LOWER(TRIM(COALESCE(brand_name, \'\'))) = ?', [strtolower(trim($brand->name))]);
             })
-            ->with(['category', 'brand'])
-            ->latest();
+            ->with(['category', 'brand']);
+
+        if ($request->filled('category')) {
+            $brandQuery->whereHas('category', fn ($q) => $q->whereSlugOrId($request->category));
+        }
+        $this->applyShopFilters($brandQuery, $request->duplicate($request->except('brands')));
+
+        $sort = (string) $request->query('sort', 'latest');
+        $this->applyListingSort($brandQuery, $sort);
+
         $this->website->applyVariantGroupListing($brandQuery);
-        $products = $brandQuery->paginate(12);
+        $products = $brandQuery->paginate(12)->withQueryString();
+
+        if ($request->boolean('ajax') || $request->ajax()) {
+            return $this->listingJson($request, $products, $brand->name);
+        }
 
         return view('website.shop', array_merge($this->website->homepageData(), $this->shopSidebarData($shopId), [
             'products' => $products,
             'activeBrand' => $brand,
             'pageTitle' => $brand->name,
             'pageSubtitle' => 'Shop all products from ' . $brand->name . '.',
-            'sort' => 'latest',
+            'sort' => $sort,
         ]));
     }
 

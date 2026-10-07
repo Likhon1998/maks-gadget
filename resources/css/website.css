@@ -7593,6 +7593,7 @@ body.gaget-store,
     color: #334155;
     cursor: pointer;
     text-align: left;
+    text-decoration: none;
     transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, color .2s ease;
 }
 .mg-cover-marquee-item:hover {

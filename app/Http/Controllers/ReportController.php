@@ -65,8 +65,14 @@ class ReportController extends Controller
                 AND {$method} NOT LIKE '%card%'
             ))";
 
+        // Same rule as Order::settledTenderBreakdown(): BAKI/EMI rows store only the cash applied to the
+        // invoice, so change is subtracted only when the tenders still include the overpay.
+        $tenderGross = '(COALESCE(cash_paid, 0) + COALESCE(card_paid, 0) + COALESCE(mobile_paid, 0))';
+        $collected = "GREATEST({$netExpr} - COALESCE(credit_amount, 0), 0)";
+        $cashSettled = "GREATEST(COALESCE(cash_paid, 0) - CASE WHEN COALESCE(change_amount, 0) > 0.009 AND {$tenderGross} + 0.05 >= {$collected} + COALESCE(change_amount, 0) THEN COALESCE(change_amount, 0) ELSE 0 END, 0)";
+
         return [
-            'cash' => "SUM(CASE WHEN {$hasBreakdown} THEN GREATEST(COALESCE(cash_paid, 0) - COALESCE(change_amount, 0), 0) WHEN {$cashFallback} THEN {$netExpr} ELSE 0 END)",
+            'cash' => "SUM(CASE WHEN {$hasBreakdown} THEN {$cashSettled} WHEN {$cashFallback} THEN {$netExpr} ELSE 0 END)",
             'card' => "SUM(CASE WHEN {$hasBreakdown} THEN COALESCE(card_paid, 0) WHEN {$cardFallback} THEN {$netExpr} ELSE 0 END)",
             'bkash' => "SUM(CASE WHEN {$hasBreakdown} THEN COALESCE(mobile_paid, 0) WHEN {$bkashFallback} THEN {$netExpr} ELSE 0 END)",
         ];

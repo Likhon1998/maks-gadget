@@ -58,7 +58,7 @@ class OrderItem extends Model
             : $this->soldImeis()->get();
 
         foreach ($imeis as $row) {
-            $lines[] = 'IMEI: '.$row->imei;
+            $lines[] = 'IMEI: '.$row->label();
         }
 
         return $lines;

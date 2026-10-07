@@ -122,16 +122,35 @@ class Product extends Model
         return $this->hasMany(ProductImei::class)->available()->orderBy('id');
     }
 
-    /** Sync IMEI list (available only). Returns count of available IMEIs. */
-    public function syncAvailableImeis(array $imeis): int
+    /**
+     * Sync available phone units. Each unit is an IMEI string or
+     * ['imei' => ..., 'imei2' => ...] for dual-IMEI phones.
+     * Returns count of available units.
+     */
+    public function syncAvailableImeis(array $units): int
     {
-        $normalized = collect($imeis)
-            ->map(fn ($v) => ProductImei::normalize((string) $v))
-            ->filter(fn ($v) => $v !== '')
-            ->unique()
+        $normalized = collect($units)
+            ->map(function ($unit) {
+                $first = ProductImei::normalize((string) (is_array($unit) ? ($unit['imei'] ?? '') : $unit));
+                $second = is_array($unit) ? ProductImei::normalize((string) ($unit['imei2'] ?? '')) : '';
+
+                return ['imei' => $first, 'imei2' => ($second !== '' && $second !== $first) ? $second : null];
+            })
+            ->filter(fn ($u) => $u['imei'] !== '')
+            ->unique('imei')
             ->values();
 
-        $keep = $normalized->all();
+        $seen = [];
+        foreach ($normalized as $unit) {
+            foreach (array_filter([$unit['imei'], $unit['imei2']]) as $number) {
+                if (isset($seen[$number])) {
+                    throw new \InvalidArgumentException("IMEI {$number} is entered more than once.");
+                }
+                $seen[$number] = true;
+            }
+        }
+
+        $keep = $normalized->pluck('imei')->all();
 
         // Remove available IMEIs no longer in the list (never delete sold history).
         $query = $this->imeis()->available();
@@ -140,26 +159,48 @@ class Product extends Model
         }
         $query->delete();
 
-        foreach ($normalized as $imei) {
-            $existing = ProductImei::where('imei', $imei)->first();
+        foreach ($normalized as $unit) {
+            $numbers = array_values(array_filter([$unit['imei'], $unit['imei2']]));
+            $existing = ProductImei::where('imei', $unit['imei'])->first();
+
+            $conflict = ProductImei::query()
+                ->when($existing, fn ($q) => $q->whereKeyNot($existing->id))
+                ->where(fn ($q) => $q->whereIn('imei', $numbers)->orWhereIn('imei2', $numbers))
+                ->first();
+            if ($conflict) {
+                $taken = in_array($conflict->imei, $numbers, true) ? $conflict->imei : $conflict->imei2;
+                throw new \InvalidArgumentException(
+                    (int) $conflict->product_id === (int) $this->id
+                        ? "IMEI {$taken} is already used by another unit of this product."
+                        : "IMEI {$taken} already belongs to another product."
+                );
+            }
+
             if ($existing) {
-                if ((int) $existing->product_id === (int) $this->id && $existing->status === ProductImei::STATUS_AVAILABLE) {
-                    continue;
-                }
                 if ((int) $existing->product_id !== (int) $this->id) {
-                    throw new \InvalidArgumentException("IMEI {$imei} already belongs to another product.");
+                    throw new \InvalidArgumentException("IMEI {$unit['imei']} already belongs to another product.");
                 }
-                // Sold/reserved — leave alone
+                if ($existing->status === ProductImei::STATUS_AVAILABLE && $existing->imei2 !== $unit['imei2']) {
+                    $existing->update(['imei2' => $unit['imei2']]);
+                }
+
                 continue;
             }
 
             $this->imeis()->create([
-                'imei' => $imei,
+                'imei' => $unit['imei'],
+                'imei2' => $unit['imei2'],
                 'status' => ProductImei::STATUS_AVAILABLE,
             ]);
         }
 
         return $this->imeis()->available()->count();
+    }
+
+    /** Available units as "IMEI1 / IMEI2" lines for the product form. */
+    public function availableImeiLines(): string
+    {
+        return $this->availableImeis()->get()->map(fn (ProductImei $row) => $row->label())->implode("\n");
     }
 
     public function category()

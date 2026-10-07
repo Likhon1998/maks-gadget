@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductImei;
 use App\Services\AccountService;
 use App\Services\StockService;
 use Illuminate\Http\Request;
@@ -1246,9 +1247,7 @@ class ProductController extends Controller
 
     private function applyImeiList(Product $product, string $rawList): int
     {
-        $lines = preg_split('/[\r\n,;]+/', $rawList) ?: [];
-
-        return $product->syncAvailableImeis($lines);
+        return $product->syncAvailableImeis(ProductImei::parseUnits($rawList));
     }
 
     /**

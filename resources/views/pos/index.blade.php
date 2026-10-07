@@ -138,6 +138,8 @@
 .pos-tool-btn:hover { background: rgba(255,255,255,.06); }
 .pos-tool-btn.is-active { background: rgba(37,99,235,.25); border-color: rgba(96,165,250,.45); color: #93c5fd; }
 .pos-tool-btn svg { width: 15px; height: 15px; }
+.pos-tool-btn.pos-return-btn { border-color: rgba(251,191,36,.4); background: rgba(245,158,11,.14); color: #fde68a; }
+.pos-tool-btn.pos-return-btn:hover { background: rgba(245,158,11,.24); color: #fff; }
 .pos-close-day {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 12px; border-radius: 10px;
@@ -869,6 +871,81 @@
     display: flex; justify-content: space-between; align-items: center;
     font-size: 11px; font-weight: 650; color: var(--amber);
 }
+.exchange-cancel-btn {
+    border: 1px solid var(--amber-border); background: #fff; color: var(--amber);
+    border-radius: 7px; padding: 3px 8px; font-size: 10.5px; font-weight: 800; cursor: pointer;
+}
+.exchange-cancel-btn:hover { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* Return / exchange / refund modal */
+.rx-modal { width: min(100vw - 24px, 640px) !important; }
+.rx-search { display: flex; gap: 8px; }
+.rx-search input {
+    flex: 1; min-width: 0; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--border); font-size: 13px; font-weight: 600; outline: none; background: var(--surface);
+}
+.rx-search input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,.12); }
+.rx-hint { margin: 6px 0 0; font-size: 11px; color: var(--text-3); font-weight: 600; }
+.rx-results { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.rx-order {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); cursor: pointer; text-align: left; width: 100%; font-family: var(--font);
+}
+.rx-order:hover { border-color: var(--blue); background: var(--blue-soft); }
+.rx-order-inv { font-family: var(--mono); font-weight: 800; font-size: 12.5px; color: var(--text-1); }
+.rx-order-meta { font-size: 11px; color: var(--text-3); font-weight: 600; margin-top: 2px; }
+.rx-order-amt { font-family: var(--mono); font-weight: 800; font-size: 13px; color: var(--text-1); white-space: nowrap; }
+.rx-badge {
+    display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px;
+    font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em;
+    background: #fee2e2; color: #b91c1c; vertical-align: middle;
+}
+.rx-badge.is-ex { background: var(--amber-bg); color: var(--amber); }
+.rx-detail-head {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border);
+}
+.rx-back { border: 0; background: none; color: var(--blue); font-weight: 800; font-size: 11.5px; cursor: pointer; padding: 0; margin-bottom: 8px; }
+.rx-items { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.rx-item {
+    display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+    padding: 9px 12px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; background: #fff;
+}
+.rx-item.is-selected { border-color: var(--amber); background: var(--amber-bg); }
+.rx-item.is-disabled { opacity: .5; cursor: not-allowed; }
+.rx-item-name { font-size: 12.5px; font-weight: 700; color: var(--text-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rx-item-sub { font-size: 10.5px; font-weight: 600; color: var(--text-3); margin-top: 1px; }
+.rx-qty { display: flex; align-items: center; gap: 6px; }
+.rx-qty button {
+    width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface);
+    font-weight: 800; cursor: pointer; color: var(--text-1);
+}
+.rx-qty span { min-width: 18px; text-align: center; font-family: var(--mono); font-weight: 800; }
+.rx-actions { margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rx-action {
+    border-radius: 12px; padding: 11px 12px; border: 1px solid transparent; cursor: pointer;
+    font-family: var(--font); text-align: left;
+}
+.rx-action:disabled { opacity: .45; cursor: not-allowed; }
+.rx-action strong { display: block; font-size: 13px; font-weight: 800; }
+.rx-action small { display: block; font-size: 10.5px; font-weight: 600; margin-top: 2px; line-height: 1.35; }
+.rx-action.exchange { background: var(--amber-bg); border-color: var(--amber-border); color: #92400e; }
+.rx-action.refund { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.rx-block { margin-top: 4px; font-size: 10.5px; font-weight: 700; color: #b91c1c; }
+.rx-confirm {
+    margin-top: 12px; padding: 12px; border-radius: 12px; border: 1px solid #fecaca; background: #fef2f2;
+    font-size: 12px; font-weight: 600; color: #7f1d1d;
+}
+.rx-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.rx-btn { border-radius: 9px; padding: 8px 14px; font-weight: 800; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: #fff; color: var(--text-2); }
+.rx-btn.danger { background: #dc2626; border-color: #dc2626; color: #fff; }
+.rx-btn:disabled { opacity: .6; cursor: wait; }
+.rx-done {
+    margin-top: 12px; padding: 14px; border-radius: 12px; background: var(--green-bg); border: 1px solid var(--green-border);
+    color: var(--green); font-weight: 700; font-size: 12.5px;
+}
+.rx-done strong { font-family: var(--mono); font-size: 18px; display: block; margin-top: 4px; }
 
 .cart-items {
     flex: 1 1 0; min-height: 72px; overflow-y: auto;
@@ -1154,6 +1231,56 @@
     color: var(--green); background: var(--green-bg);
     border: 1px solid var(--green-border); padding: 5px 6px; border-radius: 7px;
 }
+.price-deal-grid {
+    display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 8px; align-items: stretch;
+}
+.price-deal-left { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.price-deal-right {
+    display: flex; flex-direction: column; gap: 4px; min-width: 0;
+    padding: 6px 8px 7px; border-radius: 10px;
+    border: 1px dashed var(--border); background: var(--surface);
+    transition: border-color .15s, background .15s;
+}
+.price-deal-right.is-set { border-style: solid; border-color: var(--green-border); background: var(--green-bg); }
+.price-deal-right .field-label { margin-bottom: 0; }
+.agreed-input-wrap {
+    position: relative; display: flex; align-items: center;
+    border: 1px solid var(--border); border-radius: 8px; background: #fff;
+}
+.agreed-input-wrap:focus-within { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(37,99,235,.12); }
+.agreed-ccy { padding-left: 8px; font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-3); }
+.agreed-input {
+    flex: 1; min-width: 0; padding: 7px 6px; border: 0; outline: none; background: transparent;
+    font-family: var(--mono); font-size: 14px; font-weight: 750; color: var(--text-1);
+}
+.agreed-input:disabled { cursor: not-allowed; opacity: .6; }
+.agreed-clear {
+    border: 0; background: none; cursor: pointer; padding: 0 8px;
+    font-size: 16px; line-height: 1; color: var(--text-3);
+}
+.agreed-clear:hover { color: var(--red); }
+.agreed-note { font-size: 10.5px; font-weight: 600; color: var(--text-3); line-height: 1.3; }
+.price-deal-right.is-set .agreed-note { color: var(--green); }
+.baki-paynow { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #fcd34d; }
+.baki-paynow-label { display: block; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #92400e; margin-bottom: 5px; }
+.baki-paynow-row {
+    display: flex; align-items: center; background: #fff;
+    border: 1px solid #fcd34d; border-radius: 8px;
+}
+.baki-paynow-row:focus-within { border-color: #d97706; box-shadow: 0 0 0 2px rgba(217,119,6,.15); }
+.baki-paynow-input {
+    flex: 1; min-width: 0; padding: 8px 6px; border: 0; outline: none; background: transparent;
+    font-family: var(--mono); font-size: 15px; font-weight: 750; color: #78350f;
+}
+.baki-paynow-hint { margin-top: 5px; font-size: 10.5px; font-weight: 600; color: #a16207; line-height: 1.35; }
+.baki-change-line {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    margin-top: 8px; padding: 9px 12px; border-radius: 10px;
+    background: var(--green-bg); border: 1px solid var(--green-border);
+    font-size: 11.5px; font-weight: 650; color: var(--green);
+}
+.baki-change-line strong { font-family: var(--mono); font-size: 16px; font-weight: 800; }
 
 .cart-foot {
     flex: 0 0 auto;
@@ -1514,6 +1641,10 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6.5 0a5.5 5.5 0 11-11 0 5.5 5.5 0 0111 0zM4 8V6a2 2 0 012-2h2m8 0h2a2 2 0 012 2v2"/></svg>
                 <span class="pos-tool-label">Scan</span>
             </button>
+            <button type="button" class="pos-tool-btn pos-return-btn" @click="openReturns()" title="Return, exchange or refund a past sale (F8)">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span class="pos-tool-label">Return / Exchange</span>
+            </button>
             <button type="button" class="pos-tool-btn" @click="kbOpen = true" title="Keyboard shortcuts">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </button>
@@ -1522,10 +1653,6 @@
                     :class="isFullscreen ? 'is-active' : ''">
                 <svg x-show="!isFullscreen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
                 <svg x-show="isFullscreen" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"/></svg>
-            </button>
-            <button type="button" class="pos-tool-btn" @click="toggleDark()" :title="darkMode ? 'Light' : 'Dark'">
-                <svg x-show="!darkMode" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-                <svg x-show="darkMode" style="display:none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
             </button>
             @if(!empty($openSession))
                 <a href="{{ route('counters.sessions.close-form', $openSession) }}" class="pos-close-day" title="Close day">
@@ -1808,9 +1935,15 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                 </svg>
-                Exchange Mode
+                <span>
+                    Exchange Mode
+                    <small x-show="exchangeLabel" x-cloak style="display:block;font-weight:600;opacity:.85" x-text="exchangeLabel"></small>
+                </span>
             </div>
-            <span>Credit: Tk<span x-text="formatNumber(exchangeCredit)"></span></span>
+            <span style="display:flex;align-items:center;gap:8px">
+                <span>Credit: Tk<span x-text="formatNumber(exchangeCredit)"></span></span>
+                <button type="button" @click="cancelExchange()" class="exchange-cancel-btn" title="Cancel exchange">Cancel</button>
+            </span>
         </div>
 
         <div class="cart-items" id="pos-cart-items">
@@ -1842,7 +1975,7 @@
                         <div class="ci-sku" x-show="item.sku || item.barcode" x-text="item.sku || item.barcode" x-cloak></div>
                         <div class="ci-sku" x-show="item.requires_imei && item.imeis && item.imeis.length" x-cloak
                              style="color:#c2410c;font-weight:600"
-                             x-text="'IMEI: ' + (item.imeis || []).join(', ')"></div>
+                             x-text="'IMEI: ' + (item.imeis || []).map(im => cartImeiLabel(item, im)).join(', ')"></div>
                         <div class="ci-unit">
                             <span x-show="item.on_sale && Number(item.list_price) > Number(item.sale_price)" x-cloak style="text-decoration:line-through;color:var(--text-3);margin-right:6px">
                                 Tk<span x-text="formatNumber(item.list_price)"></span>
@@ -1957,30 +2090,51 @@
                     </div>
                 </div>
 
-                <div class="field-label" style="margin-top:2px">Discount</div>
-                <div class="discount-row">
-                    <div class="type-toggle">
-                        <button type="button" @click="discountType = 'percent'" class="tt-btn" :class="discountType === 'percent' ? 'active' : ''">%</button>
-                        <button type="button" @click="discountType = 'flat'" class="tt-btn" :class="discountType === 'flat' ? 'active' : ''">Tk</button>
+                <div class="price-deal-grid">
+                    <div class="price-deal-left">
+                        <div class="field-label" style="margin-top:2px">Discount</div>
+                        <div class="discount-row">
+                            <div class="type-toggle">
+                                <button type="button" @click="discountType = 'percent'; agreedPrice = null" class="tt-btn" :class="discountType === 'percent' && agreedPrice === null ? 'active' : ''">%</button>
+                                <button type="button" @click="discountType = 'flat'; agreedPrice = null" class="tt-btn" :class="discountType === 'flat' || agreedPrice !== null ? 'active' : ''">Tk</button>
+                            </div>
+                            <input type="number"
+                                   :value="agreedPrice !== null ? Math.round(getDiscount() * 100) / 100 : (discountValue || '')"
+                                   @input="onDiscountInput($event.target.value)"
+                                   class="discount-input"
+                                   :placeholder="discountType === 'percent' && agreedPrice === null ? '%' : 'Amount'"
+                                   min="0"
+                                   :max="discountType === 'percent' && agreedPrice === null ? 100 : getDiscountBase()">
+                        </div>
+                        <div class="coupon-row">
+                            <input type="text" x-model="couponCode" @keyup.enter="applyCoupon()" placeholder="Coupon code" class="coupon-input">
+                            <button type="button" @click="applyCoupon()" class="coupon-apply-btn">Apply</button>
+                        </div>
                     </div>
-                    <input type="number"
-                           x-model.number="discountValue"
-                           class="discount-input"
-                           :placeholder="discountType === 'percent' ? '%' : 'Amount'"
-                           min="0"
-                           :max="discountType === 'percent' ? 100 : getDiscountBase()">
-                    <span x-show="getDiscount() > 0" class="discount-badge" x-cloak>
-                        -Tk<span x-text="formatNumber(getDiscount())"></span>
-                    </span>
+                    <div class="price-deal-right" :class="{ 'is-set': agreedPrice !== null }">
+                        <div class="field-label" style="margin-top:2px">Willing to pay</div>
+                        <div class="agreed-input-wrap">
+                            <span class="agreed-ccy">Tk</span>
+                            <input type="number"
+                                   :value="agreedPrice ?? ''"
+                                   @input="onAgreedPriceInput($event.target.value)"
+                                   class="agreed-input"
+                                   :placeholder="formatNumber(getDiscountBase())"
+                                   min="0"
+                                   :max="getDiscountBase()"
+                                   :disabled="cart.length === 0">
+                            <button type="button" x-show="agreedPrice !== null" x-cloak @click="agreedPrice = null" class="agreed-clear" aria-label="Clear willing to pay">&times;</button>
+                        </div>
+                        <div class="agreed-note" x-show="getDiscount() > 0" x-cloak>
+                            Discount <strong>Tk<span x-text="formatNumber(getDiscount())"></span></strong>
+                        </div>
+                        <div class="agreed-note" x-show="getDiscount() <= 0">Agreed price for the bill</div>
+                    </div>
                 </div>
                 <p x-show="hasSaleItems()" x-cloak style="margin:6px 0 0;font-size:11px;font-weight:650;color:#be123c">
                     Sale savings included (<span x-text="salePercentLabel()"></span>). You can still add more discount.
                 </p>
-                <div class="coupon-row">
-                    <input type="text" x-model="couponCode" @keyup.enter="applyCoupon()" placeholder="Coupon code" class="coupon-input">
-                    <button type="button" @click="applyCoupon()" class="coupon-apply-btn">Apply</button>
-                </div>
-                <div x-show="appliedCoupon" x-cloak class="coupon-applied">
+                <div x-show="appliedCoupon" x-cloak class="coupon-applied" style="margin-top:6px">
                     <span>Coupon <strong x-text="appliedCoupon?.code"></strong> applied</span>
                     <button type="button" @click="removeCoupon()" class="coupon-remove">Remove</button>
                 </div>
@@ -2180,20 +2334,149 @@
                     <select x-model="imeiPickValue" class="form-control" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0;font-family:var(--mono)">
                         <option value="">— Select IMEI —</option>
                         <template x-for="im in imeiPickOptions" :key="im">
-                            <option :value="im" x-text="im"></option>
+                            <option :value="im" x-text="imeiLabel(imeiPickProduct, im)"></option>
                         </template>
                     </select>
                 </div>
                 <div>
                     <label style="font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:6px">Or type / scan IMEI</label>
                     <input type="text" x-model="imeiPickValue" x-ref="imeiInput"
-                           placeholder="15-digit IMEI…"
+                           placeholder="IMEI 1 or IMEI 2…"
                            style="width:100%;padding:10px;border-radius:8px;border:1px solid #e2e8f0;font-family:var(--mono);font-size:14px">
                 </div>
             </div>
             <div class="modal-foot" style="display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid #e2e8f0">
                 <button type="button" class="modal-cancel" @click="cancelImeiPick()">Cancel</button>
                 <button type="button" class="modal-confirm" style="background:#ea580c" @click="confirmImeiPick()">Add to cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RETURN / EXCHANGE / REFUND MODAL -->
+    <div x-show="returnsOpen" style="display:none" class="modal-overlay" @keydown.escape.window="returnsOpen && closeReturns()">
+        <div class="modal-bg" @click="closeReturns()"></div>
+        <div class="modal rx-modal" x-show="returnsOpen">
+            <div class="modal-head">
+                <div>
+                    <div class="modal-title">Return / Exchange</div>
+                    <div class="modal-subtitle">Find the sale by invoice number or customer mobile</div>
+                </div>
+                <button type="button" @click="closeReturns()" class="modal-close" aria-label="Close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                {{-- Search --}}
+                <template x-if="!rx.order">
+                    <div>
+                        <div class="rx-search">
+                            <input type="text" x-ref="rxSearch" x-model="rx.query"
+                                   @input.debounce.350ms="searchReturnOrders()"
+                                   @keydown.enter.prevent="searchReturnOrders()"
+                                   placeholder="e.g. INV-1-2026-00012 or 01712345678">
+                        </div>
+                        <p class="rx-hint" x-show="!rx.loading && rx.query.trim().length < 3">Type at least 3 characters of the invoice no. or mobile number.</p>
+                        <p class="rx-hint" x-show="rx.loading" x-cloak>Searching…</p>
+                        <p class="rx-hint" x-show="rx.error" x-cloak style="color:#b91c1c" x-text="rx.error"></p>
+                        <p class="rx-hint" x-show="rx.searched && !rx.loading && rx.results.length === 0 && !rx.error" x-cloak>No sales found.</p>
+
+                        <div class="rx-results">
+                            <template x-for="o in rx.results" :key="o.id">
+                                <button type="button" class="rx-order" @click="selectReturnOrder(o)">
+                                    <div style="min-width:0">
+                                        <div class="rx-order-inv">
+                                            <span x-text="o.invoice_no"></span>
+                                            <span class="rx-badge" x-show="['refunded','cancelled','returned'].includes(o.status)" x-text="o.status"></span>
+                                            <span class="rx-badge is-ex" x-show="o.is_exchange_receipt">Exchange</span>
+                                        </div>
+                                        <div class="rx-order-meta" x-text="o.date + ' · ' + (o.customer_name || 'Walk-in') + (o.customer_phone ? ' · ' + o.customer_phone : '') + ' · ' + o.items.length + ' item(s)'"></div>
+                                    </div>
+                                    <div class="rx-order-amt">Tk<span x-text="formatNumber(o.net)"></span></div>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Order detail --}}
+                <template x-if="rx.order">
+                    <div>
+                        <button type="button" class="rx-back" @click="rx.order = null; rx.confirmRefund = false; rx.done = null; $nextTick(() => $refs.rxSearch && $refs.rxSearch.focus())">← Back to results</button>
+                        <div class="rx-detail-head">
+                            <div style="min-width:0">
+                                <div class="rx-order-inv">
+                                    <span x-text="rx.order.invoice_no"></span>
+                                    <span class="rx-badge" x-show="['refunded','cancelled','returned'].includes(rx.order.status)" x-text="rx.order.status"></span>
+                                </div>
+                                <div class="rx-order-meta" x-text="rx.order.date + ' · ' + (rx.order.customer_name || 'Walk-in') + (rx.order.customer_phone ? ' · ' + rx.order.customer_phone : '')"></div>
+                            </div>
+                            <div style="text-align:right">
+                                <div class="rx-order-amt">Tk<span x-text="formatNumber(rx.order.net)"></span></div>
+                                <div class="rx-order-meta" x-show="rx.order.baki > 0">Baki Tk<span x-text="formatNumber(rx.order.baki)"></span></div>
+                                <a :href="rx.order.receipt_url" target="_blank" class="rx-order-meta" style="color:var(--blue);font-weight:800;text-decoration:none">View receipt</a>
+                            </div>
+                        </div>
+
+                        <template x-if="!rx.done">
+                            <div>
+                                <div class="field-label" style="margin-top:12px">Item to exchange</div>
+                                <div class="rx-items">
+                                    <template x-for="it in rx.order.items" :key="it.product_id">
+                                        <div class="rx-item"
+                                             :class="{ 'is-selected': rx.productId === it.product_id, 'is-disabled': it.returnable < 1 || !rx.order.can_exchange }"
+                                             @click="if (it.returnable > 0 && rx.order.can_exchange) { rx.productId = it.product_id; rx.qty = 1; }">
+                                            <input type="radio" :checked="rx.productId === it.product_id" :disabled="it.returnable < 1 || !rx.order.can_exchange" style="pointer-events:none">
+                                            <div style="min-width:0">
+                                                <div class="rx-item-name" x-text="it.name"></div>
+                                                <div class="rx-item-sub">
+                                                    Bought <span x-text="it.qty"></span>
+                                                    <span x-show="it.returned > 0"> · returned <span x-text="it.returned"></span></span>
+                                                    · credit Tk<span x-text="formatNumber(it.unit_credit)"></span> each
+                                                </div>
+                                            </div>
+                                            <div class="rx-qty" x-show="rx.productId === it.product_id" @click.stop>
+                                                <button type="button" @click="rx.qty = Math.max(1, rx.qty - 1)">−</button>
+                                                <span x-text="rx.qty"></span>
+                                                <button type="button" @click="rx.qty = Math.min(it.returnable, rx.qty + 1)">+</button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <div class="rx-actions" x-show="!rx.confirmRefund">
+                                    <button type="button" class="rx-action exchange" @click="startExchangeFromReturns()"
+                                            :disabled="!rx.order.can_exchange || !rx.productId">
+                                        <strong>Exchange <span x-show="rx.productId">· Tk<span x-text="formatNumber(returnCreditPreview())"></span> credit</span></strong>
+                                        <small>Takes the item back and loads the credit into this cart. Customer picks the new product.</small>
+                                        <div class="rx-block" x-show="!rx.order.can_exchange" x-text="rx.order.exchange_block"></div>
+                                    </button>
+                                    <button type="button" class="rx-action refund" @click="rx.confirmRefund = true" :disabled="!rx.order.can_refund">
+                                        <strong>Full refund · Tk<span x-text="formatNumber(rx.order.refund_cash)"></span></strong>
+                                        <small>Cancels the whole invoice, restocks all items and gives the money back.</small>
+                                        <div class="rx-block" x-show="!rx.order.can_refund" x-text="rx.order.refund_block"></div>
+                                    </button>
+                                </div>
+
+                                <div class="rx-confirm" x-show="rx.confirmRefund" x-cloak>
+                                    Refund <strong x-text="rx.order.invoice_no"></strong>? All items go back to stock
+                                    and you return <strong>Tk<span x-text="formatNumber(rx.order.refund_cash)"></span></strong> to the customer
+                                    <span x-show="rx.order.baki > 0">(Baki Tk<span x-text="formatNumber(rx.order.baki)"></span> is cancelled)</span>.
+                                    This cannot be undone.
+                                    <div class="rx-confirm-actions">
+                                        <button type="button" class="rx-btn" @click="rx.confirmRefund = false" :disabled="rx.busy">Cancel</button>
+                                        <button type="button" class="rx-btn danger" @click="confirmReturnRefund()" :disabled="rx.busy" x-text="rx.busy ? 'Refunding…' : 'Confirm refund'"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div class="rx-done" x-show="rx.done" x-cloak>
+                            <span x-text="rx.done?.message"></span>
+                            <strong>Return Tk<span x-text="formatNumber(rx.done?.refund_cash || 0)"></span> to the customer</strong>
+                        </div>
+                    </div>
+                </template>
             </div>
         </div>
     </div>
@@ -2275,6 +2558,19 @@
                             <div style="font-weight:800;color:#b45309">Tk<span x-text="formatNumber(getBakiLeft())"></span></div>
                         </div>
                     </div>
+                    <div class="baki-paynow">
+                        <label class="baki-paynow-label" for="baki-pay-now">Paying now (toward bill)</label>
+                        <div class="baki-paynow-row">
+                            <span class="agreed-ccy">Tk</span>
+                            <input id="baki-pay-now" type="number" min="0" step="0.01"
+                                   :value="bakiPayNow ?? ''"
+                                   @input="bakiPayNow = $event.target.value === '' ? null : Math.max(0, Number($event.target.value) || 0)"
+                                   :placeholder="'All received (' + formatNumber(Math.min(getPaidAmount(), getBakiTotalDue())) + ')'"
+                                   class="baki-paynow-input">
+                            <button type="button" x-show="bakiPayNow !== null" x-cloak @click="bakiPayNow = null" class="agreed-clear" aria-label="Clear paying now">&times;</button>
+                        </div>
+                        <div class="baki-paynow-hint">Customer gives more cash? Enter only what goes to the bill — the rest is returned as change.</div>
+                    </div>
                     <p x-show="!customerName || !customerPhone" style="margin:8px 0 0;font-size:11px;color:#dc2626;font-weight:700" x-cloak>
                         Name and mobile are required for BAKI.
                     </p>
@@ -2314,7 +2610,7 @@
 
                 <div>
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-                        <label class="field-label" style="margin-bottom:0" x-text="isBaki ? 'Pay now' : (isEmi ? 'Down payment now' : 'Customer pays')"></label>
+                        <label class="field-label" style="margin-bottom:0" x-text="isBaki ? 'Received from customer' : (isEmi ? 'Down payment now' : 'Customer pays')"></label>
                         <span style="font-size:9px;font-weight:800;color:var(--teal);background:var(--teal-bg);padding:2px 7px;border-radius:100px;border:1px solid var(--teal-border)">Split pay</span>
                     </div>
                     <div class="split-grid">
@@ -2365,13 +2661,20 @@
                     </div>
                     <div class="pay-summary-cell paid">
                         <div class="ps-label">Pay now</div>
-                        <div class="ps-val">Tk<span x-text="formatNumber(getPaidAmount())"></span></div>
+                        <div class="ps-val">Tk<span x-text="formatNumber(getBakiAppliedPay())"></span></div>
                     </div>
                     <div class="pay-summary-cell change less">
                         <div class="ps-label">Baki left</div>
                         <div class="ps-val">Tk<span x-text="formatNumber(getBakiLeft())"></span></div>
                     </div>
                 </div>
+                <div class="baki-change-line" x-show="isBaki && getChange() > 0" x-cloak>
+                    <span>Received Tk<span x-text="formatNumber(getPaidAmount())"></span> − Pay now Tk<span x-text="formatNumber(getBakiAppliedPay())"></span></span>
+                    <strong>Return Tk<span x-text="formatNumber(getChange())"></span></strong>
+                </div>
+                <p x-show="isBaki && bakiPayNowExceedsReceived()" class="err-hint" x-cloak>
+                    Paying now (Tk<span x-text="formatNumber(bakiPayNow)"></span>) is more than received (Tk<span x-text="formatNumber(getPaidAmount())"></span>).
+                </p>
                 <div class="pay-summary" x-show="isEmi" x-cloak>
                     <div class="pay-summary-cell due">
                         <div class="ps-label">Down due</div>
@@ -2624,13 +2927,13 @@
                     <span class="key">?</span>
                 </div>
                 <div class="kb-row">
-                    <span class="kb-desc">Toggle dark / light mode</span>
-                    <span class="key">D</span>
-                </div>
-                <div class="kb-row">
                     <span class="kb-desc">Toggle fullscreen</span>
                     <span class="key">F11</span>
                     <span class="key">F</span>
+                </div>
+                <div class="kb-row">
+                    <span class="kb-desc">Return / exchange / refund</span>
+                    <span class="key">F8</span>
                 </div>
             </div>
         </div>
@@ -2658,7 +2961,7 @@ function posSystem() {
         showExtras: false,
         isSyncing: false,
         syncPromptOpen: false,
-        darkMode: localStorage.getItem('nexa_dark') === 'true',
+        darkMode: false,
         isFullscreen: !!(document.fullscreenElement || document.webkitFullscreenElement),
         showFullscreenHint: localStorage.getItem('nexa_pos_fs_hint') !== 'dismissed',
         shopName: @json(Auth::user()->shop->name ?? config('app.name', 'Maks Gadget')),
@@ -2706,6 +3009,8 @@ function posSystem() {
         /* â”€â”€ Discount â”€â”€ */
         discountType: 'percent',
         discountValue: 0,
+        agreedPrice: null,
+        bakiPayNow: null,
         _saleDiscountActive: false,
         _lastSaleSavings: 0,
         couponCode: '',
@@ -2735,7 +3040,12 @@ function posSystem() {
         exchangeOrderId: {{ $exchangeOrder ?? 'null' }},
         returnProductId: {{ $returnProduct ?? 'null' }},
         returnQty: {{ $returnQty ?? 0 }},
-        exchangeCredit: {{ $credit ?? 0 }},
+        exchangeCredit: {{ (float) ($credit ?? 0) }},
+        exchangeLabel: '',
+
+        /* Return / exchange / refund lookup */
+        returnsOpen: false,
+        rx: { query: '', results: [], loading: false, searched: false, error: '', order: null, productId: null, qty: 1, confirmRefund: false, busy: false, done: null, _req: 0 },
 
         /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
            INIT
@@ -2779,14 +3089,6 @@ function posSystem() {
                     window.resizeTo(screen.availWidth, screen.availHeight);
                 }
             } catch (e) {}
-        },
-
-        /* ───────────────────────────────
-           DARK MODE
-        ─────────────────────────────── */
-        toggleDark() {
-            this.darkMode = !this.darkMode;
-            localStorage.setItem('nexa_dark', this.darkMode);
         },
 
         /* ───────────────────────────────
@@ -2901,6 +3203,7 @@ function posSystem() {
             // Global
             if (e.key === 'F2')    { e.preventDefault(); if (this.canProceedToCheckout()) this.openCheckout(); }
             if (e.key === 'F11')   { e.preventDefault(); this.toggleFullscreen(); }
+            if (e.key === 'F8')    { e.preventDefault(); this.openReturns(); }
             if (e.key === 'Escape'){ this.search = ''; this.$refs.searchInput.focus(); }
             if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) {
                 e.preventDefault();
@@ -2908,7 +3211,6 @@ function posSystem() {
                 this.$refs.searchInput?.select();
             }
             if (e.key === '?')     { e.preventDefault(); this.kbOpen = true; }
-            if ((e.key === 'd' || e.key === 'D') && document.activeElement.tagName !== 'INPUT') this.toggleDark();
             if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey && document.activeElement.tagName !== 'INPUT') {
                 e.preventDefault();
                 this.toggleFullscreen();
@@ -3230,6 +3532,10 @@ function posSystem() {
             const q = (this.search || '').trim();
             // Barcode scanners type fast; auto-add on exact barcode/SKU match (no click needed)
             if (q.length < 3) return;
+            if (/^\d{15,17}$/.test(q)) {
+                const hit = this.findImeiScanMatch(q);
+                if (hit) { this.addScannedImei(hit); return; }
+            }
             const match = this.findExactScanMatch(q);
             if (match) {
                 this.addToCart(match);
@@ -3240,6 +3546,12 @@ function posSystem() {
             if (this.checkoutModalOpen || this.invoiceModalOpen) return;
             const q = (this.search || '').trim();
             if (!q) return;
+
+            const imeiHit = this.findImeiScanMatch(q);
+            if (imeiHit) {
+                this.addScannedImei(imeiHit);
+                return;
+            }
 
             // Prefer exact barcode / SKU
             const exact = this.findExactScanMatch(q);
@@ -3375,8 +3687,52 @@ function posSystem() {
             this.imeiPickCartIndex = null;
         },
 
+        imeiLabel(product, im) {
+            const second = (product?.imei_pairs || {})[im];
+            return second ? im + ' / ' + second : String(im);
+        },
+
+        cartImeiLabel(item, im) {
+            return this.imeiLabel(this.products.find(p => Number(p.id) === Number(item.id)), im);
+        },
+
+        // Either IMEI of a dual-IMEI phone resolves to its primary IMEI 1.
+        resolveImei(product, raw) {
+            const imei = String(raw || '').replace(/\s+/g, '').trim();
+            const pairs = product?.imei_pairs || {};
+            const primary = Object.keys(pairs).find(k => pairs[k] === imei);
+            return primary || imei;
+        },
+
+        findImeiScanMatch(code) {
+            const q = String(code || '').replace(/\s+/g, '');
+            if (!/^\d{14,17}$/.test(q)) return null;
+            for (const p of this.products) {
+                if (!p.requires_imei) continue;
+                if ((p.available_imeis || []).map(String).includes(q)) return { product: p, imei: q };
+                const pairs = p.imei_pairs || {};
+                const primary = Object.keys(pairs).find(k => pairs[k] === q);
+                if (primary) return { product: p, imei: primary };
+            }
+            return null;
+        },
+
+        addScannedImei(hit) {
+            this.search = '';
+            if (this.cartImeisInUse().includes(hit.imei)) {
+                this.playBeep(false);
+                this.showToast('This phone is already in the cart', 'warning');
+                return;
+            }
+            this.pushCartLine(hit.product, hit.imei);
+            this.syncSaleDiscount();
+            this.$nextTick(() => this.$refs.searchInput?.focus());
+        },
+
         confirmImeiPick() {
-            const imei = String(this.imeiPickValue || '').replace(/\s+/g, '').trim();
+            const product = this.imeiPickProduct;
+            if (!product) return;
+            const imei = this.resolveImei(product, this.imeiPickValue);
             if (!imei) {
                 this.showToast('Enter or select an IMEI', 'warning');
                 return;
@@ -3385,8 +3741,6 @@ function posSystem() {
                 this.showToast('IMEI already in cart', 'warning');
                 return;
             }
-            const product = this.imeiPickProduct;
-            if (!product) return;
 
             if (this.imeiPickMode === 'bump' && this.imeiPickCartIndex != null) {
                 const item = this.cart[this.imeiPickCartIndex];
@@ -3553,12 +3907,6 @@ function posSystem() {
                 }
                 return;
             }
-            // Sale items cannot use BAKI / EMI
-            if (this.isBaki || this.isEmi) {
-                this.isBaki = false;
-                this.isEmi = false;
-                this.showToast('BAKI / EMI turned off — not allowed with sale products', 'warning');
-            }
             const saleSavings = Math.round(this.getSaleSavings() * 100) / 100;
             if (!this._saleDiscountActive) {
                 this._saleDiscountActive = true;
@@ -3681,11 +4029,35 @@ function posSystem() {
         /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
            DISCOUNT & COUPONS
         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        onAgreedPriceInput(raw) {
+            if (raw === '' || raw === null) {
+                this.agreedPrice = null;
+                return;
+            }
+            const value = Math.max(0, Number(raw) || 0);
+            this.agreedPrice = Math.round(value * 100) / 100;
+            if (this.appliedCoupon) {
+                this.appliedCoupon = null;
+                this.couponCode = '';
+            }
+        },
+
+        onDiscountInput(raw) {
+            this.agreedPrice = null;
+            this.discountValue = raw === '' ? 0 : Math.max(0, Number(raw) || 0);
+            if (this.discountType === 'percent' && this.discountValue > 100) {
+                this.discountType = 'flat';
+            }
+        },
+
         getDiscount() {
             const base = this.getDiscountBase();
             let disc = 0;
+            // Willing-to-pay price wins: discount = bill - agreed price.
+            if (this.agreedPrice !== null) {
+                disc = base - Math.min(this.agreedPrice, base);
             // Coupon takes priority over manual discount
-            if (this.appliedCoupon) {
+            } else if (this.appliedCoupon) {
                 disc = this.appliedCoupon.type === 'percent'
                     ? (base * this.appliedCoupon.value / 100)
                     : this.appliedCoupon.value;
@@ -3718,6 +4090,7 @@ function posSystem() {
             if (coupons[code]) {
                 this.appliedCoupon = coupons[code];
                 this.discountValue = 0;
+                this.agreedPrice = null;
                 this.showToast('Coupon applied! ' + (coupons[code].type === 'percent' ? coupons[code].value + '% off' : 'Tk' + coupons[code].value + ' off'), 'success');
             } else {
                 this.playBeep(false);
@@ -3755,7 +4128,7 @@ function posSystem() {
         },
         getChange() {
             if (this.isBaki) {
-                return Math.max(0, this.getPaidAmount() - this.getBakiTotalDue());
+                return Math.max(0, this.getPaidAmount() - this.getBakiAppliedPay());
             }
             if (this.isEmi) {
                 return Math.max(0, this.getPaidAmount() - this.getEmiDownPayment());
@@ -3765,8 +4138,17 @@ function posSystem() {
         getBakiTotalDue() {
             return Math.max(0, (Number(this.customerBakiBalance) || 0) + this.getPayableTotal());
         },
+        /** Amount settled now (bill first, then previous baki). Defaults to everything received. */
         getBakiAppliedPay() {
-            return Math.min(this.getPaidAmount(), this.getBakiTotalDue());
+            const received = this.getPaidAmount();
+            const due = this.getBakiTotalDue();
+            if (this.bakiPayNow !== null) {
+                return Math.min(Number(this.bakiPayNow) || 0, received, due);
+            }
+            return Math.min(received, due);
+        },
+        bakiPayNowExceedsReceived() {
+            return this.bakiPayNow !== null && (Number(this.bakiPayNow) || 0) > this.getPaidAmount() + 0.009;
         },
         getBakiTowardBill() {
             return Math.min(this.getBakiAppliedPay(), this.getPayableTotal());
@@ -3797,7 +4179,7 @@ function posSystem() {
                 const nameOk = (this.customerName || '').trim().length >= 2;
                 const phoneOk = (this.customerPhone || '').trim().length >= 5;
                 if (!nameOk || !phoneOk) return false;
-                return true;
+                return !this.bakiPayNowExceedsReceived();
             }
             if (this.isEmi) {
                 const nameOk = (this.customerName || '').trim().length >= 2;
@@ -3903,7 +4285,130 @@ function posSystem() {
         /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
            CHECKOUT
         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-openCheckout() {
+openReturns() {
+            if (!this.isOnline) {
+                this.showToast('Returns and refunds need an online connection.', 'error');
+                return;
+            }
+            this.rx = { query: '', results: [], loading: false, searched: false, error: '', order: null, productId: null, qty: 1, confirmRefund: false, busy: false, done: null, _req: 0 };
+            this.returnsOpen = true;
+            this.$nextTick(() => this.$refs.rxSearch && this.$refs.rxSearch.focus());
+        },
+
+        closeReturns() {
+            this.returnsOpen = false;
+            this.$nextTick(() => this.$refs.searchInput && this.$refs.searchInput.focus());
+        },
+
+        async searchReturnOrders() {
+            const q = (this.rx.query || '').trim();
+            this.rx.error = '';
+            if (q.length < 3) {
+                this.rx.results = [];
+                this.rx.searched = false;
+                return;
+            }
+            const req = ++this.rx._req;
+            this.rx.loading = true;
+            try {
+                const res = await fetch('{{ route('pos.orders.search') }}?q=' + encodeURIComponent(q), {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                const data = await res.json().catch(() => ({}));
+                if (req !== this.rx._req) return;
+                if (!res.ok) throw new Error(data.message || 'Search failed');
+                this.rx.results = data.orders || [];
+                this.rx.searched = true;
+                if (this.rx.results.length === 1 && this.rx.results[0].invoice_no.toLowerCase() === q.toLowerCase()) {
+                    this.selectReturnOrder(this.rx.results[0]);
+                }
+            } catch (e) {
+                if (req !== this.rx._req) return;
+                this.rx.error = e.message || 'Search failed';
+            } finally {
+                if (req === this.rx._req) this.rx.loading = false;
+            }
+        },
+
+        selectReturnOrder(order) {
+            this.rx.order = order;
+            this.rx.confirmRefund = false;
+            this.rx.done = null;
+            const first = (order.items || []).filter((i) => i.returnable > 0);
+            this.rx.productId = order.can_exchange && first.length === 1 ? first[0].product_id : null;
+            this.rx.qty = 1;
+        },
+
+        returnCreditPreview() {
+            const item = (this.rx.order?.items || []).find((i) => i.product_id === this.rx.productId);
+            return item ? Math.round(item.unit_credit * this.rx.qty * 100) / 100 : 0;
+        },
+
+        startExchangeFromReturns() {
+            const order = this.rx.order;
+            const item = (order?.items || []).find((i) => i.product_id === this.rx.productId);
+            if (!order || !item || !order.can_exchange) return;
+            if (this.cart.length > 0 && !this.isExchangeMode) {
+                this.showToast('Cart kept — add the new product(s) for the exchange.', 'info');
+            }
+            this.isExchangeMode = true;
+            this.exchangeOrderId = order.id;
+            this.returnProductId = item.product_id;
+            this.returnQty = this.rx.qty;
+            this.exchangeCredit = this.returnCreditPreview();
+            this.exchangeLabel = this.rx.qty + ' × ' + item.name + ' from ' + order.invoice_no;
+            if (this.isBaki || this.isEmi) {
+                this.isEmi = false;
+            }
+            if (!this.customerPhone && order.customer_phone) this.customerPhone = order.customer_phone;
+            if (!this.customerName && order.customer_name) this.customerName = order.customer_name;
+            this.returnsOpen = false;
+            this.showToast('Exchange started — Tk' + this.formatNumber(this.exchangeCredit) + ' credit. Add the new product.', 'success');
+            this.$nextTick(() => this.$refs.searchInput && this.$refs.searchInput.focus());
+        },
+
+        cancelExchange() {
+            this.isExchangeMode = false;
+            this.exchangeOrderId = null;
+            this.returnProductId = null;
+            this.returnQty = 0;
+            this.exchangeCredit = 0;
+            this.exchangeLabel = '';
+            if (window.location.search.includes('exchange_order')) {
+                history.replaceState(null, '', window.location.pathname);
+            }
+        },
+
+        async confirmReturnRefund() {
+            const order = this.rx.order;
+            if (!order || this.rx.busy) return;
+            this.rx.busy = true;
+            try {
+                const res = await fetch('{{ url('/pos/orders') }}/' + order.id + '/refund', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: '{}',
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) throw new Error(data.message || 'Refund failed');
+                this.applyStockUpdates(data.stock_updates || [], [], {});
+                this.rx.done = { message: data.message, refund_cash: data.refund_cash };
+                if (data.order) {
+                    this.rx.order = data.order;
+                    this.rx.results = this.rx.results.map((o) => o.id === data.order.id ? data.order : o);
+                }
+                this.rx.confirmRefund = false;
+                this.playBeep(true);
+                this.showToast(data.message, 'success');
+            } catch (e) {
+                this.playBeep(false);
+                this.showToast(e.message || 'Refund failed', 'error');
+            } finally {
+                this.rx.busy = false;
+            }
+        },
+
+        openCheckout() {
             if (!this.canProceedToCheckout()) {
                 this.showToast('Cart must total Tk' + this.formatNumber(this.exchangeCredit) + ' or more for exchange.', 'error');
                 return;
@@ -3948,6 +4453,7 @@ openCheckout() {
             this.payCash  = '';
             this.payCard  = 0;
             this.payBkash = 0;
+            this.bakiPayNow = null;
             this.checkoutModalOpen = true;
             this.$nextTick(() => {
                 const cash = document.querySelector('.modal .sp-input');
@@ -3987,6 +4493,7 @@ openCheckout() {
                 card_paid:               Number(this.payCard) || 0,
                 mobile_paid:             Number(this.payBkash) || 0,
                 is_baki:                 !!this.isBaki,
+                baki_pay_now:            this.isBaki && this.bakiPayNow !== null ? this.getBakiAppliedPay() : null,
                 is_emi:                  !!this.isEmi,
                 emi_months:              this.isEmi ? (Number(this.emiMonths) || 3) : null,
                 emi_down_payment:        this.isEmi ? this.getEmiDownPayment() : 0,
@@ -4041,11 +4548,12 @@ openCheckout() {
                         this.customerBakiBalance = 0; this.customerEmiBalance = 0;
                         this.isBaki = false; this.isEmi = false;
                         this.emiDownPayment = 0; this.emiMonths = 3;
-                        this.discountValue = 0; this.appliedCoupon = null; this.couponCode = '';
+                        this.discountValue = 0; this.agreedPrice = null; this.bakiPayNow = null; this.appliedCoupon = null; this.couponCode = '';
                         this._saleDiscountActive = false;
                         this._lastSaleSavings = 0;
                         this.lastAddedId = null;
                         this.checkoutModalOpen = false;
+                        if (this.isExchangeMode) this.cancelExchange();
 
                         this.lastSale = {
                             order_id: data.order_id,
@@ -4134,6 +4642,9 @@ openCheckout() {
                     if (Array.isArray(row.available_imeis)) {
                         product.available_imeis = row.available_imeis;
                     }
+                    if (row.imei_pairs) {
+                        product.imei_pairs = row.imei_pairs;
+                    }
                 });
             }
 
@@ -4189,7 +4700,7 @@ openCheckout() {
 
             this.playBeep(true);
             this.cart = []; this.customerName = ''; this.customerPhone = '';
-            this.discountValue = 0; this.appliedCoupon = null; this.couponCode = '';
+            this.discountValue = 0; this.agreedPrice = null; this.bakiPayNow = null; this.appliedCoupon = null; this.couponCode = '';
             this._saleDiscountActive = false;
             this._lastSaleSavings = 0;
             this.lastAddedId = null;
