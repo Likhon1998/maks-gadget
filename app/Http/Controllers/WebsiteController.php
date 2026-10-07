@@ -513,6 +513,16 @@ class WebsiteController extends Controller
         return $facets;
     }
 
+    public function brands()
+    {
+        $data = $this->website->homepageData();
+        $data['allBrands'] = collect($data['brands'] ?? [])
+            ->sortBy(fn (Brand $b) => [((int) $b->products_count > 0) ? 0 : 1, mb_strtolower($b->name)])
+            ->values();
+
+        return view('website.brands', $data);
+    }
+
     public function brand(string $slug, Request $request)
     {
         $shopId = $this->website->shopId();

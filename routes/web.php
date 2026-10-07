@@ -69,6 +69,7 @@ Route::get('/shop', [WebsiteController::class, 'shop'])->name('website.shop');
 Route::post('/cart/sync', [WebsiteController::class, 'syncCart'])->name('website.cart.sync');
 Route::get('/search/suggest', [WebsiteController::class, 'searchSuggest'])->name('website.search.suggest');
 Route::get('/category/{slug}', [WebsiteController::class, 'category'])->name('website.category');
+Route::get('/shop/brands', [WebsiteController::class, 'brands'])->name('website.brands');
 Route::get('/brand/{slug}', [WebsiteController::class, 'brand'])->name('website.brand');
 Route::get('/product/{product}', [WebsiteController::class, 'product'])->name('website.product');
 Route::get('/track-order', [WebsiteController::class, 'trackOrder'])->middleware('throttle:30,1')->name('website.track');

@@ -205,7 +205,7 @@ class WebsiteSeeder extends Seeder
             ['label' => 'Shop', 'url' => '/shop', 'location' => 'main_nav', 'sort_order' => 2],
             ['label' => 'Categories', 'url' => '/shop', 'location' => 'main_nav', 'sort_order' => 3],
             ['label' => 'Deals', 'url' => '/shop?filter=deals', 'location' => 'main_nav', 'sort_order' => 4],
-            ['label' => 'Brands', 'url' => '/#brands', 'location' => 'main_nav', 'sort_order' => 5],
+            ['label' => 'Brands', 'url' => '/shop/brands', 'location' => 'main_nav', 'sort_order' => 5],
             ['label' => 'Blog', 'url' => '/blog', 'location' => 'main_nav', 'sort_order' => 6],
             ['label' => 'Contact', 'url' => '/contact', 'location' => 'main_nav', 'sort_order' => 7],
             ['label' => 'Smartphones', 'url' => '/shop?search=phone', 'location' => 'footer', 'sort_order' => 1],

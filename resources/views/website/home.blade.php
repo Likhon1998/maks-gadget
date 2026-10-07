@@ -612,7 +612,7 @@
             </div>
 
     <div class="tn-brands-marquee" aria-label="Brand partners">
-        <div class="tn-brands-track">
+        <div class="tn-brands-track" style="--tn-brands-duration: {{ max(90, $partnerBrands->count() * 7) }}s;">
             @foreach([0, 1] as $loopPass)
                 @foreach($partnerBrands as $brand)
                     @php

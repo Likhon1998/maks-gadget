@@ -98,7 +98,7 @@
                                     {{ $link->label }}
                                     <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                @include('website.partials.nav-menu-brands', ['allUrl' => $link->url ?: route('home').'#brands'])
+                                @include('website.partials.nav-menu-brands', ['allUrl' => route('website.brands')])
                             </div>
                         @elseif(strcasecmp($navLabel, 'Shop') === 0)
                             <div class="gaget-nav-dropdown"
@@ -199,7 +199,7 @@
                                 Brands
                                 <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
-                            @include('website.partials.nav-menu-brands', ['allUrl' => route('home').'#brands'])
+                            @include('website.partials.nav-menu-brands', ['allUrl' => route('website.brands')])
                         </div>
 
                         <a href="{{ route('website.blogs') }}" class="gaget-nav-link {{ request()->routeIs('website.blogs*') ? 'is-active' : '' }}">Blog</a>
@@ -561,7 +561,7 @@
                                 <svg class="gaget-mobile-accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
                             <div class="gaget-mobile-accordion-panel" x-show="mobileBrandsOpen" x-cloak x-transition.opacity.duration.150ms>
-                                <a href="{{ $link->url ?: route('home').'#brands' }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
+                                <a href="{{ (! $link->url || str_contains($link->url, '#brands') || trim($link->url, '/') === 'brands') ? route('website.brands') : $link->url }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
                                 @foreach(($brands ?? []) as $brand)
                                     <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">
                                         <span>{{ $brand->name }}</span>                                    </a>
@@ -569,7 +569,7 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ $link->url ?: route('home').'#brands' }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
+                        <a href="{{ (! $link->url || str_contains($link->url, '#brands') || trim($link->url, '/') === 'brands') ? route('website.brands') : $link->url }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
                     @endif
                 @else
                     <a href="{{ $link->url }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
@@ -611,7 +611,7 @@
                         <svg class="gaget-mobile-accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div class="gaget-mobile-accordion-panel" x-show="mobileBrandsOpen" x-cloak x-transition.opacity.duration.150ms>
-                        <a href="{{ route('home') }}#brands" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
+                        <a href="{{ route('website.brands') }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
                         @foreach(($brands ?? []) as $brand)
                             <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">
                                 <span>{{ $brand->name }}</span>                            </a>

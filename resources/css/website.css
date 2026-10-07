@@ -3956,7 +3956,7 @@ body.gaget-store {
     align-items: stretch;
     gap: 14px;
     width: max-content;
-    animation: tn-brands-marquee 55s linear infinite;
+    animation: tn-brands-marquee var(--tn-brands-duration, 140s) linear infinite;
     will-change: transform;
 }
 .tn-brands-marquee:hover .tn-brands-track {
@@ -4066,7 +4066,7 @@ body.gaget-store {
         padding: 16px 12px 14px;
         border-radius: 16px;
     }
-    .tn-brands-track { animation-duration: 42s; }
+    .tn-brands-track { animation-duration: calc(var(--tn-brands-duration, 140s) * 0.9); }
 }
 @media (prefers-reduced-motion: reduce) {
     .tn-brands-track { animation: none; }
