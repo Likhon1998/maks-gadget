@@ -470,6 +470,10 @@ body.gaget-store {
     box-shadow: 0 0 0 2px #fff;
     line-height: 1;
 }
+.gaget-action-btn--track.is-active {
+    color: var(--g-blue);
+    background: #eff6ff;
+}
 .gaget-action-btn--cart {
     color: #0f172a;
     background: #eff6ff;
@@ -7591,10 +7595,14 @@ body.gaget-store,
 .mg-cover-card.is-midnight { background: #0c1424; }
 .mg-cover-card.is-steel { background: #121826; }
 .mg-cover-card.is-active {
+    cursor: pointer;
     box-shadow:
         0 8px 16px rgba(15, 23, 42, 0.08),
         0 28px 56px rgba(15, 23, 42, 0.22),
         0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+.mg-cover-card.is-active.is-dragging {
+    cursor: grabbing;
 }
 
 .mg-cover-media {

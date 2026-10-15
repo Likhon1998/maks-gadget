@@ -376,6 +376,14 @@
                         </div>
                     </div>
 
+                    <a href="{{ route('website.track') }}"
+                       class="gaget-action-btn gaget-action-btn--track{{ request()->routeIs('website.track') ? ' is-active' : '' }}"
+                       title="Track your order"
+                       aria-label="Track order">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M1 7h13v10H1V7zm13 3h5l3 3v4h-8v-7z"/><circle cx="5.5" cy="18" r="1.75" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.75" stroke-width="1.8"/></svg>
+                        <span class="gaget-action-label">Track Order</span>
+                    </a>
+
                     @auth('web')
                         @if(auth('web')->user()->isStorefrontCustomer())
                             <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
@@ -404,6 +412,10 @@
                                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                             Profile
                                         </a>
+                                        <a href="{{ route('website.track') }}" class="gaget-account-menu__item">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M1 7h13v10H1V7zm13 3h5l3 3v4h-8v-7z"/><circle cx="5.5" cy="18" r="1.75" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.75" stroke-width="1.8"/></svg>
+                                            Track Order
+                                        </a>
                                         <button type="button"
                                                 class="gaget-account-menu__item gaget-account-menu__item--danger"
                                                 @mousedown.prevent="typeof storefrontLogout === 'function' && storefrontLogout()">
@@ -430,6 +442,10 @@
                                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                                         Create account
                                     </button>
+                                    <a href="{{ route('website.track') }}" class="gaget-account-menu__item">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M1 7h13v10H1V7zm13 3h5l3 3v4h-8v-7z"/><circle cx="5.5" cy="18" r="1.75" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.75" stroke-width="1.8"/></svg>
+                                        Track order (guest)
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -639,6 +655,8 @@
             @endif
             @endforelse
 
+            <a href="{{ route('website.track') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Track Order</a>
+
             <div class="gaget-mobile-drawer-foot">
             @auth('web')
                 @if(auth('web')->user()->isStorefrontCustomer())
@@ -651,7 +669,8 @@
                 @endif
             @else
                     <button type="button" class="gaget-mobile-drawer-cta" @click="mobileOpen = false; openSignIn('login')">Sign in</button>
-                    <p class="gaget-mobile-drawer-note">Track orders and save your wishlist.</p>
+                    <a href="{{ route('website.track') }}" class="gaget-mobile-drawer-signout" @click="mobileOpen = false">Track an order without account</a>
+                    <p class="gaget-mobile-drawer-note">Save your wishlist and see all orders in one place.</p>
             @endauth
             </div>
         </div>

@@ -250,6 +250,7 @@
         dragMoved: false,
         dragStartX: 0,
         dragDelta: 0,
+        pressCard: null,
         narrow: typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
         syncNarrow() {
             this.narrow = window.matchMedia('(max-width: 767px)').matches;
@@ -309,12 +310,12 @@
             this.timer = setInterval(() => { this.next(); }, 4200);
         },
         onPointerDown(e) {
-            if (this.total < 2) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             this.dragging = true;
             this.dragMoved = false;
             this.dragStartX = e.clientX;
             this.dragDelta = 0;
+            this.pressCard = e.target && e.target.closest ? e.target.closest('.mg-cover-card') : null;
             clearInterval(this.timer);
             try { e.currentTarget.setPointerCapture(e.pointerId); } catch (_) {}
         },
@@ -325,20 +326,53 @@
         },
         onPointerUp(e) {
             if (!this.dragging) return;
+            const moved = this.dragMoved;
+            const delta = this.dragDelta;
+            const card = this.pressCard;
             this.dragging = false;
-            const threshold = Math.min(64, Math.max(36, window.innerWidth * 0.1));
-            if (this.dragDelta <= -threshold) this.next();
-            else if (this.dragDelta >= threshold) this.prev();
-            else this.arm();
             this.dragDelta = 0;
+            this.pressCard = null;
             try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
-            if (this.dragMoved) {
+
+            const threshold = Math.min(64, Math.max(36, window.innerWidth * 0.1));
+            if (this.total > 1 && delta <= -threshold) {
+                this.next();
                 setTimeout(() => { this.dragMoved = false; }, 80);
+                return;
             }
+            if (this.total > 1 && delta >= threshold) {
+                this.prev();
+                setTimeout(() => { this.dragMoved = false; }, 80);
+                return;
+            }
+
+            this.arm();
+
+            /* Pointer capture steals the click — open/focus on clean tap here */
+            if (!moved && card) {
+                const i = Number(card.getAttribute('data-cover-i'));
+                if (!Number.isNaN(i) && i !== this.active) {
+                    this.go(i);
+                } else {
+                    const url = card.getAttribute('href');
+                    if (url) window.location.href = url;
+                }
+            }
+
+            setTimeout(() => { this.dragMoved = false; }, 80);
         },
-        openCategory(url) {
-            if (this.dragMoved || this.dragging) return;
-            window.location.href = url;
+        onCardClick(e, i, url) {
+            /* Fallback when pointer capture is unavailable; block nav after a swipe */
+            if (this.dragMoved) {
+                e.preventDefault();
+                return;
+            }
+            if (i !== this.active) {
+                e.preventDefault();
+                this.go(i);
+                return;
+            }
+            if (!url) e.preventDefault();
         },
         onWheel(e) {
             if (this.total < 2) return;
@@ -427,16 +461,14 @@
                     $theme = $catThemes[$i % count($catThemes)];
                     $url = route('website.category', $category->slug ?? $category->id);
                 @endphp
-                <article
+                <a
+                    href="{{ $url }}"
                     class="mg-cover-card {{ $theme }}"
                     data-cover-i="{{ $i }}"
                     :class="{ 'is-active': active === {{ $i }}, 'is-dragging': dragging }"
                     :style="styleFor({{ $i }})"
-                    @click="active === {{ $i }} ? openCategory(@js($url)) : go({{ $i }})"
-                    role="link"
-                    tabindex="0"
-                    @keydown.enter.prevent="openCategory(@js($url))"
-                    aria-label="{{ $category->name }}"
+                    @click="onCardClick($event, {{ $i }}, @js($url))"
+                    aria-label="Shop {{ $category->name }}"
                 >
                     <div class="mg-cover-media">
                         <img src="{{ $img }}" alt="{{ $category->name }}" class="mg-cover-img" loading="lazy" decoding="async" draggable="false">
@@ -460,7 +492,7 @@
                         <i aria-hidden="true"></i>
                         <span x-text="String(total).padStart(2,'0')"></span>
                     </div>
-                </article>
+                </a>
             @endforeach
         </div>
         <p class="mg-cover-hint" aria-hidden="true" x-show="!narrow" x-cloak>Drag or swipe</p>
