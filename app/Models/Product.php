@@ -22,7 +22,7 @@ class Product extends Model
         'pos_discount_type', 'pos_discount_value',
         'stock_quantity', 'reserved_stock', 'availability', 'filter_attributes', 'alert_quantity', 'reorder_quantity',
         'image', 'image_2', 'image_3',
-        'short_description', 'brand_name', 'rating', 'review_count',
+        'short_description', 'specifications', 'brand_name', 'rating', 'review_count',
         'is_best_seller', 'is_featured', 'is_new_arrival', 'is_published',
     ];
 
@@ -41,6 +41,7 @@ class Product extends Model
         'is_published' => 'boolean',
         'requires_imei' => 'boolean',
         'filter_attributes' => 'array',
+        'specifications' => 'array',
         'reserved_stock' => 'integer',
     ];
 
@@ -505,90 +506,43 @@ class Product extends Model
     }
 
     /**
-     * Storefront Feature / Specification rows for the product description table.
-     * Combines structured catalog fields with Key: Value lines from short_description.
-     * Empty / optional values are omitted.
+     * Normalized specification table for this variant (admin-built).
      *
-     * @return array<int, array{feature: string, specification: string}>
+     * @return array{headers: list<string>, rows: list<list<string>>}|null
      */
-    public function storefrontSpecificationRows(): array
+    public function storefrontSpecificationTable(): ?array
     {
-        $rows = [];
-        $seen = [];
-
-        $push = function (string $feature, ?string $specification) use (&$rows, &$seen): void {
-            $feature = \App\Support\ProductSpecParser::cleanLabel($feature);
-            $specification = \App\Support\ProductSpecParser::cleanValue((string) $specification);
-            if ($feature === '' || $specification === '') {
-                return;
-            }
-
-            $key = mb_strtolower($feature);
-            if (isset($seen[$key])) {
-                return;
-            }
-            $seen[$key] = true;
-            $rows[] = [
-                'feature' => $feature,
-                'specification' => $specification,
-            ];
-        };
-
-        $brand = trim((string) ($this->brand_name ?: $this->brand?->name ?: ''));
-        $push('Brand', $brand !== '' ? $brand : null);
-
-        $model = trim((string) $this->name);
-        if ($model !== '') {
-            $push('Model', $model);
+        $table = \App\Support\ProductSpecTable::normalize($this->specifications);
+        if ($table !== null) {
+            return $table;
         }
 
-        if ($this->relationLoaded('category') || $this->category_id) {
-            $categoryName = trim((string) ($this->category?->name ?? ''));
-            $push('Category', $categoryName !== '' ? $categoryName : null);
-        }
-
-        $push('Color', filled($this->color) ? (string) $this->color : null);
-        $push('Type', filled($this->variant_type) ? (string) $this->variant_type : null);
-
-        $ram = normalize_memory_size($this->ram) ?? (filled($this->ram) ? (string) $this->ram : null);
-        $storage = normalize_memory_size($this->storage) ?? (filled($this->storage) ? (string) $this->storage : null);
-        $push('RAM', $ram);
-        $push('Storage', $storage);
-
-        $attrs = is_array($this->filter_attributes) ? $this->filter_attributes : [];
-        foreach ($attrs as $key => $value) {
-            if (is_array($value)) {
-                $value = implode(', ', array_filter(array_map(
-                    fn ($v) => is_scalar($v) ? trim((string) $v) : '',
-                    $value
-                )));
-            } elseif (is_bool($value)) {
-                $value = $value ? 'Yes' : 'No';
-            } elseif (is_scalar($value)) {
-                $value = (string) $value;
-            } else {
-                continue;
-            }
-
-            $label = is_string($key)
-                ? ucwords(str_replace(['_', '-'], ' ', $key))
-                : 'Detail';
-            $push($label, $value);
-        }
-
-        $parsed = \App\Support\ProductSpecParser::parse($this->short_description);
-        foreach ($parsed['rows'] as $row) {
-            $push($row['feature'], $row['specification']);
-        }
-
-        return $rows;
+        // Legacy fallback: Key: Value lines inside short_description
+        return \App\Support\ProductSpecTable::fromDescription($this->short_description);
     }
 
     /**
-     * Narrative leftover from short_description after Key: Value lines are extracted.
+     * Editor seed for admin (saved table, or legacy parse, or empty template).
+     *
+     * @return array{headers: list<string>, rows: list<list<string>>}
+     */
+    public function specificationEditorState(): array
+    {
+        return $this->storefrontSpecificationTable()
+            ?? \App\Support\ProductSpecTable::emptyEditor();
+    }
+
+    /**
+     * Narrative description (prose). When a structured table exists, show full
+     * short_description; otherwise strip Key: Value lines already shown as table.
      */
     public function storefrontDescriptionProse(): string
     {
+        $hasStructured = \App\Support\ProductSpecTable::normalize($this->specifications) !== null;
+        if ($hasStructured) {
+            return trim((string) $this->short_description);
+        }
+
         return \App\Support\ProductSpecParser::parse($this->short_description)['prose'];
     }
 

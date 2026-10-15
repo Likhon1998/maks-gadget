@@ -7093,8 +7093,13 @@ body.gaget-store {
     background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
     border-bottom: 1px solid #e2e8f0;
 }
-.pd-specs-table thead th:first-child {
+.pd-specs-table--cols-2 thead th:first-child,
+.pd-specs-table--cols-2 tbody th {
     width: 38%;
+}
+.pd-specs-table--cols-3 thead th:first-child,
+.pd-specs-table--cols-3 tbody th {
+    width: 28%;
 }
 .pd-specs-table tbody th,
 .pd-specs-table tbody td {

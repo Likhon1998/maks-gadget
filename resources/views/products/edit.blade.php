@@ -20,6 +20,25 @@
             </div>
         @endif
 
+        @if(($siblingVariants ?? collect())->isNotEmpty())
+            <div class="mb-4 rounded-xl border border-slate-200 bg-white px-4 py-3">
+                <p class="text-xs font-semibold text-slate-700 mb-2">Other variants in this group</p>
+                <p class="text-[11px] text-slate-500 mb-2">Each variant has its own specifications table. Open a sibling to edit different specs.</p>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($siblingVariants as $sib)
+                        @php
+                            $label = collect([$sib->color, $sib->variant_type, trim(($sib->ram ? $sib->ram.'/' : '').($sib->storage ?? ''), '/')])->filter()->implode(' · ');
+                            if ($label === '') $label = $sib->barcode ?: ('#'.$sib->id);
+                        @endphp
+                        <a href="{{ route('products.edit', $sib) }}"
+                           class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         <form action="{{ route('products.update', $product) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')

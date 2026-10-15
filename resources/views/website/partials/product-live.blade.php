@@ -388,9 +388,12 @@
 
 {{-- Tabs + related in one denser lower section --}}
 @php
-    $specRows = $product->storefrontSpecificationRows();
+    $specTable = $product->storefrontSpecificationTable();
+    $specHeaders = $specTable['headers'] ?? [];
+    $specRows = $specTable['rows'] ?? [];
     $descProse = $product->storefrontDescriptionProse();
-    $hasDescriptionTab = $product->short_description || count($specRows) > 0;
+    $hasSpecTable = count($specRows) > 0;
+    $hasDescriptionTab = $hasSpecTable || $descProse !== '';
 @endphp
 @if($hasDescriptionTab || $reviews->isNotEmpty() || $related->count())
 <section class="pd-lower mt-6 pt-5 border-t border-slate-100">
@@ -411,22 +414,28 @@
 
             @if($hasDescriptionTab)
                 <div x-show="tab==='description'" class="pd-desc">
-                    @if(count($specRows) > 0)
+                    @if($hasSpecTable)
                         <div class="pd-specs">
                             <h3 class="pd-specs-title">Specifications</h3>
                             <div class="pd-specs-wrap" role="region" aria-label="Product specifications">
-                                <table class="pd-specs-table">
+                                <table class="pd-specs-table pd-specs-table--cols-{{ min(count($specHeaders), 6) }}">
                                     <thead>
                                         <tr>
-                                            <th scope="col">Feature</th>
-                                            <th scope="col">Specification</th>
+                                            @foreach($specHeaders as $hi => $header)
+                                                <th scope="col">{{ $header }}</th>
+                                            @endforeach
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($specRows as $row)
                                             <tr>
-                                                <th scope="row">{{ $row['feature'] }}</th>
-                                                <td>{{ $row['specification'] }}</td>
+                                                @foreach($specHeaders as $ci => $header)
+                                                    @if($ci === 0)
+                                                        <th scope="row">{{ $row[$ci] ?? '' }}</th>
+                                                    @else
+                                                        <td>{{ $row[$ci] ?? '' }}</td>
+                                                    @endif
+                                                @endforeach
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -436,14 +445,9 @@
                     @endif
 
                     @if($descProse !== '')
-                        <div class="pd-desc-prose {{ count($specRows) > 0 ? 'pd-desc-prose--after' : '' }}">
+                        <div class="pd-desc-prose {{ $hasSpecTable ? 'pd-desc-prose--after' : '' }}">
                             <h3 class="pd-specs-title">About this item</h3>
                             <div class="pd-desc-text">{{ $descProse }}</div>
-                        </div>
-                    @elseif(count($specRows) === 0 && filled($product->short_description))
-                        <div class="pd-desc-prose">
-                            <h3 class="pd-specs-title">About this item</h3>
-                            <div class="pd-desc-text">{{ $product->short_description }}</div>
                         </div>
                     @endif
                 </div>

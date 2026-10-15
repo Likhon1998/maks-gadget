@@ -162,7 +162,8 @@ class ProductController extends Controller
             'selling_price' => 'required|numeric|min:0',
             'pos_discount_type' => 'nullable|in:percent,fixed',
             'pos_discount_value' => 'nullable|numeric|min:0.01|required_with:pos_discount_type',
-            'short_description' => 'nullable|string|max:2000',
+            'short_description' => 'nullable|string|max:5000',
+            'specifications' => 'nullable|string|max:20000',
             'category_id' => [
                 'nullable',
                 Rule::exists('categories', 'id')->where(fn ($q) => $q->where('shop_id', $shopId)),
@@ -230,6 +231,8 @@ class ProductController extends Controller
 
         try {
             $created = DB::transaction(function () use ($request, $validated, $shopId, $openingQty, $isGadget, $requiresImei, &$uploadedPaths) {
+                $specifications = \App\Support\ProductSpecTable::normalize($request->input('specifications'));
+
                 $shared = [
                     'shop_id' => $shopId,
                     'name' => $validated['name'],
@@ -243,6 +246,7 @@ class ProductController extends Controller
                         ? ($validated['pos_discount_value'] ?? null)
                         : null,
                     'short_description' => $validated['short_description'] ?? null,
+                    'specifications' => $specifications,
                     'category_id' => $validated['category_id'] ?? null,
                     'brand_id' => $validated['brand_id'] ?? null,
                     'stock_quantity' => 0,
@@ -406,7 +410,19 @@ class ProductController extends Controller
         $brands = Brand::where('shop_id', Auth::user()->shop_id)->orderBy('name')->get();
         $product->load(['galleryImages', 'availableImeis']);
 
-        return view('products.edit', compact('product', 'categories', 'brands'));
+        $siblingVariants = collect();
+        if (filled($product->variant_group)) {
+            $siblingVariants = Product::query()
+                ->where('shop_id', $product->shop_id)
+                ->where('variant_group', $product->variant_group)
+                ->where('id', '!=', $product->id)
+                ->orderBy('color')
+                ->orderBy('storage')
+                ->orderBy('id')
+                ->get(['id', 'name', 'color', 'ram', 'storage', 'variant_type', 'barcode']);
+        }
+
+        return view('products.edit', compact('product', 'categories', 'brands', 'siblingVariants'));
     }
 
     public function update(Request $request, Product $product)
@@ -431,7 +447,8 @@ class ProductController extends Controller
             'selling_price' => 'required|numeric',
             'pos_discount_type' => 'nullable|in:percent,fixed',
             'pos_discount_value' => 'nullable|numeric|min:0.01|required_with:pos_discount_type',
-            'short_description' => 'nullable|string|max:2000',
+            'short_description' => 'nullable|string|max:5000',
+            'specifications' => 'nullable|string|max:20000',
             'category_id' => 'nullable|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'images' => 'nullable|array|max:20',
@@ -448,7 +465,7 @@ class ProductController extends Controller
             'image', 'image_2', 'image_3', 'images', 'remove_images', 'stock_quantity',
             'remove_image', 'remove_image_2', 'remove_image_3',
             'is_published', 'is_new_arrival', 'is_best_seller', 'is_featured',
-            'product_mode', 'imei_list', 'variants',
+            'product_mode', 'imei_list', 'variants', 'specifications',
         ]);
         $data['is_published'] = $request->boolean('is_published');
         $data['is_new_arrival'] = $request->boolean('is_new_arrival');
@@ -456,6 +473,7 @@ class ProductController extends Controller
         $data['is_featured'] = $request->boolean('is_featured');
         $data['requires_imei'] = $request->boolean('requires_imei');
         $data['availability'] = $request->input('availability', $product->availability ?? 'in_stock');
+        $data['specifications'] = \App\Support\ProductSpecTable::normalize($request->input('specifications'));
         if (empty($data['pos_discount_type'])) {
             $data['pos_discount_type'] = null;
             $data['pos_discount_value'] = null;
