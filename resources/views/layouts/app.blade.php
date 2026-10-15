@@ -101,7 +101,7 @@
         }
         .sidebar-brand-link{color:var(--sb-text-strong) !important;text-decoration:none}
         .sidebar-brand-text{font-size:13px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
-        .sidebar-brand-mark{border-radius:0;box-shadow:none}
+        .sidebar-brand-mark{border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
         .admin-sidebar-nav{
             padding:.45rem .55rem 1.25rem;
             scrollbar-width:thin;scrollbar-color:rgba(148,163,184,.2) transparent
@@ -414,12 +414,19 @@
             };
         }
 
-        window.addEventListener('pageshow', function (e) {
-            // Restored from back/forward cache (e.g. Back after logout): reload so auth is re-checked.
-            if (e.persisted) {
-                window.location.reload();
-                return;
+        setInterval(function () {
+            if (typeof window.refreshCsrfToken === 'function') {
+                window.refreshCsrfToken();
+            } else {
+                fetch('/refresh-session', {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+                }).catch(function () {});
             }
+        }, 10 * 60 * 1000);
+
+        window.addEventListener('pageshow', function () {
             if (typeof window.refreshCsrfToken === 'function') {
                 window.refreshCsrfToken();
             }

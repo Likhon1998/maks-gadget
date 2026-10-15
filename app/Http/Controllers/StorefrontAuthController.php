@@ -390,7 +390,7 @@ class StorefrontAuthController extends Controller
         AuthSession::logout($request, 'web');
 
         return redirect()
-            ->route('login')
+            ->route('home')
             ->withHeaders([
                 'Cache-Control' => 'no-store, no-cache, must-revalidate, max-age=0',
                 'Pragma' => 'no-cache',

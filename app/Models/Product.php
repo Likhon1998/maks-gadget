@@ -504,6 +504,94 @@ class Product extends Model
         return $lines;
     }
 
+    /**
+     * Storefront Feature / Specification rows for the product description table.
+     * Combines structured catalog fields with Key: Value lines from short_description.
+     * Empty / optional values are omitted.
+     *
+     * @return array<int, array{feature: string, specification: string}>
+     */
+    public function storefrontSpecificationRows(): array
+    {
+        $rows = [];
+        $seen = [];
+
+        $push = function (string $feature, ?string $specification) use (&$rows, &$seen): void {
+            $feature = \App\Support\ProductSpecParser::cleanLabel($feature);
+            $specification = \App\Support\ProductSpecParser::cleanValue((string) $specification);
+            if ($feature === '' || $specification === '') {
+                return;
+            }
+
+            $key = mb_strtolower($feature);
+            if (isset($seen[$key])) {
+                return;
+            }
+            $seen[$key] = true;
+            $rows[] = [
+                'feature' => $feature,
+                'specification' => $specification,
+            ];
+        };
+
+        $brand = trim((string) ($this->brand_name ?: $this->brand?->name ?: ''));
+        $push('Brand', $brand !== '' ? $brand : null);
+
+        $model = trim((string) $this->name);
+        if ($model !== '') {
+            $push('Model', $model);
+        }
+
+        if ($this->relationLoaded('category') || $this->category_id) {
+            $categoryName = trim((string) ($this->category?->name ?? ''));
+            $push('Category', $categoryName !== '' ? $categoryName : null);
+        }
+
+        $push('Color', filled($this->color) ? (string) $this->color : null);
+        $push('Type', filled($this->variant_type) ? (string) $this->variant_type : null);
+
+        $ram = normalize_memory_size($this->ram) ?? (filled($this->ram) ? (string) $this->ram : null);
+        $storage = normalize_memory_size($this->storage) ?? (filled($this->storage) ? (string) $this->storage : null);
+        $push('RAM', $ram);
+        $push('Storage', $storage);
+
+        $attrs = is_array($this->filter_attributes) ? $this->filter_attributes : [];
+        foreach ($attrs as $key => $value) {
+            if (is_array($value)) {
+                $value = implode(', ', array_filter(array_map(
+                    fn ($v) => is_scalar($v) ? trim((string) $v) : '',
+                    $value
+                )));
+            } elseif (is_bool($value)) {
+                $value = $value ? 'Yes' : 'No';
+            } elseif (is_scalar($value)) {
+                $value = (string) $value;
+            } else {
+                continue;
+            }
+
+            $label = is_string($key)
+                ? ucwords(str_replace(['_', '-'], ' ', $key))
+                : 'Detail';
+            $push($label, $value);
+        }
+
+        $parsed = \App\Support\ProductSpecParser::parse($this->short_description);
+        foreach ($parsed['rows'] as $row) {
+            $push($row['feature'], $row['specification']);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Narrative leftover from short_description after Key: Value lines are extracted.
+     */
+    public function storefrontDescriptionProse(): string
+    {
+        return \App\Support\ProductSpecParser::parse($this->short_description)['prose'];
+    }
+
     public function displayColor(): ?string
     {
         return $this->color ?: null;

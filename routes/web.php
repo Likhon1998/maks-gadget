@@ -69,13 +69,10 @@ Route::get('/shop', [WebsiteController::class, 'shop'])->name('website.shop');
 Route::post('/cart/sync', [WebsiteController::class, 'syncCart'])->name('website.cart.sync');
 Route::get('/search/suggest', [WebsiteController::class, 'searchSuggest'])->name('website.search.suggest');
 Route::get('/category/{slug}', [WebsiteController::class, 'category'])->name('website.category');
-Route::get('/shop/brands', [WebsiteController::class, 'brands'])->name('website.brands');
 Route::get('/brand/{slug}', [WebsiteController::class, 'brand'])->name('website.brand');
 Route::get('/product/{product}', [WebsiteController::class, 'product'])->name('website.product');
-Route::get('/track-order', [WebsiteController::class, 'trackOrder'])->middleware('throttle:30,1')->name('website.track');
-Route::post('/track-order', [WebsiteController::class, 'trackOrderLookup'])->middleware('throttle:20,1')->name('website.track.lookup');
-Route::post('/track-order/find', [WebsiteController::class, 'findGuestOrders'])->middleware('throttle:6,1')->name('website.track.find');
-Route::post('/checkout', [WebsiteController::class, 'checkout'])->middleware('throttle:10,1')->name('website.checkout');
+Route::get('/track-order', [WebsiteController::class, 'trackOrder'])->name('website.track');
+Route::post('/track-order', [WebsiteController::class, 'trackOrderLookup'])->name('website.track.lookup');
 
 /*
 | Public CSRF refresh — storefront customers + guests need this after login / tab sleep.
@@ -89,12 +86,13 @@ Route::get('/csrf-token', function () {
 
 Route::post('/account/login', [StorefrontAuthController::class, 'login'])->name('website.account.login');
 Route::post('/account/register', [StorefrontAuthController::class, 'register'])->name('website.account.register');
-Route::match(['get', 'post'], '/account/logout', [StorefrontAuthController::class, 'logout'])->name('website.account.logout');
+Route::post('/account/logout', [StorefrontAuthController::class, 'logout'])->name('website.account.logout');
 Route::middleware('auth:web')->group(function () {
     Route::get('/account', [StorefrontAuthController::class, 'account'])->name('website.account');
     Route::get('/account/profile', [StorefrontAuthController::class, 'editProfile'])->name('website.account.profile.edit');
     Route::put('/account/profile', [StorefrontAuthController::class, 'updateProfile'])->name('website.account.profile.update');
     Route::delete('/account/profile', [StorefrontAuthController::class, 'destroyAccount'])->name('website.account.profile.destroy');
+    Route::post('/checkout', [WebsiteController::class, 'checkout'])->name('website.checkout');
 });
 Route::get('/page/{slug}', [WebsiteController::class, 'page'])->name('website.page');
 Route::get('/blog', [WebsiteController::class, 'blogs'])->name('website.blogs');
@@ -156,8 +154,6 @@ Route::middleware([
     Route::get('/pos/receipt/{order}', [PosController::class, 'receipt'])->name('pos.receipt');
     Route::get('/pos/customer-lookup', [PosController::class, 'lookupCustomer'])->name('pos.customer-lookup');
     Route::post('/pos/sync-offline', [PosController::class, 'syncOffline'])->name('pos.sync');
-    Route::get('/pos/orders/search', [PosController::class, 'searchOrders'])->name('pos.orders.search');
-    Route::post('/pos/orders/{order}/refund', [PosController::class, 'refundOrder'])->name('pos.orders.refund');
     Route::get('/pos/settings', [PosSettingsController::class, 'edit'])->name('pos.settings.edit');
     Route::put('/pos/settings', [PosSettingsController::class, 'update'])->name('pos.settings.update');
 

@@ -1,7 +1,8 @@
 @php
     $storeName = $settings->store_name ?? config('app.name', 'Maks Gadget');
     $storeLogo = !empty($settings->logo_path) ? public_storage_url($settings->logo_path) : null;
-    $tagline = trim((string) ($settings->footer_tagline ?? ''));
+    $tagline = $settings->footer_tagline
+        ?? 'Your one-stop shop for the latest tech gadgets and accessories.';
 
     $socialRaw = data_get($settings, 'social_links') ?: [];
     $socialMap = [
@@ -68,12 +69,7 @@
                             ? (@filemtime(public_storage_path($footerIconPath)) ?: time())
                             : time();
                     @endphp
-                    @if($storeLogo)
-                        <img src="{{ $storeLogo }}?v={{ @filemtime(public_storage_path($settings->logo_path)) ?: time() }}"
-                             alt="{{ $storeName }}"
-                             class="tn-footer-logo-wordmark">
-                        <span class="tn-footer-logo-text">{{ $storeName }}</span>
-                    @elseif($footerIcon)
+                    @if($footerIcon)
                         <img src="{{ $footerIcon }}?v={{ $footerIconVer }}"
                              alt="{{ $storeName }}"
                              class="tn-footer-logo-img"
@@ -90,9 +86,7 @@
                         <span class="tn-footer-logo-text">{{ $storeName }}</span>
                     @endif
                 </a>
-                @if($tagline !== '')
-                    <p class="tn-footer-tagline">{{ $tagline }}</p>
-                @endif
+                <p class="tn-footer-tagline">{{ $tagline }}</p>
 
                 @php
                     $socialLinks = collect($socialMap)->map(function ($meta, $key) use ($socialRaw) {
@@ -152,12 +146,6 @@
             <div class="tn-footer-col">
                 <h4 class="tn-footer-heading">Help</h4>
                 <ul class="tn-footer-links">
-                    <li>
-                        <a href="{{ route('website.track') }}">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M8.5 11l1.8 1.8 3.4-3.6"/></svg>
-                            Track Order
-                        </a>
-                    </li>
                     <li>
                         <a href="{{ route('website.contact') }}">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M22 16.92v3a2 2 0 01-2.18 2 19.8 19.8 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.8 19.8 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg>
@@ -225,10 +213,6 @@
         </div>
     </div>
     <div class="tn-footer-credit">
-        <div class="tn-container tn-footer-credit-inner">
-            <p class="tn-footer-copy">&copy; {{ date('Y') }} {{ $storeName }}</p>
-            <span class="tn-footer-credit-sep" aria-hidden="true"></span>
-            @include('partials.powered-by', ['variant' => 'footer'])
-        </div>
+        @include('partials.powered-by', ['variant' => 'footer'])
     </div>
 </footer>

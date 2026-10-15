@@ -142,7 +142,6 @@
                 @if($product->availableStock() > 0)
                     <span class="text-slate-600">Availability:
                         <span class="font-semibold text-emerald-700">In Stock</span>
-                        <span class="text-slate-600">({{ $product->availableStock() }} available)</span>
                     </span>
                 @else
                     <span class="text-slate-600">Availability:
@@ -388,12 +387,17 @@
 </div>
 
 {{-- Tabs + related in one denser lower section --}}
-@if($product->short_description || $reviews->isNotEmpty() || $related->count())
+@php
+    $specRows = $product->storefrontSpecificationRows();
+    $descProse = $product->storefrontDescriptionProse();
+    $hasDescriptionTab = $product->short_description || count($specRows) > 0;
+@endphp
+@if($hasDescriptionTab || $reviews->isNotEmpty() || $related->count())
 <section class="pd-lower mt-6 pt-5 border-t border-slate-100">
-    @if($product->short_description || $reviews->isNotEmpty())
-        <div class="pd-tabs" x-data="{ tab: 'description' }">
+    @if($hasDescriptionTab || $reviews->isNotEmpty())
+        <div class="pd-tabs" x-data="{ tab: '{{ $hasDescriptionTab ? 'description' : 'reviews' }}' }">
             <div class="flex gap-5 border-b border-slate-100 mb-4">
-                @if($product->short_description)
+                @if($hasDescriptionTab)
                     <button type="button" @click="tab='description'"
                             :class="tab==='description' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-600'"
                             class="pb-2 text-sm font-medium border-b-2 transition">Description</button>
@@ -405,10 +409,43 @@
                 @endif
             </div>
 
-            @if($product->short_description)
-                <div x-show="tab==='description'">
-                    <h3 class="text-sm font-semibold text-slate-900 mb-1.5">About this item</h3>
-                    <div class="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{{ $product->short_description }}</div>
+            @if($hasDescriptionTab)
+                <div x-show="tab==='description'" class="pd-desc">
+                    @if(count($specRows) > 0)
+                        <div class="pd-specs">
+                            <h3 class="pd-specs-title">Specifications</h3>
+                            <div class="pd-specs-wrap" role="region" aria-label="Product specifications">
+                                <table class="pd-specs-table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Feature</th>
+                                            <th scope="col">Specification</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($specRows as $row)
+                                            <tr>
+                                                <th scope="row">{{ $row['feature'] }}</th>
+                                                <td>{{ $row['specification'] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($descProse !== '')
+                        <div class="pd-desc-prose {{ count($specRows) > 0 ? 'pd-desc-prose--after' : '' }}">
+                            <h3 class="pd-specs-title">About this item</h3>
+                            <div class="pd-desc-text">{{ $descProse }}</div>
+                        </div>
+                    @elseif(count($specRows) === 0 && filled($product->short_description))
+                        <div class="pd-desc-prose">
+                            <h3 class="pd-specs-title">About this item</h3>
+                            <div class="pd-desc-text">{{ $product->short_description }}</div>
+                        </div>
+                    @endif
                 </div>
             @endif
 
@@ -427,7 +464,7 @@
     @endif
 
     @if($related->count())
-        <div class="pd-related {{ ($product->short_description || $reviews->isNotEmpty()) ? 'mt-6 pt-5 border-t border-slate-100' : '' }}">
+        <div class="pd-related {{ ($hasDescriptionTab || $reviews->isNotEmpty()) ? 'mt-6 pt-5 border-t border-slate-100' : '' }}">
             <h2 class="text-sm font-semibold text-slate-900 mb-3">You may also like</h2>
             <div class="pd-related-grid">
                 @foreach($related->take(4) as $rel)
@@ -435,7 +472,7 @@
                     <a href="{{ route('website.product', $rel) }}" class="pd-related-card group">
                         <img src="{{ $relImg }}" alt="" class="pd-related-img">
                         <div class="min-w-0">
-                            <p class="text-xs font-medium text-slate-800 group-hover:text-blue-600 line-clamp-2">{{ $rel->storefrontDisplayName() }}</p>
+                            <p class="text-xs font-medium text-slate-800 group-hover:text-blue-600 break-words">{{ $rel->storefrontDisplayName() }}</p>
                             <p class="text-xs font-semibold text-blue-600 mt-0.5">{{ $ws->formatPrice($rel->currentPrice(), $settings) }}</p>
                         </div>
                     </a>

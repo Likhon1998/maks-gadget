@@ -170,7 +170,7 @@
         </div>
 
         {{-- Brands --}}
-        @if($brands->isNotEmpty() && empty($activeBrand))
+        @if($brands->isNotEmpty())
             <div class="gs-filter-block">
                 <h3 class="gs-filter-title">Brands</h3>
                 <ul class="gs-brand-list">

@@ -187,11 +187,6 @@
                 orderMessage: '',
                 lastOrderId: null,
                 lastOrderInvoice: '',
-                lastOrderGuest: false,
-                lastOrderPhone: '',
-                lastOrderTrackUrl: '',
-                lastOrderTotal: 0,
-                trackPageUrl: @json(route('website.track')),
                 redirectSeconds: 0,
                 _redirectTimer: null,
                 orderSuccess: false,
@@ -204,7 +199,6 @@
                     name: @json(data_get($storefrontUser, 'name', '')),
                     phone: @json(data_get($storefrontUser, 'phone', '')),
                     address: @json(data_get($storefrontUser, 'address', '')),
-                    email: '',
                     zone: 'inside_dhaka',
                     payment_method: 'cash_on_delivery',
                 },
@@ -250,9 +244,6 @@
                 get wishlistCount() { return this.wishlist.length; },
                 init() {
                     this.syncCart({ silent: true });
-                    @if(session('session_expired'))
-                        this.$nextTick(() => this.flashToast('Your session expired for security. Please try again.'));
-                    @endif
                     try {
                         const params = new URLSearchParams(window.location.search);
                         if (params.get('signin') === '1' || params.get('signin') === 'true') {
@@ -334,7 +325,7 @@
                         }
                         if (desired > stockCap) {
                             desired = stockCap;
-                            this.flashToast('Only ' + stockCap + ' available.');
+                            this.flashToast('Maximum available quantity added.');
                         }
                     }
 
@@ -413,7 +404,7 @@
                     }
                     if (Number.isFinite(stockCap) && stockCap >= 0 && qty > stockCap) {
                         qty = stockCap;
-                        this.flashToast('Only ' + stockCap + ' available.');
+                        this.flashToast('Maximum available quantity reached.');
                     }
                     row.qty = qty;
                     this.cart = next;
@@ -459,53 +450,12 @@
                         this.checkout.payment_method = 'cash_on_delivery';
                     }
                     this.syncCart({ silent: true });
-                    if (!this.isLoggedIn) this.prefillGuestCheckout();
-                    this.checkoutStep = 'order';
-                },
-                signInForCheckout() {
-                    this.authPurpose = 'checkout';
-                    this.checkoutStep = 'auth';
-                    this.authTab = 'login';
-                    this.authMessage = '';
-                    this.authMessageOk = false;
-                },
-                continueAsGuest() {
-                    this.authPurpose = 'checkout';
-                    this.authMessage = '';
-                    this.prefillGuestCheckout();
-                    this.checkoutStep = 'order';
-                },
-                guestOrders() {
-                    try {
-                        const list = JSON.parse(localStorage.getItem('gaget_guest_orders') || '[]');
-                        return Array.isArray(list) ? list : [];
-                    } catch (e) {
-                        return [];
+                    if (this.isLoggedIn) {
+                        this.checkoutStep = 'order';
+                    } else {
+                        this.checkoutStep = 'auth';
+                        this.authTab = 'login';
                     }
-                },
-                rememberGuestOrder(order) {
-                    const list = this.guestOrders().filter((o) => o && o.invoice !== order.invoice);
-                    list.unshift(order);
-                    try {
-                        localStorage.setItem('gaget_guest_orders', JSON.stringify(list.slice(0, 10)));
-                    } catch (e) {}
-                },
-                prefillGuestCheckout() {
-                    if (this.checkout.name || this.checkout.phone) return;
-                    try {
-                        const saved = JSON.parse(localStorage.getItem('gaget_guest_profile') || 'null');
-                        if (!saved) return;
-                        this.checkout.name = saved.name || '';
-                        this.checkout.phone = saved.phone || '';
-                        this.checkout.address = saved.address || '';
-                        this.checkout.email = saved.email || '';
-                    } catch (e) {}
-                },
-                normalizeBdMobile(value) {
-                    let digits = String(value || '').replace(/\D+/g, '');
-                    if (digits.startsWith('880')) digits = digits.slice(3);
-                    if (digits.length === 10 && digits.startsWith('1')) digits = '0' + digits;
-                    return /^01[3-9]\d{8}$/.test(digits) ? digits : '';
                 },
                 openSignIn(tab = 'login') {
                     this.cartOpen = false;
@@ -612,25 +562,22 @@
                         this.orderSuccess = false;
                         return;
                     }
-                    if (!address) {
-                        this.orderMessage = 'Delivery address is required.';
+                    if (!address || address.length < 20) {
+                        this.orderMessage = 'A complete delivery address is required (house/flat, road, and area).';
                         this.orderSuccess = false;
                         return;
                     }
-                    const email = String(this.checkout.email || '').trim();
+                    const hasLetters = /[A-Za-z\u0980-\u09FF]{3,}/.test(address);
+                    const hasNumberOrArea = /\d|road|rd\.?|street|st\.?|lane|house|flat|apt|block|sector|area|bazar|goli|avenue/i.test(address);
+                    if (!hasLetters || !hasNumberOrArea) {
+                        this.orderMessage = 'Please enter a full address, e.g. House 12, Road 5, Gulshan, Dhaka.';
+                        this.orderSuccess = false;
+                        return;
+                    }
                     if (!this.isLoggedIn) {
-                        const mobile = this.normalizeBdMobile(phone);
-                        if (!mobile) {
-                            this.orderMessage = 'Enter a valid mobile number (01XXXXXXXXX).';
-                            this.orderSuccess = false;
-                            return;
-                        }
-                        this.checkout.phone = mobile;
-                        if (address.length < 5) {
-                            this.orderMessage = 'Please enter a complete delivery address.';
-                            this.orderSuccess = false;
-                            return;
-                        }
+                        this.checkoutStep = 'auth';
+                        this.authTab = 'login';
+                        return;
                     }
                     this.ordering = true;
                     this.orderMessage = '';
@@ -644,8 +591,7 @@
                             body: JSON.stringify({
                                 cart: this.cart,
                                 customer_name: name,
-                                customer_phone: this.checkout.phone,
-                                customer_email: this.isLoggedIn ? null : (email || null),
+                                customer_phone: phone,
                                 customer_address: address,
                                 delivery_zone: this.checkout.zone,
                                 payment_method: this.deliveryQuote.paymentMethod,
@@ -658,9 +604,11 @@
                             this.orderMessage = 'Session expired. Please try placing the order again.';
                             return;
                         }
-                        if (res.status === 429) {
-                            this.orderSuccess = false;
-                            this.orderMessage = 'Too many attempts. Please wait a minute and try again.';
+                        if (res.status === 401 || data.auth_required) {
+                            this.isLoggedIn = false;
+                            this.checkoutStep = 'auth';
+                            this.authTab = 'login';
+                            this.authMessage = 'Please sign in to place your order.';
                             return;
                         }
                         if (res.status === 422) {
@@ -668,7 +616,6 @@
                             this.orderMessage = data.errors?.customer_address?.[0]
                                 || data.errors?.customer_phone?.[0]
                                 || data.errors?.customer_name?.[0]
-                                || data.errors?.customer_email?.[0]
                                 || data.message
                                 || 'Please fill in a complete delivery address.';
                             return;
@@ -684,28 +631,9 @@
                             this.orderSuccess = true;
                             this.lastOrderId = data.order_id || null;
                             this.lastOrderInvoice = data.invoice || '';
-                            this.lastOrderGuest = !!data.guest;
-                            this.lastOrderPhone = data.phone || this.checkout.phone;
-                            this.lastOrderTotal = Number(data.grand_total) || 0;
-                            this.lastOrderTrackUrl = data.track_url
-                                || (this.trackPageUrl + '?' + new URLSearchParams({ invoice: this.lastOrderInvoice, phone: this.lastOrderPhone }).toString());
                             this.orderMessage = '';
                             this.checkoutStep = 'success';
-                            if (this.lastOrderGuest) {
-                                this.rememberGuestOrder({
-                                    invoice: this.lastOrderInvoice,
-                                    phone: this.lastOrderPhone,
-                                    total: this.lastOrderTotal,
-                                    date: new Date().toISOString(),
-                                });
-                                try {
-                                    localStorage.setItem('gaget_guest_profile', JSON.stringify({
-                                        name, phone: this.lastOrderPhone, address, email,
-                                    }));
-                                } catch (e) {}
-                            } else {
-                                this.startAccountRedirect();
-                            }
+                            this.startAccountRedirect();
                         } else {
                             this.orderSuccess = false;
                             this.orderMessage = data.message || 'Order failed.';
@@ -713,10 +641,9 @@
                     } catch (e) {
                         this.orderSuccess = false;
                         this.orderMessage = 'Network error.';
-                    } finally {
-                        this.ordering = false;
-                        if (window.GagetLoader) window.GagetLoader.hide();
                     }
+                    this.ordering = false;
+                    if (window.GagetLoader) window.GagetLoader.hide();
                 },
                 startAccountRedirect() {
                     if (this._redirectTimer) clearInterval(this._redirectTimer);
@@ -851,10 +778,8 @@
         .gaget-store .tn-brand-logo{height:44px!important;max-height:44px!important;max-width:120px!important;width:auto!important;object-fit:contain!important}
         .gaget-store .tn-brand-logo-frame{height:52px!important;max-width:140px!important;overflow:hidden!important}
         .gaget-store .pd-brand-logo{height:18px!important;max-height:18px!important;max-width:88px!important;width:auto!important;object-fit:contain!important}
-        .tn-footer-credit{border-top:1px solid #e2e8f0;padding:0;text-align:center;background:#eef2f7}
-        .tn-footer-credit-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 16px;padding:14px 0 max(16px,env(safe-area-inset-bottom))}
-        .tn-footer-copy{margin:0;font-size:12px;font-weight:500;color:#475569}
-        .powered-by,.powered-by--footer{margin:0;font-size:12px;font-weight:500;letter-spacing:.02em;color:#475569;text-align:center}
+        .tn-footer-credit{border-top:1px solid #eef2f7;padding:14px 16px 18px;text-align:center;background:#f8f9fc}
+        .powered-by,.powered-by--footer{margin:0;font-size:12px;font-weight:500;letter-spacing:.02em;color:#94a3b8}
         .powered-by strong,.powered-by--footer strong{color:#0f172a;font-weight:800}
     </style>
 </head>
@@ -996,17 +921,17 @@
 <div x-show="checkoutOpen" x-cloak class="fixed inset-0 z-[80] flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="absolute inset-0 bg-black/50" @click="checkoutStep !== 'success' && (checkoutOpen=false)"></div>
     <div class="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] overflow-y-auto p-4 sm:p-6"
-         :class="checkoutStep === 'success' && 'overflow-x-hidden'">
-        <button type="button" x-show="checkoutStep !== 'success'" @click="checkoutOpen=false" class="absolute right-4 top-4 text-slate-500 hover:text-slate-800 text-2xl leading-none">&times;</button>
+         :class="checkoutStep === 'success' && 'overflow-hidden'">
+        <button type="button" x-show="checkoutStep !== 'success'" @click="checkoutOpen=false" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
 
         {{-- Auth step (standalone account OR checkout) --}}
         <div x-show="checkoutStep==='auth'" x-cloak>
             <h3 class="text-xl font-bold text-slate-900 pr-8" x-text="authPurpose === 'checkout' ? 'Sign in to checkout' : (authTab === 'register' ? 'Create your account' : 'Welcome back')"></h3>
-            <p class="text-sm text-slate-500 mt-1 mb-5" x-text="authPurpose === 'checkout' ? 'Sign in to save this order to your account — or continue as a guest.' : 'Create an account anytime — then sign in to shop and track orders.'"></p>
+            <p class="text-sm text-slate-500 mt-1 mb-5" x-text="authPurpose === 'checkout' ? 'Create an account if needed, then sign in to place your order.' : 'Create an account anytime — then sign in to shop and track orders.'"></p>
 
             <div class="flex rounded-xl bg-slate-100 p-1 mb-5">
-                <button type="button" @click="authTab='login'; authMessage=''; authMessageOk=false" class="flex-1 rounded-lg py-2 text-sm font-semibold transition" :class="authTab==='login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-700'">Sign in</button>
-                <button type="button" @click="authTab='register'; authMessage=''; authMessageOk=false" class="flex-1 rounded-lg py-2 text-sm font-semibold transition" :class="authTab==='register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-700'">Create account</button>
+                <button type="button" @click="authTab='login'; authMessage=''; authMessageOk=false" class="flex-1 rounded-lg py-2 text-sm font-semibold transition" :class="authTab==='login' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'">Sign in</button>
+                <button type="button" @click="authTab='register'; authMessage=''; authMessageOk=false" class="flex-1 rounded-lg py-2 text-sm font-semibold transition" :class="authTab==='register' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'">Create account</button>
             </div>
 
             <div x-show="authTab==='login'" class="space-y-3">
@@ -1028,36 +953,13 @@
                 </button>
             </div>
 
-            <p x-show="authMessage" x-text="authMessage" class="mt-3 text-sm text-center" :class="authMessageOk ? 'text-emerald-700' : 'text-rose-600'"></p>
-
-            <template x-if="authPurpose === 'checkout' && cart.length > 0">
-                <div class="mt-5">
-                    <div class="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        <span class="h-px flex-1 bg-slate-200"></span>or<span class="h-px flex-1 bg-slate-200"></span>
-                    </div>
-                    <button type="button" @click="continueAsGuest()" class="mt-4 w-full rounded-xl border border-slate-300 bg-white py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50">
-                        Continue as guest
-                    </button>
-                    <p class="mt-2 text-center text-[11px] text-slate-500">No account needed — track your order with Order ID + mobile number.</p>
-                </div>
-            </template>
+            <p x-show="authMessage" x-text="authMessage" class="mt-3 text-sm text-center" :class="authMessageOk ? 'text-emerald-600' : 'text-rose-600'"></p>
         </div>
 
         {{-- Order step --}}
         <div x-show="checkoutStep==='order'" x-cloak>
             <h3 class="text-xl font-bold text-slate-900 pr-8">Place order</h3>
             <p class="text-sm text-slate-500 mt-1 mb-4"><span x-text="cartCount"></span> item(s) · Subtotal <span class="font-semibold text-slate-800" x-text="currency + Math.round(Number(cartTotal) || 0).toLocaleString()"></span></p>
-
-            <div x-show="!isLoggedIn" class="mb-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
-                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-slate-500 ring-1 ring-slate-200" aria-hidden="true">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                </span>
-                <p class="min-w-0 flex-1 text-[12px] leading-snug text-slate-600">
-                    <span class="block font-semibold text-slate-800">Checking out as guest</span>
-                    No account needed. Have one?
-                    <button type="button" @click="signInForCheckout()" class="font-semibold text-orange-600 hover:underline">Sign in</button>
-                </p>
-            </div>
 
             <div class="space-y-3">
                 <div>
@@ -1066,23 +968,18 @@
                 </div>
                 <div>
                     <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Phone number <span class="text-rose-500">*</span></label>
-                    <input x-model="checkout.phone" type="tel" inputmode="tel" required autocomplete="tel" placeholder="01XXXXXXXXX" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
-                    <p x-show="!isLoggedIn" class="mt-1 text-[11px] text-slate-500">We'll call this number to confirm. You'll also need it to track your order.</p>
-                </div>
-                <div x-show="!isLoggedIn">
-                    <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Email <span class="font-medium normal-case tracking-normal text-slate-400">(optional)</span></label>
-                    <input x-model="checkout.email" type="email" autocomplete="email" placeholder="you@example.com" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
+                    <input x-model="checkout.phone" type="tel" required autocomplete="tel" placeholder="01XXXXXXXXX" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm">
                 </div>
                 <div>
                     <label class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Delivery address <span class="text-rose-500">*</span></label>
                     <textarea x-model="checkout.address"
                               required
                               autocomplete="street-address"
-                              placeholder="Enter your delivery address"
+                              placeholder="House/Flat, Road, Area, City (required for delivery)"
                               class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
-                              :class="!String(checkout.address || '').trim() && orderMessage && orderMessage.toLowerCase().includes('address') ? 'border-rose-400 ring-1 ring-rose-200' : ''"
+                              :class="(!checkout.address || String(checkout.address).trim().length < 20) && orderMessage && orderMessage.toLowerCase().includes('address') ? 'border-rose-400 ring-1 ring-rose-200' : ''"
                               rows="3"></textarea>
-                    <p class="mt-1 text-[11px] text-slate-500">Required for delivery. Any address format is fine — saved address is used when available.</p>
+                    <p class="mt-1 text-[11px] text-slate-500">Must include house/flat, road, and area so the courier can find you.</p>
                 </div>
 
                 <div>
@@ -1109,7 +1006,7 @@
                         <span class="text-slate-500">Delivery (<span x-text="deliveryQuote.zoneLabel"></span>)</span>
                         <span class="font-semibold" x-text="deliveryQuote.isFree ? 'FREE' : (currency + Math.round(Number(deliveryQuote.deliveryFee) || 0).toLocaleString())"></span>
                     </div>
-                    <p x-show="deliveryQuote.freeReason" x-text="deliveryQuote.freeReason" class="text-[11px] text-emerald-700 font-medium"></p>
+                    <p x-show="deliveryQuote.freeReason" x-text="deliveryQuote.freeReason" class="text-[11px] text-emerald-600 font-medium"></p>
                     <p x-show="!deliveryQuote.isFree && deliveryQuote.deliveryFee > 0" class="text-[11px] text-slate-500">Delivery is paid to the delivery person.</p>
                     <div class="flex justify-between border-t border-slate-200 pt-1.5 text-sm">
                         <span class="font-bold text-slate-800">Total</span>
@@ -1171,38 +1068,15 @@
                 <p class="mt-1.5 font-mono text-[17px] font-extrabold tracking-wide text-emerald-950" x-text="lastOrderInvoice || ('#' + lastOrderId)"></p>
                 <p class="mt-2 text-[12px] text-emerald-800/80">Keep this ID for tracking and support.</p>
             </div>
-
-            <template x-if="lastOrderGuest">
-                <div>
-                    <div class="mt-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-left text-[12px] text-slate-600">
-                        <p class="font-semibold text-slate-800">How to track this order</p>
-                        <p class="mt-1">Open <span class="font-semibold text-slate-800">Track Order</span> and enter your Order ID with mobile
-                            <span class="font-mono font-semibold text-slate-800" x-text="lastOrderPhone"></span>.
-                            We've also saved it on this device.</p>
-                    </div>
-                    <div class="mt-5 flex flex-col gap-2">
-                        <a :href="lastOrderTrackUrl" class="gaget-btn-primary w-full text-center text-sm py-3">Track my order</a>
-                        <button type="button" @click="checkoutOpen=false" class="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">
-                            Continue shopping
-                        </button>
-                    </div>
-                    <p class="mt-3 text-[11px] text-slate-500">Create an account later with the same mobile number and this order will show in <span class="font-semibold">My Orders</span>.</p>
-                </div>
-            </template>
-
-            <template x-if="!lastOrderGuest">
-                <div>
-                    <p class="mt-4 text-[12px] text-slate-500">
-                        Taking you to <span class="font-semibold text-slate-700">My Orders</span>
-                        <span x-show="redirectSeconds > 0"> in <span class="font-bold text-blue-600" x-text="redirectSeconds"></span>s…</span>
-                    </p>
-                    <div class="mt-5 flex flex-col gap-2">
-                        <button type="button" @click="goToAccountNow()" class="gaget-btn-primary w-full text-center text-sm py-3">
-                            View my order now
-                        </button>
-                    </div>
-                </div>
-            </template>
+            <p class="mt-4 text-[12px] text-slate-500">
+                Taking you to <span class="font-semibold text-slate-700">My Orders</span>
+                <span x-show="redirectSeconds > 0"> in <span class="font-bold text-blue-600" x-text="redirectSeconds"></span>s…</span>
+            </p>
+            <div class="mt-5 flex flex-col gap-2">
+                <button type="button" @click="goToAccountNow()" class="gaget-btn-primary w-full text-center text-sm py-3">
+                    View my order now
+                </button>
+            </div>
         </div>
     </div>
 </div>

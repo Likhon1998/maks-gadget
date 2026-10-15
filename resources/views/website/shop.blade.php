@@ -9,10 +9,8 @@
 window.shopLive = function (config) {
     return {
         endpoint: config.endpoint,
-        categoryPage: !!config.categoryPage,
-        defaultSort: config.defaultSort || 'featured',
         view: config.view || 'grid',
-        sort: (new URLSearchParams(window.location.search)).get('sort') || config.defaultSort || 'featured',
+        sort: (new URLSearchParams(window.location.search)).get('sort') || 'featured',
         loading: false,
         _req: 0,
 
@@ -35,7 +33,7 @@ window.shopLive = function (config) {
                 }
             });
 
-            if (this.sort && this.sort !== this.defaultSort) {
+            if (this.sort && this.sort !== 'featured') {
                 params.set('sort', this.sort);
             } else {
                 params.delete('sort');
@@ -156,7 +154,7 @@ window.shopLive = function (config) {
 
         onPopState() {
             const params = new URLSearchParams(window.location.search);
-            this.sort = params.get('sort') || this.defaultSort;
+            this.sort = params.get('sort') || 'featured';
 
             const form = this.$root.querySelector('[data-shop-filters]');
             if (form) {
@@ -208,7 +206,7 @@ document.addEventListener('click', function (event) {
     }
 
     const cat = event.target.closest('a.gs-cat-link');
-    if (cat && root.contains(cat) && !root._x_dataStack[0].categoryPage) {
+    if (cat && root.contains(cat)) {
         event.preventDefault();
         root._x_dataStack[0].setCategory(cat.dataset.category || '');
     }
@@ -244,9 +242,7 @@ requestAnimationFrame(window.bindShopProductScroll);
 
 <div class="gs-shop"
      x-data="shopLive({
-         endpoint: @js(url()->current()),
-         categoryPage: @js(isset($activeCategory)),
-         defaultSort: @js(isset($activeCategory) || isset($activeBrand) ? 'latest' : 'featured'),
+         endpoint: @js(route('website.shop')),
          view: @js($viewMode),
          title: @js($pageTitle ?? 'Shop'),
      })"

@@ -730,10 +730,14 @@
         </div>
         <div class="p-4 space-y-4">
             <div>
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Short description</label>
-                <textarea name="short_description" rows="4"
-                          class="block w-full rounded-lg border-slate-200 text-sm"
-                          placeholder="About this item — features, condition, what’s included…">{{ old('short_description', $product?->short_description ?? '') }}</textarea>
+                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Short description / specifications</label>
+                <textarea name="short_description" rows="8"
+                          class="block w-full rounded-lg border-slate-200 text-sm font-mono"
+                          placeholder="Brand: Samsung&#10;Model: Galaxy S24&#10;Color: Phantom Black&#10;Battery: 4000 mAh&#10;Connectivity: 5G, Wi-Fi 6&#10;&#10;Optional paragraph about the product…">{{ old('short_description', $product?->short_description ?? '') }}</textarea>
+                <p class="mt-1.5 text-[11px] text-slate-500 leading-relaxed">
+                    Tip: write one <strong>Feature: Specification</strong> per line (e.g. <code class="text-[10px] bg-slate-100 px-1 rounded">Battery: 4000 mAh</code>).
+                    Those lines appear as a neat table on the website. Any other text is shown as a normal description. Brand, color, RAM, and storage from the product form are included automatically.
+                </p>
             </div>
 
             <div class="flex flex-wrap gap-4">

@@ -1,4 +1,4 @@
-﻿@extends('website.layout')
+@extends('website.layout')
 @php $ws = app(\App\Services\WebsiteService::class); @endphp
 
 @section('content')
@@ -16,14 +16,34 @@
             'tone' => $banner->theme === 'light' ? 'light' : 'dark',
         ];
     });
-    $hasHeroSlides = $heroSlides->isNotEmpty();
-    $hasHeroSide = $heroSideCards->isNotEmpty();
+
+    // Keep 3-portion layout visible until CMS cards are added
+    if ($heroSideCards->isEmpty()) {
+        $heroSideCards = collect([
+            (object) [
+                'title' => 'New Arrivals',
+                'sub' => 'Fresh tech, just landed',
+                'url' => route('website.shop', ['filter' => 'new']),
+                'cta' => 'See new',
+                'badge' => 'New',
+                'image' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=640&q=80',
+                'tone' => 'dark',
+            ],
+            (object) [
+                'title' => 'Best Sellers',
+                'sub' => 'Most loved gadgets',
+                'url' => route('website.shop'),
+                'cta' => 'Shop',
+                'badge' => 'Hot',
+                'image' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=640&q=80',
+                'tone' => 'light',
+            ],
+        ]);
+    }
 @endphp
-@if($hasHeroSlides || $hasHeroSide)
 <section class="mg-hero3">
     <div class="tn-container">
-        <div class="mg-hero3-grid{{ $hasHeroSlides && $hasHeroSide ? '' : ' is-solo' }}{{ $hasHeroSlides ? '' : ' is-side-only' }}">
-            @if($hasHeroSlides)
+        <div class="mg-hero3-grid">
             <div
                 class="mg-hero3-slider tn-hero"
     @if($heroSlides->count() > 1)
@@ -51,7 +71,7 @@
     @endif
             >
                 <div class="tn-hero-track">
-    @foreach($heroSlides as $i => $slide)
+    @forelse($heroSlides as $i => $slide)
         @php
             $posterUrl = $slide->image_path ? public_storage_url($slide->image_path) : null;
             if ($posterUrl && $slide->image_path) {
@@ -80,30 +100,32 @@
             @else
                 <div class="tn-hero-fallback">
                                     <div class="tn-hero-fallback-inner">
-                        @if($slide->badge_text)
-                            <p class="tn-hero-kicker">{{ $slide->badge_text }}</p>
-                        @endif
-                        @if($slide->title)
-                            <h1 class="tn-hero-title">{{ $slide->title }}</h1>
-                        @endif
-                        @if($slide->description)
-                            <p class="tn-hero-sub">{{ $slide->description }}</p>
-                        @endif
-                        @if($slide->button_text || $slide->learn_more_text)
-                            <div class="tn-hero-actions">
-                                @if($slide->button_text)
-                                    <a href="{{ $link }}" class="tn-btn tn-btn-primary">{{ $slide->button_text }}</a>
-                                @endif
-                                @if($slide->learn_more_text)
-                                    <a href="{{ $slide->learn_more_url ?: route('website.shop') }}" class="tn-btn tn-btn-outline">{{ $slide->learn_more_text }}</a>
-                                @endif
-                            </div>
-                        @endif
+                        <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
+                        <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
+                        <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? 'our store' }}.</p>
+                        <div class="tn-hero-actions">
+                            <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
+                            <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
+                        </div>
                     </div>
                 </div>
             @endif
         </div>
-    @endforeach
+    @empty
+                        <div class="tn-hero-slide is-active">
+            <div class="tn-hero-fallback">
+                                <div class="tn-hero-fallback-inner">
+                    <p class="tn-hero-kicker">{{ data_get($settings, 'special_offer_text') ?: 'Premium Electronics' }}</p>
+                    <h1 class="tn-hero-title">Upgrade Your Digital Life</h1>
+                                    <p class="tn-hero-sub">Discover the latest gadgets, unbeatable deals, and premium tech at {{ $settings->store_name ?? config('app.name', 'Maks Gadget') }}.</p>
+                    <div class="tn-hero-actions">
+                        <a href="{{ route('website.shop') }}" class="tn-btn tn-btn-primary">Shop Now</a>
+                        <a href="{{ route('website.shop', ['filter' => 'new']) }}" class="tn-btn tn-btn-outline">Explore Collection</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforelse
                 </div>
     @if($heroSlides->count() > 1)
                     <div class="tn-hero-dots" role="tablist" aria-label="Hero slides">
@@ -125,9 +147,7 @@
         </div>
     @endif
             </div>
-            @endif
 
-            @if($hasHeroSide)
             <aside class="mg-hero3-side" aria-label="Featured offers">
                 @foreach($heroSideCards->take(2) as $side)
                     <a href="{{ $side->url }}" class="mg-hero3-card is-{{ $side->tone }}">
@@ -148,11 +168,9 @@
                     </a>
                 @endforeach
             </aside>
-            @endif
         </div>
     </div>
 </section>
-@endif
 
 {{-- Service features — premium strip under hero --}}
 @if($features->isNotEmpty())
@@ -183,6 +201,39 @@
 @if($categories->isNotEmpty())
 @php
     $homeCopy = data_get($settings, 'home_copy') ?: [];
+    $catTaglines = [
+        'smartphones' => 'Power in your pocket.',
+        'phones' => 'Power in your pocket.',
+        'laptops' => 'Create. Work. Win.',
+        'tablets' => 'Light. Fast. Ready.',
+        'headphones' => 'Immersive sound.',
+        'earbuds' => 'Pure sound. Zero limits.',
+        'earphones' => 'Pure sound. Zero limits.',
+        'smartwatches' => 'Smarter. Healthier. You.',
+        'watches' => 'Smarter. Healthier. You.',
+        'cameras' => 'Capture every moment.',
+        'gaming' => 'Play without limits.',
+        'speakers' => 'Fill the room.',
+        'chargers-cables' => 'Power that lasts.',
+        'accessories' => 'Finish the look.',
+        'monitors' => 'See every detail.',
+        'drones' => 'Sky is the limit.',
+    ];
+    $catFallbacks = [
+        'phone' => 'https://images.unsplash.com/photo-1592890288564-766794220d53?w=900&q=85',
+        'laptop' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=900&q=85',
+        'tablet' => 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=900&q=85',
+        'headphones' => 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=900&q=85',
+        'earbuds' => 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=900&q=85',
+        'watch' => 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=900&q=85',
+        'camera' => 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=900&q=85',
+        'game' => 'https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=900&q=85',
+        'speaker' => 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=900&q=85',
+        'drone' => 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=900&q=85',
+        'monitor' => 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=900&q=85',
+        'mouse' => 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=900&q=85',
+        'plug' => 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=900&q=85',
+    ];
     $catThemes = ['is-ink', 'is-graphite', 'is-midnight', 'is-steel', 'is-ink', 'is-graphite', 'is-midnight', 'is-steel'];
     $coverCats = $categories->values();
     $coverTotal = $coverCats->count();
@@ -199,14 +250,22 @@
         dragMoved: false,
         dragStartX: 0,
         dragDelta: 0,
-        narrow: typeof window !== 'undefined' && window.matchMedia('(max-width: 900px)').matches,
+        narrow: typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
         syncNarrow() {
-            this.narrow = window.matchMedia('(max-width: 900px)').matches;
+            this.narrow = window.matchMedia('(max-width: 767px)').matches;
         },
         go(i) {
             if (this.total < 1) return;
             this.active = ((i % this.total) + this.total) % this.total;
+            if (this.narrow) this.$nextTick(() => this.scrollChipIntoView());
             this.arm();
+        },
+        scrollChipIntoView() {
+            if (!this.narrow) return;
+            const chip = this.$el.querySelector('.mg-cover-marquee-item.is-active:not(.mg-cover-marquee-item--dup)');
+            if (chip && chip.scrollIntoView) {
+                chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
         },
         next() { this.go(this.active + 1); },
         prev() { this.go(this.active - 1); },
@@ -223,14 +282,15 @@
             const mobile = this.narrow;
             const dragNudge = this.dragging ? (this.dragDelta * (mobile ? 0.18 : 0.12)) : 0;
             if (mobile) {
-                /* Flat peek coverflow — center focus, neighbors peek (matches previous style) */
+                /* Flat peek coverflow (matches mockup) — no rotateY so cards don't collapse edge-on */
                 if (abs > 2) {
                     return 'opacity:0; visibility:hidden; pointer-events:none; transform: translate(-50%, -50%) scale(0.62);';
                 }
                 const x = d * 72;
                 const scale = abs === 0 ? 1 : (abs === 1 ? 0.84 : 0.72);
+                const opacity = abs === 0 ? 1 : (abs === 1 ? 0.92 : 0.55);
                 const z = 40 - abs;
-                return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) scale(${scale}); z-index:${z}; opacity:1;`;
+                return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) scale(${scale}); z-index:${z}; opacity:${opacity};`;
             }
             if (abs > 3) {
                 return 'opacity:0; visibility:hidden; pointer-events:none; transform: translate(-50%, -50%) scale(0.55);';
@@ -240,7 +300,8 @@
             const rot = d * -22;
             const scale = Math.max(0.72, 1 - abs * 0.1);
             const z = 50 - abs;
-            return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:1;`;
+            const opacity = abs === 0 ? 1 : (abs === 1 ? 0.9 : (abs === 2 ? 0.62 : 0.4));
+            return `transform: translate(-50%, -50%) translateX(calc(${x}% + ${dragNudge}px)) translateY(${y}%) rotateY(${rot}deg) scale(${scale}); z-index:${z}; opacity:${opacity};`;
         },
         arm() {
             clearInterval(this.timer);
@@ -248,7 +309,7 @@
             this.timer = setInterval(() => { this.next(); }, 4200);
         },
         onPointerDown(e) {
-            if (this.total < 1) return;
+            if (this.total < 2) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
             this.dragging = true;
             this.dragMoved = false;
@@ -264,17 +325,7 @@
         },
         onPointerUp(e) {
             if (!this.dragging) return;
-            const tapped = e.type === 'pointerup' && !this.dragMoved;
             this.dragging = false;
-            if (tapped) {
-                const card = document.elementFromPoint(e.clientX, e.clientY)?.closest('[data-cover-url]');
-                if (card && this.$refs.coverStage.contains(card)) {
-                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch (_) {}
-                    this.dragDelta = 0;
-                    window.location.href = card.dataset.coverUrl;
-                    return;
-                }
-            }
             const threshold = Math.min(64, Math.max(36, window.innerWidth * 0.1));
             if (this.dragDelta <= -threshold) this.next();
             else if (this.dragDelta >= threshold) this.prev();
@@ -304,9 +355,10 @@
     x-init="
         syncNarrow();
         arm();
+        $nextTick(() => { if (narrow) scrollChipIntoView(); });
         window.addEventListener('resize', () => {
             syncNarrow();
-            arm();
+            if (narrow) $nextTick(() => scrollChipIntoView());
         });
     "
 >
@@ -321,13 +373,7 @@
                 <a href="{{ route('website.shop') }}" class="mg-cover-all">View all <span aria-hidden="true">→</span></a>
             </div>
 
-            <div class="mg-cover-marquee"
-                 aria-label="Categories preview"
-                 @pointerdown="$el.classList.add('is-paused')"
-                 @pointerup="$el.classList.remove('is-paused')"
-                 @pointerleave="$el.classList.remove('is-paused')"
-                 @touchstart.passive="$el.classList.add('is-paused')"
-                 @touchend.passive="$el.classList.remove('is-paused')">
+            <div class="mg-cover-marquee" aria-label="Categories preview">
                 <div class="mg-cover-marquee-fade mg-cover-marquee-fade--left" aria-hidden="true"></div>
                 <div class="mg-cover-marquee-fade mg-cover-marquee-fade--right" aria-hidden="true"></div>
                 <div class="mg-cover-marquee-track">
@@ -338,11 +384,11 @@
                                 $count = (int) ($category->products_count ?? 0);
                                 $countLabel = $count > 0 ? ($count >= 100 ? '100+' : $count.'+') : 'New';
                             @endphp
-                            <a
-                                href="{{ route('website.category', $category->slug ?? $category->id) }}"
+                            <button
+                                type="button"
                                 class="mg-cover-marquee-item{{ $loopPass === 1 ? ' mg-cover-marquee-item--dup' : '' }}"
                                 :class="{ 'is-active': active === {{ $i }} }"
-                                draggable="false"
+                                @click="go({{ $i }})"
                                 tabindex="{{ $loopPass === 0 ? 0 : -1 }}"
                                 aria-hidden="{{ $loopPass === 0 ? 'false' : 'true' }}"
                             >
@@ -353,7 +399,7 @@
                                     <span class="mg-cover-marquee-name">{{ $category->name }}</span>
                                     <span class="mg-cover-marquee-count">{{ $countLabel }}</span>
                                 </span>
-                            </a>
+                            </button>
                         @endforeach
                     @endforeach
                 </div>
@@ -377,8 +423,10 @@
             @foreach($coverCats as $i => $category)
                 @php
                     $iconMeta = $category->iconMeta();
-                    $img = $ws->categoryImageUrl($category);
-                    $tagline = trim((string) ($category->description ?? ''));
+                    $slug = $category->slug ?? \Illuminate\Support\Str::slug($category->name);
+                    $img = $ws->categoryImageUrl($category) ?: ($catFallbacks[$iconMeta['key']] ?? $catFallbacks['phone']);
+                    $tagline = trim((string) ($category->description ?? ''))
+                        ?: ($catTaglines[$slug] ?? ($catTaglines[$iconMeta['key']] ?? 'Explore the collection.'));
                     $count = (int) ($category->products_count ?? 0);
                     $countLabel = $category->product_count_label
                         ?: ($count > 0 ? ($count >= 100 ? '100+ products' : $count.' products') : 'Shop now');
@@ -388,18 +436,16 @@
                 <article
                     class="mg-cover-card {{ $theme }}"
                     data-cover-i="{{ $i }}"
-                    data-cover-url="{{ $url }}"
                     :class="{ 'is-active': active === {{ $i }}, 'is-dragging': dragging }"
                     :style="styleFor({{ $i }})"
+                    @click="active === {{ $i }} ? openCategory(@js($url)) : go({{ $i }})"
                     role="link"
                     tabindex="0"
                     @keydown.enter.prevent="openCategory(@js($url))"
                     aria-label="{{ $category->name }}"
                 >
                     <div class="mg-cover-media">
-                        @if($img)
-                            <img src="{{ $img }}" alt="{{ $category->name }}" class="mg-cover-img" loading="lazy" decoding="async" draggable="false">
-                        @endif
+                        <img src="{{ $img }}" alt="{{ $category->name }}" class="mg-cover-img" loading="lazy" decoding="async" draggable="false">
                     </div>
                     <div class="mg-cover-veil" aria-hidden="true"></div>
                     <div class="mg-cover-shine" aria-hidden="true"></div>
@@ -412,12 +458,10 @@
                     <div class="mg-cover-foot">
                         <div class="mg-cover-foot-text">
                             <h3 class="mg-cover-name">{{ $category->name }}</h3>
-                            @if($tagline !== '')
-                                <p class="mg-cover-tagline">{{ $tagline }}</p>
-                            @endif
+                            <p class="mg-cover-tagline">{{ $tagline }}</p>
                         </div>
                     </div>
-                    <div class="mg-cover-pager" x-show="active === {{ $i }}" x-cloak>
+                    <div class="mg-cover-pager" x-show="active === {{ $i }} && !narrow" x-cloak>
                         <span x-text="String(active + 1).padStart(2,'0')"></span>
                         <i aria-hidden="true"></i>
                         <span x-text="String(total).padStart(2,'0')"></span>
@@ -425,7 +469,7 @@
                 </article>
             @endforeach
         </div>
-        <p class="mg-cover-hint" aria-hidden="true">Drag or swipe</p>
+        <p class="mg-cover-hint" aria-hidden="true" x-show="!narrow" x-cloak>Drag or swipe</p>
     </div>
 </section>
 @endif
@@ -474,16 +518,56 @@
 </section>
 @endif
 
-{{-- Mid promo marquee (CMS → Landing Page → Mid promo banner) --}}
+{{-- Mid promo cards (CMS → Landing Page → Mid promo banner) --}}
 @if(($midPromoBanners ?? collect())->isNotEmpty())
 @php
     $midPromoList = $midPromoBanners->values();
+    $midPromoCount = $midPromoList->count();
 @endphp
-<section class="mg-midpromo" aria-label="Featured promotions">
+<section class="mg-midpromo" aria-label="Featured promotions"
+    x-data="{
+        i: 0,
+        n: {{ $midPromoCount }},
+        per: 3,
+        timer: null,
+        measure(){
+            const w = this.$refs.view ? this.$refs.view.clientWidth : window.innerWidth;
+            this.per = w < 640 ? 1 : (w < 1024 ? 2 : 3);
+            if (this.i > this.max()) this.i = this.max();
+        },
+        max(){ return Math.max(0, this.n - this.per); },
+        shift(){
+            const card = this.$refs.track && this.$refs.track.querySelector('.mg-midpromo-card');
+            if (!card || !this.$refs.view) return 0;
+            const gap = parseFloat(getComputedStyle(this.$refs.track).columnGap || getComputedStyle(this.$refs.track).gap) || 16;
+            return card.getBoundingClientRect().width + gap;
+        },
+        go(to){
+            const m = this.max();
+            this.i = m === 0 ? 0 : ((to % (m + 1)) + (m + 1)) % (m + 1);
+            this.arm();
+        },
+        next(){ this.go(this.i >= this.max() ? 0 : this.i + 1); },
+        prev(){ this.go(this.i <= 0 ? this.max() : this.i - 1); },
+        arm(){
+            clearInterval(this.timer);
+            if (this.max() < 1) return;
+            this.timer = setInterval(() => {
+                this.i = this.i >= this.max() ? 0 : this.i + 1;
+            }, 4800);
+        },
+        pause(){ clearInterval(this.timer); },
+        resume(){ this.arm(); }
+    }"
+    x-init="measure(); arm();"
+    @resize.window="measure()"
+    @mouseenter="pause()"
+    @mouseleave="resume()"
+>
     <div class="tn-container">
-        <div class="mg-midpromo-marquee" @mouseenter="$el.classList.add('is-paused')" @mouseleave="$el.classList.remove('is-paused')">
-            <div class="mg-midpromo-track">
-                @foreach([0, 1] as $loopCopy)
+        <div class="mg-midpromo-row">
+            <div class="mg-midpromo-view" x-ref="view">
+                <div class="mg-midpromo-track" x-ref="track" :style="'transform: translateX(-' + (i * shift()) + 'px)'">
                     @foreach($midPromoList as $idx => $banner)
                         @php
                             $isLight = ($banner->theme ?? 'dark') === 'light';
@@ -491,11 +575,11 @@
                             $sub = trim((string) ($banner->subtitle ?? ''));
                             $img = $banner->image_path ? public_storage_url($banner->image_path) : null;
                         @endphp
-                        <article class="mg-midpromo-card {{ $isLight ? 'is-light' : 'is-dark' }}" @if($loopCopy === 1) aria-hidden="true" @endif>
-                            <a href="{{ $url }}" class="mg-midpromo-link" @if($loopCopy === 1) tabindex="-1" @endif aria-label="{{ $banner->title }}">
+                        <article class="mg-midpromo-card {{ $isLight ? 'is-light' : 'is-dark' }}">
+                            <a href="{{ $url }}" class="mg-midpromo-link" aria-label="{{ $banner->title }}">
                                 <div class="mg-midpromo-media" aria-hidden="true">
                                     @if($img)
-                                        <img src="{{ $img }}" alt="" class="mg-midpromo-img" loading="{{ $loopCopy === 0 && $idx < 3 ? 'eager' : 'lazy' }}">
+                                        <img src="{{ $img }}" alt="" class="mg-midpromo-img" loading="{{ $idx < 3 ? 'eager' : 'lazy' }}">
                                     @else
                                         <div class="mg-midpromo-fallback"></div>
                                     @endif
@@ -537,7 +621,7 @@
                             </a>
                         </article>
                     @endforeach
-                @endforeach
+                </div>
             </div>
         </div>
     </div>
@@ -597,6 +681,31 @@
 {{-- Brands We Carry — continuous slow marquee --}}
 @if($brands->isNotEmpty())
 @php
+    $brandTaglines = [
+        'apple' => 'iPhone · iPad · Mac · Watch',
+        'samsung' => 'Galaxy · Tablets · Watches',
+        'xiaomi' => 'Smartphones · IoT · Accessories',
+        'oneplus' => 'Phones · Buds · Accessories',
+        'realme' => 'Smartphones · AIoT · Accessories',
+        'jbl' => 'Audio · Headphones · Speakers',
+        'anker' => 'Chargers · Power Banks · Cables',
+        'logitech' => 'Accessories · Keyboards · Mice',
+        'baseus' => 'Chargers · Cables · Car Accessories',
+        'boat' => 'Audio · Wearables · Accessories',
+        'sony' => 'Audio · Cameras · Gaming',
+        'bose' => 'Headphones · Speakers · Audio',
+        'dell' => 'Laptops · Monitors · PCs',
+        'hp' => 'Laptops · Printers · PCs',
+        'asus' => 'Laptops · Gaming · Components',
+        'lenovo' => 'Laptops · Tablets · PCs',
+        'acer' => 'Laptops · Monitors · PCs',
+        'canon' => 'Cameras · Lenses · Printers',
+        'gopro' => 'Action Cams · Mounts · Accessories',
+        'google' => 'Pixel · Nest · Accessories',
+        'razer' => 'Gaming · Keyboards · Mice',
+        'nothing' => 'Phones · Audio · Accessories',
+        'microsoft' => 'Surface · Accessories · Software',
+    ];
     $partnerBrands = $brands->values();
 @endphp
 <section class="tn-brands" aria-labelledby="tn-brands-heading">
@@ -612,14 +721,15 @@
             </div>
 
     <div class="tn-brands-marquee" aria-label="Brand partners">
-        <div class="tn-brands-track" style="--tn-brands-duration: {{ max(90, $partnerBrands->count() * 7) }}s;">
+        <div class="tn-brands-track">
             @foreach([0, 1] as $loopPass)
                 @foreach($partnerBrands as $brand)
                     @php
                         $brandSlug = \Illuminate\Support\Str::slug($brand->name);
                         $logoUrl = $brand->logo_url
                             ?: ($brand->logo_path ? public_storage_url($brand->logo_path) : null);
-                        $tagline = trim((string) ($brand->tagline ?? ''));
+                        $tagline = trim((string) ($brand->tagline ?? ''))
+                            ?: ($brandTaglines[$brandSlug] ?? 'Gadgets · Accessories');
                     @endphp
                     <a href="{{ route('website.brand', $brandSlug) }}"
                        class="tn-brand-card"
@@ -640,9 +750,7 @@
                             @endif
                         </span>
                         <span class="tn-brand-name">{{ $brand->name }}</span>
-                        @if($tagline !== '')
-                            <span class="tn-brand-cats">{{ $tagline }}</span>
-                        @endif
+                        <span class="tn-brand-cats">{{ $tagline }}</span>
                     </a>
                 @endforeach
             @endforeach
