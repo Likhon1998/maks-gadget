@@ -17,7 +17,7 @@
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6 sm:mb-8">
         <div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">All brands</h1>
-            <p class="mt-1 text-sm text-slate-600">{{ $allBrands->count() }} {{ \Illuminate\Support\Str::plural('brand', $allBrands->count()) }} in store — pick one to see its products.</p>
+            <p class="mt-1 text-sm text-slate-600">Pick a brand to see its products.</p>
         </div>
         @if($allBrands->count() > 8)
             <div class="relative w-full sm:w-72">
@@ -42,7 +42,6 @@
                     if ($brand->logo_path === 'brands/'.$slug.'.svg') {
                         $logo = null;
                     }
-                    $count = (int) ($brand->products_count ?? 0);
                 @endphp
                 <a href="{{ route('website.brand', $slug) }}"
                    x-show="shows(@js(mb_strtolower($brand->name)))"
@@ -59,9 +58,6 @@
                         @endif
                     </span>
                     <span class="mt-3 text-sm font-semibold text-slate-900 group-hover:text-blue-600 line-clamp-1">{{ $brand->name }}</span>
-                    <span class="mt-0.5 text-[11px] text-slate-500">
-                        {{ $count > 0 ? $count.' '.\Illuminate\Support\Str::plural('product', $count) : 'Coming soon' }}
-                    </span>
                 </a>
             @endforeach
         </div>

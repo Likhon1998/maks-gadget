@@ -381,8 +381,6 @@
                         @foreach($coverCats as $i => $category)
                             @php
                                 $iconMeta = $category->iconMeta();
-                                $count = (int) ($category->products_count ?? 0);
-                                $countLabel = $count > 0 ? ($count >= 100 ? '100+' : $count.'+') : 'New';
                             @endphp
                             <button
                                 type="button"
@@ -397,7 +395,6 @@
                                 </span>
                                 <span class="mg-cover-marquee-text">
                                     <span class="mg-cover-marquee-name">{{ $category->name }}</span>
-                                    <span class="mg-cover-marquee-count">{{ $countLabel }}</span>
                                 </span>
                             </button>
                         @endforeach
@@ -427,9 +424,6 @@
                     $img = $ws->categoryImageUrl($category) ?: ($catFallbacks[$iconMeta['key']] ?? $catFallbacks['phone']);
                     $tagline = trim((string) ($category->description ?? ''))
                         ?: ($catTaglines[$slug] ?? ($catTaglines[$iconMeta['key']] ?? 'Explore the collection.'));
-                    $count = (int) ($category->products_count ?? 0);
-                    $countLabel = $category->product_count_label
-                        ?: ($count > 0 ? ($count >= 100 ? '100+ products' : $count.' products') : 'Shop now');
                     $theme = $catThemes[$i % count($catThemes)];
                     $url = route('website.category', $category->slug ?? $category->id);
                 @endphp
@@ -453,7 +447,7 @@
                         <span class="mg-cover-chip-icon" style="--cat-color: {{ $iconMeta['color'] }};">
                             @include('website.partials.category-icon-svg', ['icon' => $iconMeta['key'], 'class' => 'mg-cover-chip-svg'])
                         </span>
-                        <span>{{ $countLabel }}</span>
+                        <span>{{ $category->name }}</span>
                     </div>
                     <div class="mg-cover-foot">
                         <div class="mg-cover-foot-text">
