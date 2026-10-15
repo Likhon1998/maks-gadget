@@ -692,12 +692,27 @@ class WebsiteController extends Controller
         return back()->with('contact_success', 'Thanks! Your message has been sent. We\'ll get back to you soon.');
     }
 
-    public function trackOrder()
+    public function trackOrder(Request $request)
     {
+        $invoice = trim((string) $request->query('invoice', ''));
+        $phone = trim((string) $request->query('phone', ''));
+        $tracking = null;
+        $error = null;
+
+        if ($invoice !== '' && $phone !== '') {
+            $order = $this->findTrackableOrder($invoice, $phone);
+            if ($order) {
+                $tracking = $this->trackingView($order);
+            } else {
+                $error = 'No order found for that Order ID and phone number.';
+            }
+        }
+
         return view('website.track-order', array_merge($this->website->homepageData(), [
-            'tracking' => null,
-            'invoiceNo' => request('invoice'),
-            'phone' => request('phone'),
+            'tracking' => $tracking,
+            'trackError' => $error,
+            'invoiceNo' => $invoice,
+            'phone' => $phone,
         ]));
     }
 
@@ -708,31 +723,98 @@ class WebsiteController extends Controller
             'phone' => ['required', 'string', 'max:32'],
         ]);
 
+        return redirect()->route('website.track', [
+            'invoice' => strtoupper(trim($data['invoice_no'])),
+            'phone' => trim($data['phone']),
+        ]);
+    }
+
+    /** Forgotten Order ID: list the latest online orders placed with a mobile number. */
+    public function findGuestOrders(Request $request)
+    {
+        $data = $request->validate([
+            'find_phone' => ['required', 'string', 'max:32'],
+        ], [
+            'find_phone.required' => 'Enter the mobile number you ordered with.',
+        ]);
+
         $shopId = $this->website->shopId();
         abort_unless($shopId, 404);
 
-        $invoice = trim($data['invoice_no']);
-        $phone = Customer::normalizePhone($data['phone']);
+        $notFound = fn () => redirect()->route('website.track')
+            ->withInput()
+            ->with('findError', 'No orders found for this mobile number. Use the same number you entered at checkout.');
+
+        $mobile = Customer::bdMobile($data['find_phone']);
+        if ($mobile === '') {
+            return redirect()->route('website.track')
+                ->withInput()
+                ->with('findError', 'Enter a valid mobile number (01XXXXXXXXX).');
+        }
+
+        $customerIds = Customer::where('shop_id', $shopId)->wherePhone($mobile)->pluck('id');
+
+        if ($customerIds->isEmpty()) {
+            return $notFound();
+        }
+
+        $orders = Order::where('shop_id', $shopId)
+            ->onlineOrders()
+            ->whereIn('customer_id', $customerIds)
+            ->latest('id')
+            ->limit(10)
+            ->get(['id', 'invoice_no', 'status', 'total_amount', 'created_at']);
+
+        if ($orders->isEmpty()) {
+            return $notFound();
+        }
+
+        $labels = $this->tracking->statusLabels();
+
+        return redirect()->route('website.track')
+            ->withInput()
+            ->with('foundOrders', $orders->map(fn (Order $o) => [
+                'invoice' => $o->invoice_no,
+                'status' => $labels[$o->status] ?? ucfirst(str_replace('_', ' ', (string) $o->status)),
+                'total' => (float) $o->total_amount,
+                'date' => asian_datetime($o->created_at, 'd M Y'),
+                'url' => route('website.track', ['invoice' => $o->invoice_no, 'phone' => $mobile]),
+            ])->all());
+    }
+
+    /** Online order matching both the Order ID and the phone used at checkout. */
+    private function findTrackableOrder(string $invoice, string $phone): ?Order
+    {
+        $shopId = $this->website->shopId();
+        abort_unless($shopId, 404);
 
         $order = Order::where('shop_id', $shopId)
             ->onlineOrders()
-            ->where('invoice_no', $invoice)
+            ->where('invoice_no', strtoupper(trim($invoice)))
             ->with(['customer', 'items.product', 'statusLogs'])
             ->first();
 
-        if (! $order || ! $order->customer || Customer::normalizePhone($order->customer->phone) !== $phone) {
-            return back()
-                ->withInput()
-                ->with('error', 'No order found for that Order ID and phone number.');
+        if (! $order || ! $order->customer || ! Customer::samePhone($order->customer->phone, $phone)) {
+            return null;
         }
 
-        $payload = $this->tracking->trackingPayload($order);
+        return $order;
+    }
 
-        return view('website.track-order', array_merge($this->website->homepageData(), [
-            'tracking' => $payload,
-            'invoiceNo' => $invoice,
-            'phone' => $data['phone'],
-        ]));
+    private function trackingView(Order $order): array
+    {
+        $total = (float) $order->total_amount;
+        $paid = (float) ($order->paid_amount ?? 0);
+
+        return array_merge($this->tracking->trackingPayload($order), [
+            'total_amount' => $total,
+            'delivery_charge' => (float) ($order->delivery_charge ?? 0),
+            'paid_amount' => $paid,
+            'due_amount' => max(0, $total - $paid),
+            'payment_label' => $order->payment_method === DeliveryChargeService::PAY_CONFIRMATION
+                ? 'Confirmation charge + balance on delivery'
+                : 'Cash on delivery',
+        ]);
     }
 
     public function wishlist()

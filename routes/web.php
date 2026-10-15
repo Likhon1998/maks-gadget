@@ -71,8 +71,9 @@ Route::get('/search/suggest', [WebsiteController::class, 'searchSuggest'])->name
 Route::get('/category/{slug}', [WebsiteController::class, 'category'])->name('website.category');
 Route::get('/brand/{slug}', [WebsiteController::class, 'brand'])->name('website.brand');
 Route::get('/product/{product}', [WebsiteController::class, 'product'])->name('website.product');
-Route::get('/track-order', [WebsiteController::class, 'trackOrder'])->name('website.track');
-Route::post('/track-order', [WebsiteController::class, 'trackOrderLookup'])->name('website.track.lookup');
+Route::get('/track-order', [WebsiteController::class, 'trackOrder'])->middleware('throttle:30,1')->name('website.track');
+Route::post('/track-order', [WebsiteController::class, 'trackOrderLookup'])->middleware('throttle:20,1')->name('website.track.lookup');
+Route::post('/track-order/find', [WebsiteController::class, 'findGuestOrders'])->middleware('throttle:6,1')->name('website.track.find');
 
 /*
 | Public CSRF refresh — storefront customers + guests need this after login / tab sleep.
