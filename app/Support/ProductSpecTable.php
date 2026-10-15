@@ -91,13 +91,14 @@ class ProductSpecTable
 
     /**
      * Build a starter table from legacy Key: Value description text.
+     * Requires at least two valid rows so prose with an accidental colon is not treated as a table.
      *
      * @return array{headers: list<string>, rows: list<list<string>>}|null
      */
     public static function fromDescription(?string $text): ?array
     {
         $parsed = ProductSpecParser::parse($text);
-        if ($parsed['rows'] === []) {
+        if (count($parsed['rows']) < 2) {
             return null;
         }
 

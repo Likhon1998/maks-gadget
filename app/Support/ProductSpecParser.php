@@ -70,21 +70,32 @@ class ProductSpecParser
     }
 
     /**
-     * Avoid treating full sentences as a "feature" label.
+     * Avoid treating full sentences / mid-sentence tokens as a "feature" label.
      */
     public static function looksLikeFeature(string $feature): bool
     {
-        if (mb_strlen($feature) > 48) {
+        if (mb_strlen($feature) > 40) {
             return false;
         }
 
         // Too many words → likely prose, not a field name
-        if (str_word_count($feature) > 6) {
+        if (str_word_count($feature) > 4) {
             return false;
         }
 
         // Feature labels should not end with sentence punctuation
         if (preg_match('/[.!?]$/u', $feature)) {
+            return false;
+        }
+
+        // Require at least one letter (avoid pure symbols/numbers)
+        if (! preg_match('/\p{L}/u', $feature)) {
+            return false;
+        }
+
+        // Reject very short all-caps tokens that are usually certifications in prose (MFi, USB…)
+        // unless they look like normal labels (Brand, RAM, etc. are longer or mixed case).
+        if (mb_strlen($feature) <= 3 && preg_match('/^[A-Z0-9]+$/', $feature)) {
             return false;
         }
 

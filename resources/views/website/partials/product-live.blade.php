@@ -415,13 +415,16 @@
             @if($hasDescriptionTab)
                 <div x-show="tab==='description'" class="pd-desc">
                     @if($hasSpecTable)
-                        <div class="pd-specs">
-                            <h3 class="pd-specs-title">Specifications</h3>
-                            <div class="pd-specs-wrap" role="region" aria-label="Product specifications">
-                                <table class="pd-specs-table pd-specs-table--cols-{{ min(count($specHeaders), 6) }}">
+                        <section class="pd-specs-card" aria-label="Product specifications">
+                            <div class="pd-specs-card__head">
+                                <h3 class="pd-specs-title">Product specifications</h3>
+                                <p class="pd-specs-sub">Key details for this item</p>
+                            </div>
+                            <div class="pd-specs-wrap">
+                                <table class="pd-specs-table pd-specs-table--cols-{{ min(max(count($specHeaders), 2), 6) }}">
                                     <thead>
                                         <tr>
-                                            @foreach($specHeaders as $hi => $header)
+                                            @foreach($specHeaders as $header)
                                                 <th scope="col">{{ $header }}</th>
                                             @endforeach
                                         </tr>
@@ -431,9 +434,9 @@
                                             <tr>
                                                 @foreach($specHeaders as $ci => $header)
                                                     @if($ci === 0)
-                                                        <th scope="row">{{ $row[$ci] ?? '' }}</th>
+                                                        <th scope="row">{{ $row[$ci] ?? '—' }}</th>
                                                     @else
-                                                        <td>{{ $row[$ci] ?? '' }}</td>
+                                                        <td>{{ ($row[$ci] ?? '') !== '' ? $row[$ci] : '—' }}</td>
                                                     @endif
                                                 @endforeach
                                             </tr>
@@ -441,14 +444,16 @@
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        </section>
                     @endif
 
                     @if($descProse !== '')
-                        <div class="pd-desc-prose {{ $hasSpecTable ? 'pd-desc-prose--after' : '' }}">
-                            <h3 class="pd-specs-title">About this item</h3>
+                        <section class="pd-desc-card {{ $hasSpecTable ? 'pd-desc-card--after' : '' }}" aria-label="About this item">
+                            <div class="pd-specs-card__head">
+                                <h3 class="pd-specs-title">About this item</h3>
+                            </div>
                             <div class="pd-desc-text">{{ $descProse }}</div>
-                        </div>
+                        </section>
                     @endif
                 </div>
             @endif

@@ -506,7 +506,8 @@ class Product extends Model
     }
 
     /**
-     * Normalized specification table for this variant (admin-built).
+     * Normalized specification table for this variant.
+     * Prefers admin-built table; otherwise builds from catalog attributes.
      *
      * @return array{headers: list<string>, rows: list<list<string>>}|null
      */
@@ -517,33 +518,90 @@ class Product extends Model
             return $table;
         }
 
-        // Legacy fallback: Key: Value lines inside short_description
-        return \App\Support\ProductSpecTable::fromDescription($this->short_description);
+        return $this->catalogAttributeSpecificationTable();
     }
 
     /**
-     * Editor seed for admin (saved table, or legacy parse, or empty template).
+     * Feature / Specification rows from product fields (empty values omitted).
+     *
+     * @return array{headers: list<string>, rows: list<list<string>>}|null
+     */
+    public function catalogAttributeSpecificationTable(): ?array
+    {
+        $rows = [];
+        $push = function (string $feature, ?string $value) use (&$rows): void {
+            $feature = trim($feature);
+            $value = trim((string) $value);
+            if ($feature === '' || $value === '') {
+                return;
+            }
+            $rows[] = [$feature, $value];
+        };
+
+        $brand = trim((string) ($this->brand_name ?: $this->brand?->name ?: ''));
+        $push('Brand', $brand !== '' ? $brand : null);
+        $push('Model', filled($this->name) ? (string) $this->name : null);
+
+        $categoryName = trim((string) ($this->category?->name ?? ''));
+        $push('Category', $categoryName !== '' ? $categoryName : null);
+
+        $push('Color', filled($this->color) ? (string) $this->color : null);
+        $push('Type', filled($this->variant_type) ? (string) $this->variant_type : null);
+
+        $ram = normalize_memory_size($this->ram) ?? (filled($this->ram) ? (string) $this->ram : null);
+        $storage = normalize_memory_size($this->storage) ?? (filled($this->storage) ? (string) $this->storage : null);
+        $push('RAM', $ram);
+        $push('Storage', $storage);
+
+        $attrs = is_array($this->filter_attributes) ? $this->filter_attributes : [];
+        foreach ($attrs as $key => $value) {
+            if (is_array($value)) {
+                $value = implode(', ', array_filter(array_map(
+                    fn ($v) => is_scalar($v) ? trim((string) $v) : '',
+                    $value
+                )));
+            } elseif (is_bool($value)) {
+                $value = $value ? 'Yes' : 'No';
+            } elseif (is_scalar($value)) {
+                $value = (string) $value;
+            } else {
+                continue;
+            }
+
+            $label = is_string($key)
+                ? ucwords(str_replace(['_', '-'], ' ', $key))
+                : 'Detail';
+            $push($label, $value);
+        }
+
+        if ($rows === []) {
+            return null;
+        }
+
+        return [
+            'headers' => ['Feature', 'Specification'],
+            'rows' => $rows,
+        ];
+    }
+
+    /**
+     * Editor seed for admin (saved table, or empty template).
      *
      * @return array{headers: list<string>, rows: list<list<string>>}
      */
     public function specificationEditorState(): array
     {
-        return $this->storefrontSpecificationTable()
+        return \App\Support\ProductSpecTable::normalize($this->specifications)
+            ?? \App\Support\ProductSpecTable::fromDescription($this->short_description)
             ?? \App\Support\ProductSpecTable::emptyEditor();
     }
 
     /**
-     * Narrative description (prose). When a structured table exists, show full
-     * short_description; otherwise strip Key: Value lines already shown as table.
+     * Narrative “About this item” text (full short description).
      */
     public function storefrontDescriptionProse(): string
     {
-        $hasStructured = \App\Support\ProductSpecTable::normalize($this->specifications) !== null;
-        if ($hasStructured) {
-            return trim((string) $this->short_description);
-        }
-
-        return \App\Support\ProductSpecParser::parse($this->short_description)['prose'];
+        return trim((string) $this->short_description);
     }
 
     public function displayColor(): ?string
