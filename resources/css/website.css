@@ -2579,6 +2579,10 @@ body.gaget-store {
     transition: transform .7s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .mg-hero3-card:hover .mg-hero3-card-img { transform: scale(1.05); }
+.mg-hero3-card.has-poster .mg-hero3-card-img {
+    object-fit: cover;
+    object-position: center center;
+}
 .mg-hero3-card-veil {
     position: absolute;
     inset: 0;

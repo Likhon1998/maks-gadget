@@ -130,21 +130,23 @@
             @if($hasHeroSide)
             <aside class="mg-hero3-side" aria-label="Featured offers">
                 @foreach($heroSideCards->take(2) as $side)
-                    <a href="{{ $side->url }}" class="mg-hero3-card is-{{ $side->tone }}">
+                    <a href="{{ $side->url }}"
+                       class="mg-hero3-card is-{{ $side->tone }}{{ $side->image ? ' has-poster' : '' }}"
+                       aria-label="{{ $side->title }}">
                         @if($side->image)
-                            <img src="{{ $side->image }}" alt="" class="mg-hero3-card-img" loading="lazy" decoding="async">
+                            <img src="{{ $side->image }}" alt="{{ $side->title }}" class="mg-hero3-card-img" loading="lazy" decoding="async">
+                        @else
+                            <span class="mg-hero3-card-body">
+                                @if($side->badge)
+                                    <span class="mg-hero3-card-badge">{{ $side->badge }}</span>
+                                @endif
+                                <span class="mg-hero3-card-title">{{ $side->title }}</span>
+                                @if(($side->sub ?? '') !== '')
+                                    <span class="mg-hero3-card-sub">{{ $side->sub }}</span>
+                                @endif
+                                <span class="mg-hero3-card-cta">{{ $side->cta }} <i aria-hidden="true">→</i></span>
+                            </span>
                         @endif
-                        <span class="mg-hero3-card-veil" aria-hidden="true"></span>
-                        <span class="mg-hero3-card-body">
-                            @if($side->badge)
-                                <span class="mg-hero3-card-badge">{{ $side->badge }}</span>
-                            @endif
-                            <span class="mg-hero3-card-title">{{ $side->title }}</span>
-                            @if(($side->sub ?? '') !== '')
-                                <span class="mg-hero3-card-sub">{{ $side->sub }}</span>
-                            @endif
-                            <span class="mg-hero3-card-cta">{{ $side->cta }} <i aria-hidden="true">→</i></span>
-                        </span>
                     </a>
                 @endforeach
             </aside>
