@@ -855,11 +855,11 @@
         aspect-ratio: 1 / 1 !important;
         padding: 0 !important;
         overflow: hidden !important;
-        background: radial-gradient(circle at 50% 42%, #ffffff 0%, #eef2f7 72%) !important;
+        background: radial-gradient(circle at 50% 40%, #ffffff 0%, #eef2f7 70%) !important;
         border-bottom: 0 !important;
     }
     .tn-product-card--flash .tn-product-img {
-        background: radial-gradient(circle at 50% 42%, #fffaf5 0%, #ffedd5 72%) !important;
+        background: radial-gradient(circle at 50% 40%, #fffaf5 0%, #ffedd5 70%) !important;
     }
     .tn-product-img img,
     .gaget-product-img img,
@@ -870,9 +870,12 @@
         height: 100% !important;
         max-width: none !important;
         max-height: none !important;
-        padding: 10% !important;
-        object-fit: contain !important;
+        min-width: 100% !important;
+        min-height: 100% !important;
+        padding: 0 !important;
+        object-fit: cover !important;
         object-position: center center !important;
+        transform: scale(1.03) !important;
     }
     .tn-product-meta,
     .gaget-product-body {
