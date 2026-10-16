@@ -104,15 +104,15 @@
             @if($product->showsAsNew())
                 <span class="text-[10px] font-semibold uppercase bg-emerald-700 text-white px-2 py-0.5 rounded">New</span>
             @endif
+            @php
+                $brandLabel = trim((string) ($product->brand_name ?? $product->brand?->name ?? ''));
+            @endphp
             @if($product->brand?->logo_path)
                 <img src="{{ public_storage_url($product->brand->logo_path) }}"
-                     alt="{{ $product->brand->name }}"
+                     alt="{{ $brandLabel !== '' ? $brandLabel : ($product->brand->name ?? 'Brand') }}"
                      class="pd-brand-logo">
-            @elseif($product->brand_name || $product->brand)
-                <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide">{{ $product->brand_name ?? $product->brand?->name }}</span>
-            @endif
-            @if(($product->brand_name || $product->brand) && $product->brand?->logo_path)
-                <span class="text-xs font-medium text-slate-600">{{ $product->brand_name ?? $product->brand?->name }}</span>
+            @elseif($brandLabel !== '')
+                <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide">{{ $brandLabel }}</span>
             @endif
         </div>
 
