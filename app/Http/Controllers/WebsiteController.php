@@ -43,6 +43,54 @@ class WebsiteController extends Controller
             $query->whereHas('category', fn ($q) => $q->whereSlugOrId($request->category));
         }
 
+        $this->applyShopFilters($query, $request);
+
+        if ($request->filter === 'deals') {
+            $query->onSale();
+        } elseif ($request->filter === 'new') {
+            $query->newArrivals();
+        } elseif (in_array($request->filter, ['bestsellers', 'best'], true)) {
+            $query->trending()->orderByDesc('review_count');
+        }
+
+        $sort = $request->query('sort', 'featured');
+        match ($sort) {
+            'price_asc' => $query->orderBy('selling_price')->orderBy('id'),
+            'price_desc' => $query->orderByDesc('selling_price')->orderBy('id'),
+            'name' => $query->orderBy('name')->orderBy('id'),
+            'latest' => $query->latest('id'),
+            'bestsellers' => $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
+            default => $request->filter === 'new'
+                ? $query->latest('id')
+                : $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
+        };
+
+        $this->website->applyVariantGroupListing($query);
+        $products = $query->paginate(12)->withQueryString();
+
+        $pageTitle = match ($request->filter) {
+            'deals' => 'Deals',
+            'new' => 'New Arrivals',
+            'bestsellers', 'best' => 'Best Sellers',
+            default => 'Shop',
+        };
+
+        if ($request->boolean('ajax') || $request->ajax()) {
+            return $this->listingJson($request, $products, $pageTitle);
+        }
+
+        $sidebar = $this->shopSidebarData($shopId);
+
+        return view('website.shop', array_merge($this->website->homepageData(), $sidebar, compact(
+            'products',
+            'pageTitle',
+            'sort',
+        )));
+    }
+
+    /** Brand, search, price, storage and RAM filters from the shop sidebar. */
+    protected function applyShopFilters($query, Request $request): void
+    {
         $brandIds = array_values(array_filter(array_map('intval', (array) $request->input('brands', []))));
         if ($brandIds) {
             $query->whereIn('brand_id', $brandIds);
@@ -94,58 +142,35 @@ class WebsiteController extends Controller
                 }
             });
         }
+    }
 
-        if ($request->filter === 'deals') {
-            $query->onSale();
-        } elseif ($request->filter === 'new') {
-            $query->newArrivals();
-        } elseif (in_array($request->filter, ['bestsellers', 'best'], true)) {
-            $query->trending()->orderByDesc('review_count');
-        }
-
-        $sort = $request->query('sort', 'featured');
+    /** Sorting for category and brand listings (default: latest). */
+    protected function applyListingSort($query, string $sort): void
+    {
         match ($sort) {
             'price_asc' => $query->orderBy('selling_price')->orderBy('id'),
             'price_desc' => $query->orderByDesc('selling_price')->orderBy('id'),
             'name' => $query->orderBy('name')->orderBy('id'),
-            'latest' => $query->latest('id'),
-            'bestsellers' => $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
-            default => $request->filter === 'new'
-                ? $query->latest('id')
-                : $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
+            'featured', 'bestsellers' => $query->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest('id'),
+            default => $query->latest()->orderByDesc('id'),
         };
+    }
 
-        $this->website->applyVariantGroupListing($query);
-        $products = $query->paginate(12)->withQueryString();
+    /** JSON payload used by the live shop listing (pagination, sort, filters). */
+    protected function listingJson(Request $request, $products, string $pageTitle)
+    {
+        $products->appends('ajax', null);
+        $countFrom = $products->firstItem() ?? 0;
+        $countTo = $products->lastItem() ?? 0;
+        $countTotal = $products->total();
+        $settings = $this->website->settings();
 
-        $pageTitle = match ($request->filter) {
-            'deals' => 'Deals',
-            'new' => 'New Arrivals',
-            'bestsellers', 'best' => 'Best Sellers',
-            default => 'Shop',
-        };
-
-        if ($request->boolean('ajax') || $request->ajax()) {
-            $countFrom = $products->firstItem() ?? 0;
-            $countTo = $products->lastItem() ?? 0;
-            $countTotal = $products->total();
-            $settings = $this->website->settings();
-
-            return response()->json([
-                'html' => view('website.partials.shop-results', compact('products', 'settings'))->render(),
-                'count_text' => "Showing {$countFrom}–{$countTo} of ".format_taka_number($countTotal).' products',
-                'title' => $pageTitle,
-                'url' => $request->fullUrlWithoutQuery(['ajax']),
-            ]);
-        }
-
-        $sidebar = $this->shopSidebarData($shopId);
-
-        return view('website.shop', array_merge($this->website->homepageData(), $sidebar, compact(
-            'products',
-            'pageTitle',
-            'sort',
-        )));
+        return response()->json([
+            'html' => view('website.partials.shop-results', compact('products', 'settings'))->render(),
+            'count_text' => "Showing {$countFrom}–{$countTo} of ".format_taka_number($countTotal).' products',
+            'title' => $pageTitle,
+            'url' => $request->fullUrlWithoutQuery(['ajax']),
+        ]);
     }
 
     public function searchSuggest(Request $request)
@@ -228,18 +253,21 @@ class WebsiteController extends Controller
             $query->availableForSale();
         }
 
-        $this->applyCategoryFilters($query, $request, $filterConfig, $category);
+        if ($showSidebar) {
+            $this->applyCategoryFilters($query, $request, $filterConfig, $category);
+        } else {
+            $this->applyShopFilters($query, $request);
+        }
 
-        $sort = $request->query('sort', 'latest');
-        match ($sort) {
-            'price_asc' => $query->orderBy('selling_price'),
-            'price_desc' => $query->orderByDesc('selling_price'),
-            'name' => $query->orderBy('name'),
-            default => $query->latest(),
-        };
+        $sort = (string) $request->query('sort', 'latest');
+        $this->applyListingSort($query, $sort);
 
         $this->website->applyVariantGroupListing($query);
         $products = $query->paginate(12)->withQueryString();
+
+        if ($request->boolean('ajax') || $request->ajax()) {
+            return $this->listingJson($request, $products, $category->name);
+        }
 
         $sidebarFacets = $showSidebar
             ? $this->buildSidebarFacets($category, $filterConfig)
@@ -495,7 +523,7 @@ class WebsiteController extends Controller
         return view('website.brands', $data);
     }
 
-    public function brand(string $slug)
+    public function brand(string $slug, Request $request)
     {
         $shopId = $this->website->shopId();
         abort_unless($shopId, 404);
@@ -537,17 +565,29 @@ class WebsiteController extends Controller
                 $q->where('brand_id', $brand->id)
                     ->orWhereRaw('LOWER(TRIM(COALESCE(brand_name, \'\'))) = ?', [strtolower(trim($brand->name))]);
             })
-            ->with(['category', 'brand'])
-            ->latest();
+            ->with(['category', 'brand']);
+
+        if ($request->filled('category')) {
+            $brandQuery->whereHas('category', fn ($q) => $q->whereSlugOrId($request->category));
+        }
+        $this->applyShopFilters($brandQuery, $request->duplicate($request->except('brands')));
+
+        $sort = (string) $request->query('sort', 'latest');
+        $this->applyListingSort($brandQuery, $sort);
+
         $this->website->applyVariantGroupListing($brandQuery);
-        $products = $brandQuery->paginate(12);
+        $products = $brandQuery->paginate(12)->withQueryString();
+
+        if ($request->boolean('ajax') || $request->ajax()) {
+            return $this->listingJson($request, $products, $brand->name);
+        }
 
         return view('website.shop', array_merge($this->website->homepageData(), $this->shopSidebarData($shopId), [
             'products' => $products,
             'activeBrand' => $brand,
             'pageTitle' => $brand->name,
             'pageSubtitle' => 'Shop all products from ' . $brand->name . '.',
-            'sort' => 'latest',
+            'sort' => $sort,
         ]));
     }
 
@@ -585,6 +625,7 @@ class WebsiteController extends Controller
 
         $home = $this->website->homepageData();
         $settings = $home['settings'] ?? $this->website->settings();
+        $features = $home['features'] ?? collect();
 
         if ($request->boolean('ajax') || $request->ajax()) {
             $displayName = $product->storefrontDisplayName();
@@ -597,7 +638,8 @@ class WebsiteController extends Controller
                     'related',
                     'reviews',
                     'variantOptions',
-                    'settings'
+                    'settings',
+                    'features'
                 ))->render(),
                 'url' => route('website.product', $product),
                 'title' => $displayName.' | '.$storeName,
@@ -883,13 +925,13 @@ class WebsiteController extends Controller
 
             $qty = min($item['qty'], $stock);
             if ($qty < $item['qty']) {
-                $warnings[] = $product->storefrontDisplayName().' quantity was adjusted to the maximum available.';
+                $warnings[] = $product->storefrontDisplayName().' quantity was limited to '.$stock.' available.';
             }
 
             $unitPrice = (float) $product->currentPrice();
             $lines[] = [
                 'id' => $product->id,
-                'name' => $product->storefrontDisplayName(),
+                'name' => $product->cartDisplayName(),
                 'price' => $unitPrice,
                 'image' => $this->website->productImageUrl($product),
                 'qty' => $qty,
@@ -907,9 +949,11 @@ class WebsiteController extends Controller
 
     public function checkout(Request $request)
     {
-        $user = $request->user();
-        if (! $user?->isStorefrontCustomer()) {
-            return response()->json(['success' => false, 'message' => 'Please sign in to place an order.', 'auth_required' => true], 401);
+        $user = $request->user('web');
+        $isMember = (bool) $user?->isStorefrontCustomer();
+        // A staff session on the storefront checks out as a guest, never as the staff user.
+        if (! $isMember) {
+            $user = null;
         }
 
         $shopId = $this->website->shopId();
@@ -920,71 +964,85 @@ class WebsiteController extends Controller
         $request->validate([
             'customer_name' => 'required|string|min:2|max:255',
             'customer_phone' => 'required|string|min:8|max:20',
-            'customer_address' => [
-                'required',
-                'string',
-                'min:20',
-                'max:1000',
-                function (string $attribute, mixed $value, \Closure $fail) {
-                    $address = trim(preg_replace('/\s+/u', ' ', (string) $value) ?? '');
-                    if (mb_strlen($address) < 20) {
-                        $fail('Please enter a complete delivery address (house/flat, road, and area).');
-
-                        return;
-                    }
-
-                    $lower = mb_strtolower($address);
-                    $blocked = ['n/a', 'na', 'none', 'test', 'asdf', 'xxx', 'address', 'dhaka only', 'home'];
-                    if (in_array($lower, $blocked, true)) {
-                        $fail('Please enter a real delivery address with house/flat, road, and area.');
-
-                        return;
-                    }
-
-                    // Need enough substance for a courier (letters + a number or area separator).
-                    $hasLetters = (bool) preg_match('/\p{L}{3,}/u', $address);
-                    $hasNumberOrArea = (bool) preg_match('/\d|road|rd\.?|street|st\.?|lane|ln\.?|house|flat|apt|block|sector|area|bazar|goli|avenue/i', $address);
-                    if (! $hasLetters || ! $hasNumberOrArea) {
-                        $fail('Delivery address must include house/flat details and area (e.g. House 12, Road 5, Gulshan, Dhaka).');
-                    }
-                },
-            ],
+            'customer_email' => 'nullable|email|max:255',
+            'customer_address' => 'required|string|min:5|max:1000',
             'delivery_zone' => 'nullable|string|in:inside_dhaka,outside_dhaka',
             'payment_method' => 'nullable|string|in:cash_on_delivery,confirmation_charge',
         ], [
-            'customer_address.required' => 'A complete delivery address is required to place your order.',
-            'customer_address.min' => 'Please enter a complete delivery address (at least 20 characters).',
+            'customer_address.required' => 'Delivery address is required to place your order.',
+            'customer_address.min' => 'Please enter a complete delivery address.',
+            'customer_phone.min' => 'Enter a valid mobile number (01XXXXXXXXX).',
         ]);
 
         $deliveryAddress = trim(preg_replace('/\s+/u', ' ', (string) $request->customer_address) ?? '');
         $request->merge(['customer_address' => $deliveryAddress]);
 
-        $customer = Customer::where('shop_id', $shopId)
-            ->where('user_id', $user->id)
-            ->first();
+        if ($isMember) {
+            $customer = Customer::where('shop_id', $shopId)
+                ->where('user_id', $user->id)
+                ->first();
 
-        if (! $customer) {
-            $customer = Customer::create([
-                'shop_id' => $shopId,
-                'user_id' => $user->id,
-                'name' => $request->customer_name,
-                'email' => $user->email,
-                'phone' => $request->customer_phone,
-                'address' => $request->customer_address,
-            ]);
+            if (! $customer) {
+                $customer = Customer::create([
+                    'shop_id' => $shopId,
+                    'user_id' => $user->id,
+                    'name' => $request->customer_name,
+                    'email' => $user->email,
+                    'phone' => $request->customer_phone,
+                    'address' => $request->customer_address,
+                ]);
+            } else {
+                $customer->update([
+                    'name' => $request->customer_name,
+                    'phone' => $request->customer_phone,
+                    'address' => $request->customer_address,
+                    'email' => $user->email,
+                ]);
+            }
+
+            $user->update(['name' => $request->customer_name]);
         } else {
-            $customer->update([
-                'name' => $request->customer_name,
-                'phone' => $request->customer_phone,
-                'address' => $request->customer_address,
-                'email' => $user->email,
-            ]);
+            $mobile = Customer::bdMobile($request->customer_phone);
+            if ($mobile === '') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Enter a valid mobile number (01XXXXXXXXX).',
+                    'errors' => ['customer_phone' => ['Enter a valid mobile number (01XXXXXXXXX).']],
+                ], 422);
+            }
+            $request->merge(['customer_phone' => $mobile]);
+
+            // Reuse the same CRM record for repeat guests / walk-in POS customers with this number.
+            $customer = Customer::where('shop_id', $shopId)->wherePhone($mobile)->orderByRaw('user_id IS NULL DESC')->first();
+
+            if (! $customer) {
+                $customer = Customer::create([
+                    'shop_id' => $shopId,
+                    'user_id' => null,
+                    'name' => $request->customer_name,
+                    'email' => $request->customer_email,
+                    'phone' => $mobile,
+                    'address' => $request->customer_address,
+                ]);
+            } else {
+                // Admin screens and receipts read the delivery address from the customer record.
+                $updates = [
+                    'name' => $request->customer_name,
+                    'address' => $request->customer_address,
+                ];
+                if ($customer->user_id === null && $request->customer_email) {
+                    $updates['email'] = $request->customer_email;
+                }
+                $customer->update($updates);
+            }
         }
 
-        $user->update(['name' => $request->customer_name]);
-
-        $shopAdmin = \App\Models\User::where('shop_id', $shopId)->whereIn('role', ['admin', 'shop_owner', 'Shop Owner'])->first();
-        $fallbackUserId = $shopAdmin?->id ?? $user->id;
+        $shopAdmin = \App\Models\User::where('shop_id', $shopId)->whereIn('role', ['admin', 'shop_owner', 'Shop Owner'])->first()
+            ?? \App\Models\User::where('shop_id', $shopId)->whereNotIn('role', ['customer', 'Customer'])->orderBy('id')->first();
+        $fallbackUserId = $shopAdmin?->id ?? $user?->id;
+        if (! $fallbackUserId) {
+            return response()->json(['success' => false, 'message' => 'Store is not ready to take orders yet. Please contact us.'], 503);
+        }
 
         // Resolve cart against live catalog prices/stock (never trust client prices).
         $resolvedLines = [];
@@ -1004,7 +1062,7 @@ class WebsiteController extends Controller
             if ($product->availableStock() < $qty) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Not enough stock for {$product->storefrontDisplayName()}. Please reduce the quantity and try again.",
+                    'message' => "Not enough stock for {$product->name}. Only {$product->availableStock()} left.",
                 ]);
             }
 
@@ -1087,6 +1145,9 @@ class WebsiteController extends Controller
 
             return response()->json([
                 'success' => true,
+                'guest' => ! $isMember,
+                'track_url' => route('website.track', ['invoice' => $order->invoice_no, 'phone' => $customer->phone]),
+                'phone' => $customer->phone,
                 'order_id' => $order->id,
                 'invoice' => $order->invoice_no,
                 'delivery_fee' => $deliveryFee,

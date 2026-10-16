@@ -1,14 +1,16 @@
-                    @php
-                        $headerName = $settings->store_name ?? config('app.name', 'Maks Gadget');
-                        $headerIconPath = $settings->favicon_path ?: $settings->logo_path;
-                        $headerIcon = $headerIconPath ? public_storage_url($headerIconPath) : null;
-                        $headerIconVer = $headerIconPath
-                            ? (@filemtime(public_storage_path($headerIconPath)) ?: time())
-                            : time();
+@php
+    $headerName = $settings->store_name ?? config('app.name', 'Maks Gadget');
+    $headerLogoPath = $settings->logo_path ?? null;
+    $headerLogo = $headerLogoPath ? public_storage_url($headerLogoPath) : null;
+    $headerIconPath = $settings->favicon_path ?: $headerLogoPath;
+    $headerIcon = $headerIconPath ? public_storage_url($headerIconPath) : null;
+    $headerIconVer = $headerIconPath
+        ? (@filemtime(public_storage_path($headerIconPath)) ?: time())
+        : time();
     $navLinks = $mainNav ?? collect();
     $topLinks = $topBarNav ?? collect();
-    $offerText = $settings->special_offer_text ?? 'Special Offer!';
-                    @endphp
+    $offerText = trim((string) ($settings->special_offer_text ?? ''));
+@endphp
 
 <div class="gaget-sticky-header{{ $topLinks->isNotEmpty() ? ' has-topbar' : '' }}">
     @if($topLinks->isNotEmpty())
@@ -34,7 +36,11 @@
                 </button>
 
                 <a href="{{ route('home') }}" class="gaget-floatbar-logo" aria-label="{{ $headerName }}">
-                    @if($headerIcon)
+                    @if($headerLogo)
+                        <img src="{{ $headerLogo }}?v={{ @filemtime(public_storage_path($headerLogoPath)) ?: time() }}"
+                             alt="{{ $headerName }}"
+                             class="gaget-logo-wordmark">
+                    @elseif($headerIcon)
                         <img src="{{ $headerIcon }}?v={{ $headerIconVer }}"
                              alt="{{ $headerName }}"
                              class="gaget-logo-mark"
@@ -45,7 +51,7 @@
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </span>
                     @endif
-                    <span class="gaget-logo-text">{{ $headerName }}</span>
+                    <span class="gaget-logo-text{{ $headerLogo ? ' gaget-logo-text--with-logo' : '' }}">{{ $headerName }}</span>
                 </a>
             </div>
 
@@ -72,18 +78,7 @@
                                     {{ $link->label }}
                                     <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                <div class="gaget-nav-dropdown-menu" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
-                                    <a href="{{ $link->url ?: route('website.shop') }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all">
-                                        <span>All categories</span>
-                                    </a>
-                                    @forelse($allCategories ?? [] as $cat)
-                                        <a href="{{ route('website.category', $cat->slug) }}" class="gaget-nav-dropdown-item">
-                                            <span>{{ $cat->name }}</span>
-                                        </a>
-                                    @empty
-                                        <span class="gaget-nav-dropdown-empty">No categories yet</span>
-                                    @endforelse
-                                </div>
+                                @include('website.partials.nav-menu-categories', ['allUrl' => $link->url ?: route('website.shop')])
                             </div>
                         @elseif(strcasecmp($navLabel, 'Brands') === 0 || strcasecmp($navLabel, 'Brand') === 0)
                             <div class="gaget-nav-dropdown"
@@ -103,18 +98,7 @@
                                     {{ $link->label }}
                                     <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                <div class="gaget-nav-dropdown-menu gaget-nav-dropdown-menu--end" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
-                                    <a href="{{ $link->url ?: route('home').'#brands' }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all">
-                                        <span>All brands</span>
-                                    </a>
-                                    @forelse($brands ?? [] as $brand)
-                                        <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}" class="gaget-nav-dropdown-item">
-                                            <span>{{ $brand->name }}</span>
-                                        </a>
-                                    @empty
-                                        <span class="gaget-nav-dropdown-empty">No brands yet</span>
-                                    @endforelse
-                                </div>
+                                @include('website.partials.nav-menu-brands', ['allUrl' => route('website.brands')])
                             </div>
                         @elseif(strcasecmp($navLabel, 'Shop') === 0)
                             <div class="gaget-nav-dropdown"
@@ -134,7 +118,7 @@
                                     Shop
                                     <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
-                                <div class="gaget-nav-dropdown-menu" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
+                                <div class="gaget-nav-dropdown-menu gaget-nav-dropdown-menu--compact" x-show="open" x-cloak x-transition:enter="gaget-mega-enter" x-transition:enter-start="gaget-mega-from" x-transition:enter-end="gaget-mega-to" x-transition:leave="gaget-mega-leave" x-transition:leave-start="gaget-mega-to" x-transition:leave-end="gaget-mega-from" style="display: none;">
                                     <a href="{{ route('website.shop') }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all"><span>All products</span></a>
                                     <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-nav-dropdown-item"><span>Deals</span></a>
                                     <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-nav-dropdown-item"><span>New arrivals</span></a>
@@ -168,7 +152,7 @@
                                 Shop
                                 <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
-                            <div class="gaget-nav-dropdown-menu" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
+                            <div class="gaget-nav-dropdown-menu gaget-nav-dropdown-menu--compact" x-show="open" x-cloak x-transition:enter="gaget-mega-enter" x-transition:enter-start="gaget-mega-from" x-transition:enter-end="gaget-mega-to" x-transition:leave="gaget-mega-leave" x-transition:leave-start="gaget-mega-to" x-transition:leave-end="gaget-mega-from" style="display: none;">
                                 <a href="{{ route('website.shop') }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all"><span>All products</span></a>
                                 <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-nav-dropdown-item"><span>Deals</span></a>
                                 <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-nav-dropdown-item"><span>New arrivals</span></a>
@@ -193,20 +177,10 @@
                                 Categories
                                 <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
-                            <div class="gaget-nav-dropdown-menu" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
-                                <a href="{{ route('website.shop') }}" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all"><span>All categories</span></a>
-                                @forelse($allCategories ?? [] as $cat)
-                                    <a href="{{ route('website.category', $cat->slug) }}" class="gaget-nav-dropdown-item">
-                                        <span>{{ $cat->name }}</span>
-                                    </a>
-                                @empty
-                                    <span class="gaget-nav-dropdown-empty">No categories yet</span>
-                                @endforelse
-                            </div>
+                            @include('website.partials.nav-menu-categories', ['allUrl' => route('website.shop')])
                         </div>
 
                         <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-nav-link">Deals</a>
-                        <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-nav-link">New Arrivals</a>
 
                         <div class="gaget-nav-dropdown"
                              x-data="navDropdown()"
@@ -225,16 +199,7 @@
                                 Brands
                                 <svg class="gaget-nav-chevron" :class="{ 'is-open': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
-                            <div class="gaget-nav-dropdown-menu gaget-nav-dropdown-menu--end" x-show="open" x-cloak x-transition.opacity.duration.100ms style="display: none;">
-                                <a href="{{ route('home') }}#brands" class="gaget-nav-dropdown-item gaget-nav-dropdown-item--all"><span>All brands</span></a>
-                                @forelse($brands ?? [] as $brand)
-                                    <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}" class="gaget-nav-dropdown-item">
-                                        <span>{{ $brand->name }}</span>
-                                    </a>
-                                @empty
-                                    <span class="gaget-nav-dropdown-empty">No brands yet</span>
-                                @endforelse
-                            </div>
+                            @include('website.partials.nav-menu-brands', ['allUrl' => route('website.brands')])
                         </div>
 
                         <a href="{{ route('website.blogs') }}" class="gaget-nav-link {{ request()->routeIs('website.blogs*') ? 'is-active' : '' }}">Blog</a>
@@ -245,234 +210,19 @@
 
             {{-- Search (in-bar on desktop) --}}
             <div class="gaget-floatbar-search"
-                     x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '৳'))"
-                     @click.outside="open = false">
-                    <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="open = false">
-                        <div class="gaget-search-bar">
-                        <span class="gaget-search-lead" aria-hidden="true">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        </span>
-                            <input type="search"
-                                   name="search"
-                                   x-model="q"
-                                   value="{{ request('search') }}"
-                                   placeholder="Search for products, brands..."
-                                   class="gaget-search-input"
-                                   autocomplete="off"
-                                   @focus="onFocus()"
-                                   @input.debounce.200ms="fetchSuggestions()"
-                                   @keydown.escape.prevent="open = false"
-                                   @keydown.arrow-down.prevent="move(1)"
-                                   @keydown.arrow-up.prevent="move(-1)"
-                                   @keydown.enter="onEnter($event)">
-                            <button type="submit" class="gaget-search-btn" aria-label="Search">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                            </button>
-                        </div>
-
-                        <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.120ms>
-                            <div class="gaget-search-suggest__head">
-                                <span x-text="mode === 'best' ? 'Best picks for you' : 'Matching products'"></span>
-                                <span class="gaget-search-suggest__hint" x-show="loading">Searching…</span>
-                            </div>
-                            <template x-if="!loading && products.length === 0">
-                                <p class="gaget-search-suggest__empty" x-text="q ? 'No products found' : 'No products available yet'"></p>
-                            </template>
-                            <div class="gaget-search-suggest__list" x-show="products.length > 0">
-                                <template x-for="(item, index) in products" :key="item.id">
-                                    <a :href="item.url"
-                                       class="gaget-search-suggest__item"
-                                       :class="{ 'is-active': index === activeIndex }"
-                                       @mouseenter="activeIndex = index">
-                                        <img :src="item.image" :alt="item.name" loading="lazy">
-                                        <div class="min-w-0 flex-1">
-                                            <p class="gaget-search-suggest__name" x-text="item.name"></p>
-                                            <p class="gaget-search-suggest__meta" x-text="item.brand || 'Product'"></p>
-                                        </div>
-                                    <strong class="gaget-search-suggest__price" x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></strong>
-                                    </a>
-                                </template>
-                            </div>
-                            <a :href="shopUrl" class="gaget-search-suggest__all" x-show="q.length > 0">
-                                View all results for “<span x-text="q"></span>”
-                            </a>
-                        </div>
-                    </form>
-                </div>
-
-            {{-- Actions --}}
-            <div class="gaget-floatbar-actions">
-                    <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
-                        <a href="{{ route('website.wishlist') }}" class="gaget-action-btn" aria-label="Wishlist">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                            <span class="gaget-action-label">Wishlist</span>
-                            <span x-show="wishlistCount>0" x-text="wishlistCount" class="gaget-cart-badge" x-cloak></span>
-                        </a>
-                        <div class="gaget-hover-panel" x-show="open" x-cloak x-transition.opacity.duration.150ms>
-                            <div class="gaget-hover-panel__head">
-                                <span>Wishlist</span>
-                                <strong x-text="wishlistCount + (wishlistCount === 1 ? ' item' : ' items')"></strong>
-                            </div>
-                            <template x-if="wishlist.length === 0">
-                                <p class="gaget-hover-panel__empty">No saved items yet.</p>
-                            </template>
-                            <div class="gaget-hover-panel__list" x-show="wishlist.length > 0">
-                                <template x-for="item in wishlist.slice(0, 4)" :key="'w'+item.id">
-                                    <a :href="item.url" class="gaget-hover-panel__row">
-                                        <img :src="item.image" :alt="item.name">
-                                        <div>
-                                            <p x-text="item.name"></p>
-                                        <span x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></span>
-                                        </div>
-                                    </a>
-                                </template>
-                            </div>
-                            <a href="{{ route('website.wishlist') }}" class="gaget-hover-panel__cta" x-show="wishlistCount > 0">View wishlist</a>
-                        </div>
-                    </div>
-
-                    <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
-                        <button type="button"
-                                id="gaget-cart-target"
-                                data-cart-target
-                                @click="openCart()"
-                            class="gaget-action-btn gaget-action-btn--cart"
-                                :class="{ 'is-cart-swing': cartBump }"
-                                aria-label="Cart">
-                            <svg class="gaget-cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                            <span class="gaget-action-label">Cart</span>
-                            <span class="gaget-cart-badge"
-                                  x-text="cartCount"
-                                  x-transition:enter="transition ease-out duration-200"
-                                  x-transition:enter-start="opacity-0 scale-50"
-                                  x-transition:enter-end="opacity-100 scale-100"></span>
-                        </button>
-                        <div class="gaget-hover-panel gaget-hover-panel--cart" x-show="open" x-cloak x-transition.opacity.duration.150ms>
-                            <div class="gaget-hover-panel__head">
-                                <span>Cart</span>
-                                <strong x-text="cartCount + (cartCount === 1 ? ' item' : ' items')"></strong>
-                            </div>
-                            <template x-if="cart.length === 0">
-                                <p class="gaget-hover-panel__empty">Your cart is empty.</p>
-                            </template>
-                            <div class="gaget-hover-panel__list" x-show="cart.length > 0">
-                                <template x-for="item in cart.slice(0, 4)" :key="'c'+item.id">
-                                    <div class="gaget-hover-panel__row">
-                                        <img :src="item.image" :alt="item.name">
-                                        <div>
-                                            <p x-text="item.name"></p>
-                                        <span x-text="item.qty + ' × ' + currency + Math.round(Number(item.price) || 0).toLocaleString()"></span>
-                                    </div>
-                                    </div>
-                                </template>
-                            </div>
-                            <div class="gaget-hover-panel__foot" x-show="cart.length > 0">
-                                <div class="gaget-hover-panel__total">
-                                    <span>Total</span>
-                                <strong x-text="currency + Math.round(Number(cartTotal) || 0).toLocaleString()"></strong>
-                                </div>
-                                <button type="button" class="gaget-hover-panel__cta" @click="open=false; openCart()">View cart</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <a href="{{ route('website.track') }}"
-                       class="gaget-action-btn gaget-action-btn--track{{ request()->routeIs('website.track') ? ' is-active' : '' }}"
-                       title="Track your order"
-                       aria-label="Track order">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M1 7h13v10H1V7zm13 3h5l3 3v4h-8v-7z"/><circle cx="5.5" cy="18" r="1.75" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.75" stroke-width="1.8"/></svg>
-                        <span class="gaget-action-label">Track Order</span>
-                    </a>
-
-                    @auth('web')
-                        @if(auth('web')->user()->isStorefrontCustomer())
-                            <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
-                                <a href="{{ route('website.account') }}" class="gaget-action-btn" title="{{ auth('web')->user()->name }}">
-                                    @if(auth('web')->user()->avatarUrl())
-                                    <img src="{{ auth('web')->user()->avatarUrl() }}" alt="" class="gaget-action-avatar">
-                                    @else
-                                    <span class="gaget-action-avatar gaget-action-avatar--initials">{{ auth('web')->user()->avatarInitials() }}</span>
-                                    @endif
-                                <span class="gaget-action-label">Account</span>
-                                </a>
-                                <div class="gaget-hover-panel gaget-hover-panel--account" x-show="open" x-cloak x-transition.opacity.duration.150ms>
-                                    <div class="gaget-account-menu__user">
-                                        @if(auth('web')->user()->avatarUrl())
-                                            <img src="{{ auth('web')->user()->avatarUrl() }}" alt="" class="gaget-account-menu__avatar">
-                                        @else
-                                            <span class="gaget-account-menu__avatar gaget-account-menu__avatar--initials">{{ auth('web')->user()->avatarInitials() }}</span>
-                                        @endif
-                                        <div class="min-w-0">
-                                            <p class="gaget-account-menu__name">{{ auth('web')->user()->name }}</p>
-                                            <p class="gaget-account-menu__email">{{ auth('web')->user()->email }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="gaget-account-menu__links">
-                                        <a href="{{ route('website.account') }}" class="gaget-account-menu__item">
-                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                            Profile
-                                        </a>
-                                        <a href="{{ route('website.track') }}" class="gaget-account-menu__item">
-                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M1 7h13v10H1V7zm13 3h5l3 3v4h-8v-7z"/><circle cx="5.5" cy="18" r="1.75" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.75" stroke-width="1.8"/></svg>
-                                            Track Order
-                                        </a>
-                                        <button type="button"
-                                                class="gaget-account-menu__item gaget-account-menu__item--danger"
-                                                @mousedown.prevent="typeof storefrontLogout === 'function' && storefrontLogout()">
-                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                                            Sign out
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    @else
-                        <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
-                            <button type="button" @click="openSignIn('login')" class="gaget-action-btn" title="Sign in">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                            <span class="gaget-action-label">Account</span>
-                            </button>
-                            <div class="gaget-hover-panel gaget-hover-panel--account" x-show="open" x-cloak x-transition.opacity.duration.150ms>
-                                <div class="gaget-account-menu__links">
-                                    <button type="button" @click="open=false; openSignIn('login')" class="gaget-account-menu__item w-full text-left">
-                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                                        Sign in
-                                    </button>
-                                    <button type="button" @click="open=false; openSignIn('register')" class="gaget-account-menu__item w-full text-left">
-                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                                        Create account
-                                    </button>
-                                    <a href="{{ route('website.track') }}" class="gaget-account-menu__item">
-                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M1 7h13v10H1V7zm13 3h5l3 3v4h-8v-7z"/><circle cx="5.5" cy="18" r="1.75" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.75" stroke-width="1.8"/></svg>
-                                        Track order (guest)
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    @endauth
-
-                <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-special-offer">
-                    <span class="gaget-special-offer-ico" aria-hidden="true">🔥</span>
-                    <span>{{ $offerText }}</span>
-                </a>
-            </div>
-            </div>
-
-        {{-- Compact search under pill on smaller screens --}}
-        <div class="gaget-floatbar-search-mobile"
                  x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '৳'))"
                  @click.outside="open = false">
                 <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="open = false">
-                <div class="gaget-search-bar">
-                    <span class="gaget-search-lead" aria-hidden="true">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </span>
+                    <div class="gaget-search-bar">
+                        <span class="gaget-search-lead" aria-hidden="true">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </span>
                         <input type="search"
                                name="search"
                                x-model="q"
                                value="{{ request('search') }}"
-                               placeholder="Search products..."
-                           class="gaget-search-input"
+                               placeholder="Search for products, brands..."
+                               class="gaget-search-input"
                                autocomplete="off"
                                @focus="onFocus()"
                                @input.debounce.200ms="fetchSuggestions()"
@@ -480,10 +230,11 @@
                                @keydown.arrow-down.prevent="move(1)"
                                @keydown.arrow-up.prevent="move(-1)"
                                @keydown.enter="onEnter($event)">
-                    <button type="submit" class="gaget-search-btn" aria-label="Search">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <button type="submit" class="gaget-search-btn" aria-label="Search">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </button>
                     </div>
+
                     <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.120ms>
                         <div class="gaget-search-suggest__head">
                             <span x-text="mode === 'best' ? 'Best picks for you' : 'Matching products'"></span>
@@ -493,7 +244,7 @@
                             <p class="gaget-search-suggest__empty" x-text="q ? 'No products found' : 'No products available yet'"></p>
                         </template>
                         <div class="gaget-search-suggest__list" x-show="products.length > 0">
-                            <template x-for="(item, index) in products" :key="'m'+item.id">
+                            <template x-for="(item, index) in products" :key="item.id">
                                 <a :href="item.url"
                                    class="gaget-search-suggest__item"
                                    :class="{ 'is-active': index === activeIndex }"
@@ -503,7 +254,7 @@
                                         <p class="gaget-search-suggest__name" x-text="item.name"></p>
                                         <p class="gaget-search-suggest__meta" x-text="item.brand || 'Product'"></p>
                                     </div>
-                                <strong class="gaget-search-suggest__price" x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></strong>
+                                    <strong class="gaget-search-suggest__price" x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></strong>
                                 </a>
                             </template>
                         </div>
@@ -512,6 +263,228 @@
                         </a>
                     </div>
                 </form>
+            </div>
+
+            {{-- Actions --}}
+            <div class="gaget-floatbar-actions">
+                <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
+                    <a href="{{ route('website.wishlist') }}" class="gaget-action-btn" aria-label="Wishlist">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                        <span class="gaget-action-label">Wishlist</span>
+                        <span x-show="wishlistCount>0" x-text="wishlistCount" class="gaget-cart-badge" x-cloak></span>
+                    </a>
+                    <div class="gaget-hover-panel" x-show="open" x-cloak x-transition.opacity.duration.150ms>
+                        <div class="gaget-hover-panel__head">
+                            <span>Wishlist</span>
+                            <strong x-text="wishlistCount + (wishlistCount === 1 ? ' item' : ' items')"></strong>
+                        </div>
+                        <template x-if="wishlist.length === 0">
+                            <p class="gaget-hover-panel__empty">No saved items yet.</p>
+                        </template>
+                        <div class="gaget-hover-panel__list" x-show="wishlist.length > 0">
+                            <template x-for="item in wishlist.slice(0, 4)" :key="'w'+item.id">
+                                <a :href="item.url" class="gaget-hover-panel__row">
+                                    <img :src="item.image" :alt="item.name">
+                                    <div>
+                                        <p x-text="item.name"></p>
+                                        <span x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></span>
+                                    </div>
+                                </a>
+                            </template>
+                        </div>
+                        <a href="{{ route('website.wishlist') }}" class="gaget-hover-panel__cta" x-show="wishlistCount > 0">View wishlist</a>
+                    </div>
+                </div>
+
+                <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
+                    <button type="button"
+                            id="gaget-cart-target"
+                            data-cart-target
+                            @click="openCart()"
+                            class="gaget-action-btn gaget-action-btn--cart"
+                            :class="{ 'is-cart-swing': cartBump }"
+                            aria-label="Cart">
+                        <svg class="gaget-cart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        <span class="gaget-action-label">Cart</span>
+                        <span class="gaget-cart-badge"
+                              x-text="cartCount"
+                              x-transition:enter="transition ease-out duration-200"
+                              x-transition:enter-start="opacity-0 scale-50"
+                              x-transition:enter-end="opacity-100 scale-100"></span>
+                    </button>
+                    <div class="gaget-hover-panel gaget-hover-panel--cart" x-show="open" x-cloak x-transition.opacity.duration.150ms>
+                        <div class="gaget-hover-panel__head">
+                            <span>Cart</span>
+                            <strong x-text="cartCount + (cartCount === 1 ? ' item' : ' items')"></strong>
+                        </div>
+                        <template x-if="cart.length === 0">
+                            <p class="gaget-hover-panel__empty">Your cart is empty.</p>
+                        </template>
+                        <div class="gaget-hover-panel__list" x-show="cart.length > 0">
+                            <template x-for="item in cart.slice(0, 4)" :key="'c'+item.id">
+                                <div class="gaget-hover-panel__row">
+                                    <img :src="item.image" :alt="item.name">
+                                    <div>
+                                        <p x-text="item.name"></p>
+                                        <span x-text="item.qty + ' × ' + currency + Math.round(Number(item.price) || 0).toLocaleString()"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="gaget-hover-panel__foot" x-show="cart.length > 0">
+                            <div class="gaget-hover-panel__total">
+                                <span>Total</span>
+                                <strong x-text="currency + Math.round(Number(cartTotal) || 0).toLocaleString()"></strong>
+                            </div>
+                            <button type="button" class="gaget-hover-panel__cta" @click="open=false; openCart()">View cart</button>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ route('website.track') }}"
+                   class="gaget-action-btn gaget-action-btn--track{{ request()->routeIs('website.track') ? ' is-active' : '' }}"
+                   title="Track your order"
+                   aria-label="Track order">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M1 7h13v10H1V7zm13 3h5l3 3v4h-8v-7z"/><circle cx="5.5" cy="18" r="1.75" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.75" stroke-width="1.8"/></svg>
+                    <span class="gaget-action-label">Track Order</span>
+                </a>
+
+                @auth('web')
+                    @if(auth('web')->user()->isStorefrontCustomer())
+                        @php
+                            $me = auth('web')->user();
+                            $meAvatar = $me->avatarUrl();
+                            $meTone = $me->avatarTone();
+                        @endphp
+                        <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
+                            <a href="{{ route('website.account') }}" class="gaget-action-btn gaget-action-btn--me" title="{{ $me->name }}">
+                                <span class="gaget-me-avatar{{ $meAvatar ? '' : ' is-tone-'.$meTone }}">
+                                    @if($meAvatar)
+                                        <img src="{{ $meAvatar }}" alt="{{ $me->name }}" class="gaget-me-img" width="30" height="30" decoding="async">
+                                    @else
+                                        <span class="gaget-me-initials">{{ $me->avatarInitials() }}</span>
+                                    @endif
+                                    <span class="gaget-me-dot" aria-hidden="true"></span>
+                                </span>
+                                <span class="gaget-action-label gaget-me-name">{{ $me->firstName() }}</span>
+                            </a>
+                            <div class="gaget-hover-panel gaget-hover-panel--account" x-show="open" x-cloak x-transition.opacity.duration.150ms>
+                                <div class="gaget-account-menu__user">
+                                    <span class="gaget-me-avatar gaget-me-avatar--lg{{ $meAvatar ? '' : ' is-tone-'.$meTone }}">
+                                        @if($meAvatar)
+                                            <img src="{{ $meAvatar }}" alt="{{ $me->name }}" class="gaget-me-img" width="44" height="44" decoding="async">
+                                        @else
+                                            <span class="gaget-me-initials">{{ $me->avatarInitials() }}</span>
+                                        @endif
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="gaget-account-menu__name">{{ $me->name }}</p>
+                                        <p class="gaget-account-menu__email">{{ $me->email }}</p>
+                                    </div>
+                                </div>
+                                <div class="gaget-account-menu__links">
+                                    <a href="{{ route('website.account') }}" class="gaget-account-menu__item">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        Profile
+                                    </a>
+                                    <button type="button"
+                                            class="gaget-account-menu__item gaget-account-menu__item--danger"
+                                            @mousedown.prevent="typeof storefrontLogout === 'function' && storefrontLogout()">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                        Sign out
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @else
+                    <div class="gaget-action-wrap" x-data="{ open: false }" @mouseenter="open=true" @mouseleave="open=false">
+                        <button type="button" @click="openSignIn('login')" class="gaget-action-btn" title="Sign in">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span class="gaget-action-label">Account</span>
+                        </button>
+                        <div class="gaget-hover-panel gaget-hover-panel--account" x-show="open" x-cloak x-transition.opacity.duration.150ms>
+                            <div class="gaget-account-menu__links">
+                                <button type="button" @click="open=false; openSignIn('login')" class="gaget-account-menu__item w-full text-left">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                                    Sign in
+                                </button>
+                                <button type="button" @click="open=false; openSignIn('register')" class="gaget-account-menu__item w-full text-left">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                    Create account
+                                </button>
+                                <a href="{{ route('website.track') }}" class="gaget-account-menu__item">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M1 7h13v10H1V7zm13 3h5l3 3v4h-8v-7z"/><circle cx="5.5" cy="18" r="1.75" stroke-width="1.8"/><circle cx="17.5" cy="18" r="1.75" stroke-width="1.8"/></svg>
+                                    Track order (guest)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endauth
+
+                @if($offerText !== '')
+                <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-special-offer">
+                    <span class="gaget-special-offer-ico" aria-hidden="true">🔥</span>
+                    <span>{{ $offerText }}</span>
+                </a>
+                @endif
+            </div>
+        </div>
+
+        {{-- Compact search under pill on smaller screens --}}
+        <div class="gaget-floatbar-search-mobile"
+             x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '৳'))"
+             @click.outside="open = false">
+            <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="open = false">
+                <div class="gaget-search-bar">
+                    <span class="gaget-search-lead" aria-hidden="true">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </span>
+                    <input type="search"
+                           name="search"
+                           x-model="q"
+                           value="{{ request('search') }}"
+                           placeholder="Search products..."
+                           class="gaget-search-input"
+                           autocomplete="off"
+                           @focus="onFocus()"
+                           @input.debounce.200ms="fetchSuggestions()"
+                           @keydown.escape.prevent="open = false"
+                           @keydown.arrow-down.prevent="move(1)"
+                           @keydown.arrow-up.prevent="move(-1)"
+                           @keydown.enter="onEnter($event)">
+                    <button type="submit" class="gaget-search-btn" aria-label="Search">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </button>
+                </div>
+                <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.120ms>
+                    <div class="gaget-search-suggest__head">
+                        <span x-text="mode === 'best' ? 'Best picks for you' : 'Matching products'"></span>
+                        <span class="gaget-search-suggest__hint" x-show="loading">Searching…</span>
+                    </div>
+                    <template x-if="!loading && products.length === 0">
+                        <p class="gaget-search-suggest__empty" x-text="q ? 'No products found' : 'No products available yet'"></p>
+                    </template>
+                    <div class="gaget-search-suggest__list" x-show="products.length > 0">
+                        <template x-for="(item, index) in products" :key="'m'+item.id">
+                            <a :href="item.url"
+                               class="gaget-search-suggest__item"
+                               :class="{ 'is-active': index === activeIndex }"
+                               @mouseenter="activeIndex = index">
+                                <img :src="item.image" :alt="item.name" loading="lazy">
+                                <div class="min-w-0 flex-1">
+                                    <p class="gaget-search-suggest__name" x-text="item.name"></p>
+                                    <p class="gaget-search-suggest__meta" x-text="item.brand || 'Product'"></p>
+                                </div>
+                                <strong class="gaget-search-suggest__price" x-text="currency + Math.round(Number(item.price) || 0).toLocaleString()"></strong>
+                            </a>
+                        </template>
+                    </div>
+                    <a :href="shopUrl" class="gaget-search-suggest__all" x-show="q.length > 0">
+                        View all results for “<span x-text="q"></span>”
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -569,8 +542,7 @@
                                 <a href="{{ $link->url ?: route('website.shop') }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All categories</a>
                                 @foreach(($allCategories ?? []) as $cat)
                                     <a href="{{ route('website.category', $cat->slug) }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">
-                                        <span>{{ $cat->name }}</span>
-                                    </a>
+                                        <span>{{ $cat->name }}</span>                                    </a>
                                 @endforeach
                             </div>
                         </div>
@@ -589,16 +561,15 @@
                                 <svg class="gaget-mobile-accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
                             <div class="gaget-mobile-accordion-panel" x-show="mobileBrandsOpen" x-cloak x-transition.opacity.duration.150ms>
-                                <a href="{{ $link->url ?: route('home').'#brands' }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
+                                <a href="{{ (! $link->url || str_contains($link->url, '#brands') || trim($link->url, '/') === 'brands') ? route('website.brands') : $link->url }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
                                 @foreach(($brands ?? []) as $brand)
                                     <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">
-                                        <span>{{ $brand->name }}</span>
-                                    </a>
+                                        <span>{{ $brand->name }}</span>                                    </a>
                                 @endforeach
                             </div>
                         </div>
                     @else
-                        <a href="{{ $link->url ?: route('home').'#brands' }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
+                        <a href="{{ (! $link->url || str_contains($link->url, '#brands') || trim($link->url, '/') === 'brands') ? route('website.brands') : $link->url }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
                     @endif
                 @else
                     <a href="{{ $link->url }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">{{ $link->label }}</a>
@@ -606,11 +577,6 @@
             @empty
             <a href="{{ route('home') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Home</a>
             <a href="{{ route('website.shop') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Shop</a>
-            <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Deals</a>
-            <a href="{{ route('website.shop', ['filter'=>'new']) }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">New Arrivals</a>
-            <a href="{{ route('website.blogs') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Blog</a>
-            <a href="{{ route('website.faqs') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">FAQ</a>
-            <a href="{{ route('website.contact') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Contact</a>
 
             @if(($allCategories ?? collect())->isNotEmpty())
                 <div class="gaget-mobile-accordion">
@@ -626,12 +592,13 @@
                         <a href="{{ route('website.shop') }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All categories</a>
                         @foreach(($allCategories ?? []) as $cat)
                             <a href="{{ route('website.category', $cat->slug) }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">
-                                <span>{{ $cat->name }}</span>
-                            </a>
+                                <span>{{ $cat->name }}</span>                            </a>
                         @endforeach
                     </div>
                 </div>
             @endif
+
+            <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Deals</a>
 
             @if(($brands ?? collect())->isNotEmpty())
                 <div class="gaget-mobile-accordion">
@@ -644,34 +611,34 @@
                         <svg class="gaget-mobile-accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div class="gaget-mobile-accordion-panel" x-show="mobileBrandsOpen" x-cloak x-transition.opacity.duration.150ms>
-                        <a href="{{ route('home') }}#brands" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
+                        <a href="{{ route('website.brands') }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">All brands</a>
                         @foreach(($brands ?? []) as $brand)
                             <a href="{{ route('website.brand', \Illuminate\Support\Str::slug($brand->name)) }}" class="gaget-mobile-drawer-link gaget-mobile-drawer-link--sub" @click="mobileOpen = false">
-                                <span>{{ $brand->name }}</span>
-                            </a>
+                                <span>{{ $brand->name }}</span>                            </a>
                         @endforeach
                     </div>
                 </div>
             @endif
+
+            <a href="{{ route('website.blogs') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Blog</a>
+            <a href="{{ route('website.contact') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Contact</a>
             @endforelse
 
-            <a href="{{ route('website.track') }}" class="gaget-mobile-drawer-link" @click="mobileOpen = false">Track Order</a>
-
             <div class="gaget-mobile-drawer-foot">
-            @auth('web')
-                @if(auth('web')->user()->isStorefrontCustomer())
+                @auth('web')
+                    @if(auth('web')->user()->isStorefrontCustomer())
                         <a href="{{ route('website.account') }}" class="gaget-mobile-drawer-cta" @click="mobileOpen = false">My Account</a>
-                    <button type="button"
+                        <button type="button"
                                 class="gaget-mobile-drawer-signout"
-                            @click="mobileOpen = false; typeof storefrontLogout === 'function' && storefrontLogout()">
-                        Sign out
-                    </button>
-                @endif
-            @else
+                                @click="mobileOpen = false; typeof storefrontLogout === 'function' && storefrontLogout()">
+                            Sign out
+                        </button>
+                    @endif
+                @else
                     <button type="button" class="gaget-mobile-drawer-cta" @click="mobileOpen = false; openSignIn('login')">Sign in</button>
                     <a href="{{ route('website.track') }}" class="gaget-mobile-drawer-signout" @click="mobileOpen = false">Track an order without account</a>
                     <p class="gaget-mobile-drawer-note">Save your wishlist and see all orders in one place.</p>
-            @endauth
+                @endauth
             </div>
         </div>
     </div>

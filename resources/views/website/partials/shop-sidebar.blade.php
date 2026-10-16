@@ -73,6 +73,7 @@
                        data-category=""
                        data-no-loader>
                         <span>All Categories</span>
+                        <span class="gs-cat-count">({{ number_format($categoryTotal) }})</span>
                     </a>
                 </li>
                 @foreach($categories as $cat)
@@ -83,6 +84,7 @@
                            data-category="{{ $catKey }}"
                            data-no-loader>
                             <span>{{ $cat->name }}</span>
+                            <span class="gs-cat-count">({{ number_format((int) ($cat->published_count ?? 0)) }})</span>
                         </a>
                     </li>
                 @endforeach
@@ -168,7 +170,7 @@
         </div>
 
         {{-- Brands --}}
-        @if($brands->isNotEmpty())
+        @if($brands->isNotEmpty() && empty($activeBrand))
             <div class="gs-filter-block">
                 <h3 class="gs-filter-title">Brands</h3>
                 <ul class="gs-brand-list">
@@ -179,6 +181,7 @@
                                        @checked(in_array((int) $brand->id, $selectedBrands, true))
                                        @change="$dispatch('shop-refresh')">
                                 <span class="gs-check-label">{{ $brand->name }}</span>
+                                <span class="gs-cat-count">({{ number_format((int) ($brand->published_count ?? 0)) }})</span>
                             </label>
                         </li>
                     @endforeach

@@ -20,6 +20,8 @@ use App\Models\SiteSetting;
 
 class WebsiteService
 {
+    public const NO_PHOTO_URL = '/images/no-photo.svg';
+
     public function shop(): ?Shop
     {
         $settings = SiteSetting::query()->first();
@@ -98,9 +100,9 @@ class WebsiteService
             'favicon_path' => $site->favicon_path,
             'currency_code' => $currencyCode,
             'currency_symbol' => $currencySymbol,
-            'special_offer_text' => $site->special_offer_text ?: 'Special Offer!',
-            'trusted_by_text' => $site->trusted_by_text ?: 'Trusted by thousands of customers',
-            'footer_tagline' => $site->footer_tagline ?: 'Your one-stop shop for the latest tech gadgets and accessories.',
+            'special_offer_text' => $site->special_offer_text,
+            'trusted_by_text' => $site->trusted_by_text,
+            'footer_tagline' => $site->footer_tagline,
             'home_copy' => $this->homeCopyDefaults($site->home_copy ?? []),
             'deals_kicker' => $site->deals_kicker ?: 'Special Offers',
             'deals_title' => $site->deals_title ?: "Deals You'll",
@@ -221,11 +223,11 @@ class WebsiteService
             ->values();
 
         // Prefer brands with a logo + products first (Gadget Lovers strip).
-        $brands = $brands->sortBy([
-            fn (Brand $b) => filled($b->logo_path) ? 0 : 1,
-            fn (Brand $b) => ((int) $b->products_count > 0) ? 0 : 1,
-            fn (Brand $b) => (int) $b->sort_order,
-            fn (Brand $b) => mb_strtolower($b->name),
+        $brands = $brands->sortBy(fn (Brand $b) => [
+            filled($b->logo_path) ? 0 : 1,
+            ((int) $b->products_count > 0) ? 0 : 1,
+            (int) $b->sort_order,
+            mb_strtolower($b->name),
         ])->values();
 
         return [
@@ -572,10 +574,10 @@ class WebsiteService
     {
         $urls = $this->productImageUrls($product);
 
-        return $urls[0] ?? 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80';
+        return $urls[0] ?? self::NO_PHOTO_URL;
     }
 
-    /** All product gallery URLs (uploaded images, then config/fallback). */
+    /** All product gallery URLs; a neutral "No photo" placeholder when none are uploaded. */
     public function productImageUrls($product): array
     {
         $urls = [];
@@ -587,16 +589,7 @@ class WebsiteService
         }
 
         if ($urls === []) {
-            $fallback = config('website_assets.products.' . $product->barcode)
-                ?? config('website_assets.products.' . \Illuminate\Support\Str::slug($product->name));
-
-            // Prefer a stable per-product placeholder so New Arrivals never all look identical.
-            if (! $fallback) {
-                $seed = abs(crc32((string) ($product->barcode ?: $product->sku ?: $product->id ?: $product->name)));
-                $fallback = 'https://picsum.photos/seed/gadget'.$seed.'/500/500';
-            }
-
-            $urls[] = $fallback;
+            $urls[] = self::NO_PHOTO_URL;
         }
 
         return $urls;
@@ -607,16 +600,18 @@ class WebsiteService
      *
      * Flow (typical phone store):
      * 1) Show every color in the variant_group
-     * 2) After a color is selected, show that color's available RAM / storage (ROM) combinations
+     * 2) After a color is selected, show that color's types (e.g. With cable / Without cable)
+     * 3) Then show the RAM / storage (ROM) combinations for that color + type
      *
      * Returns:
      * - colors: swatches linking to the best match for that color
-     * - combos: "4 GB / 64 GB" chips for the active color (preferred UI)
+     * - types: package/type chips for the active color
+     * - combos: "4 GB / 64 GB" chips for the active color + type (preferred UI)
      * - storages / rams: separate chips when only one dimension is used
      */
     public function productVariantOptions(Product $product): array
     {
-        $empty = ['colors' => [], 'combos' => [], 'storages' => [], 'rams' => []];
+        $empty = ['colors' => [], 'types' => [], 'combos' => [], 'storages' => [], 'rams' => []];
 
         if (! $product->variant_group) {
             return $empty;
@@ -642,8 +637,9 @@ class WebsiteService
         $colorKey = fn (?string $color) => strtolower(trim((string) $color));
         $ramKey = fn (?string $ram) => memory_size_compact($ram);
         $storageKey = fn (?string $storage) => memory_size_compact($storage);
+        $typeKey = fn (?string $type) => strtolower(preg_replace('/\s+/', ' ', trim((string) $type)) ?? '');
 
-        $pickBest = function ($candidates) use ($product, $inStock, $ramKey, $storageKey) {
+        $pickBest = function ($candidates) use ($product, $inStock, $ramKey, $storageKey, $typeKey) {
             $candidates = collect($candidates)->values();
             if ($candidates->isEmpty()) {
                 return null;
@@ -652,11 +648,12 @@ class WebsiteService
             $prefer = $candidates->filter($inStock);
             $pool = $prefer->isNotEmpty() ? $prefer : $candidates;
 
-            return $pool->sortBy([
-                fn (Product $p) => $ramKey($p->ram) === $ramKey($product->ram) ? 0 : 1,
-                fn (Product $p) => $storageKey($p->storage) === $storageKey($product->storage) ? 0 : 1,
-                fn (Product $p) => $p->currentPrice(),
-                fn (Product $p) => $p->id,
+            return $pool->sortBy(fn (Product $p) => [
+                $typeKey($p->variant_type) === $typeKey($product->variant_type) ? 0 : 1,
+                $ramKey($p->ram) === $ramKey($product->ram) ? 0 : 1,
+                $storageKey($p->storage) === $storageKey($product->storage) ? 0 : 1,
+                (float) $p->currentPrice(),
+                (int) $p->id,
             ])->first();
         };
 
@@ -699,13 +696,42 @@ class WebsiteService
             ? $family->filter(fn (Product $p) => $colorKey($p->color) === $currentColor)
             : $family;
 
-        // ── Combined RAM + storage chips for the active color ────────────
+        // ── Type / package chips for the active color ────────────────────
+        $types = [];
+        $seenTypes = [];
+        foreach ($forColor->sortBy('id') as $row) {
+            $label = trim((string) ($row->variant_type ?? ''));
+            $key = $typeKey($label);
+            if ($key === '' || isset($seenTypes[$key])) {
+                continue;
+            }
+            $seenTypes[$key] = true;
+
+            $twins = $forColor->filter(fn (Product $p) => $typeKey($p->variant_type) === $key);
+            $match = $pickBest($twins) ?? $row;
+
+            $types[] = [
+                'label' => $label,
+                'url' => route('website.product', $match),
+                'active' => $typeKey($product->variant_type) === $key,
+                'product_id' => $match->id,
+                'available' => $twins->contains($inStock),
+                'price' => $match->currentPrice(),
+            ];
+        }
+
+        // Memory chips below only list rows matching the selected type.
+        $forColor = $types !== []
+            ? $forColor->filter(fn (Product $p) => $typeKey($p->variant_type) === $typeKey($product->variant_type))
+            : $forColor;
+
+        // ── Combined RAM + storage chips for the active color + type ─────
         $combos = [];
         $seenCombos = [];
-        foreach ($forColor->sortBy([
-            fn (Product $p) => memory_size_sort_key($p->ram),
-            fn (Product $p) => memory_size_sort_key($p->storage),
-            fn (Product $p) => $p->id,
+        foreach ($forColor->sortBy(fn (Product $p) => [
+            memory_size_sort_key($p->ram),
+            memory_size_sort_key($p->storage),
+            (int) $p->id,
         ]) as $row) {
             $hasRam = filled($row->ram);
             $hasStorage = filled($row->storage);
@@ -808,6 +834,7 @@ class WebsiteService
 
         return [
             'colors' => array_values($colors),
+            'types' => array_values($types),
             'combos' => $useCombos ? array_values($combos) : [],
             'storages' => array_values($storages),
             'rams' => array_values($rams),
@@ -832,9 +859,9 @@ class WebsiteService
                 continue;
             }
 
-            $best = $group->sortBy([
-                fn (Product $p) => $p->currentPrice(),
-                fn (Product $p) => $p->id,
+            $best = $group->sortBy(fn (Product $p) => [
+                (float) $p->currentPrice(),
+                (int) $p->id,
             ])->first();
 
             $keep[] = (int) $best->id;
