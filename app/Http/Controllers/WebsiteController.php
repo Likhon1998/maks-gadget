@@ -628,25 +628,91 @@ class WebsiteController extends Controller
         $features = $home['features'] ?? collect();
 
         if ($request->boolean('ajax') || $request->ajax()) {
-            $displayName = $product->storefrontDisplayName();
-
-            $storeName = data_get($settings, 'store_name', 'Shop');
-
-            return response()->json([
-                'html' => view('website.partials.product-live', compact(
-                    'product',
-                    'related',
-                    'reviews',
-                    'variantOptions',
-                    'settings',
-                    'features'
-                ))->render(),
-                'url' => route('website.product', $product),
-                'title' => $displayName.' | '.$storeName,
-            ]);
+            return response()->json($this->productLivePayload(
+                $product,
+                $related,
+                $reviews,
+                $variantOptions,
+                $settings,
+                $features
+            ));
         }
 
-        return view('website.product', array_merge($home, compact('product', 'related', 'reviews', 'variantOptions')));
+        // Pre-render sibling variants so color/type swaps are instant (no spinner).
+        $variantLiveCache = [
+            route('website.product', $product) => $this->productLivePayload(
+                $product,
+                $related,
+                $reviews,
+                $variantOptions,
+                $settings,
+                $features
+            ),
+        ];
+
+        if ($product->variant_group) {
+            $siblings = Product::query()
+                ->where('shop_id', $shopId)
+                ->where('variant_group', $product->variant_group)
+                ->where(function ($q) {
+                    $q->where('is_published', true)->orWhereNull('is_published');
+                })
+                ->where('id', '!=', $product->id)
+                ->with(['category', 'brand'])
+                ->limit(24)
+                ->get();
+
+            foreach ($siblings as $sibling) {
+                $url = route('website.product', $sibling);
+                if (isset($variantLiveCache[$url])) {
+                    continue;
+                }
+                $variantLiveCache[$url] = $this->productLivePayload(
+                    $sibling,
+                    $related,
+                    $reviews,
+                    $this->website->productVariantOptions($sibling),
+                    $settings,
+                    $features
+                );
+            }
+        }
+
+        return view('website.product', array_merge($home, compact(
+            'product',
+            'related',
+            'reviews',
+            'variantOptions',
+            'variantLiveCache'
+        )));
+    }
+
+    /**
+     * JSON / in-page payload for instant product variant swaps.
+     */
+    private function productLivePayload(
+        Product $product,
+        $related,
+        $reviews,
+        array $variantOptions,
+        $settings,
+        $features
+    ): array {
+        $displayName = $product->storefrontDisplayName();
+        $storeName = data_get($settings, 'store_name', 'Shop');
+
+        return [
+            'html' => view('website.partials.product-live', compact(
+                'product',
+                'related',
+                'reviews',
+                'variantOptions',
+                'settings',
+                'features'
+            ))->render(),
+            'url' => route('website.product', $product),
+            'title' => $displayName.' | '.$storeName,
+        ];
     }
 
     public function page(string $slug)

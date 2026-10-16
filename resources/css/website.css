@@ -5314,28 +5314,7 @@ body.gaget-store {
 @keyframes gs-spin {
     to { transform: rotate(360deg); }
 }
-[data-product-live-root].pd-live-loading [data-product-live] {
-    opacity: .45;
-    pointer-events: none;
-    transition: opacity .15s ease;
-}
-[data-product-live-root].pd-live-loading {
-    position: relative;
-}
-[data-product-live-root].pd-live-loading::after {
-    content: '';
-    position: absolute;
-    top: 48px;
-    left: 50%;
-    width: 28px;
-    height: 28px;
-    margin-left: -14px;
-    border: 2px solid #cbd5e1;
-    border-top-color: #2563eb;
-    border-radius: 50%;
-    animation: gs-spin .7s linear infinite;
-    z-index: 5;
-}
+/* Variant swaps are instant from in-page cache — no loading veil/spinner. */
 .gs-breadcrumb {
     display: flex; align-items: center; gap: 8px;
     font-size: 12px; color: #475569; margin-bottom: 10px;
