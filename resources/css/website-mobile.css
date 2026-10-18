@@ -59,25 +59,25 @@
         border-color: transparent !important;
     }
     .gaget-floatbar {
-        height: 56px !important;
-        min-height: 56px !important;
+        height: 60px !important;
+        min-height: 60px !important;
     }
     .gaget-floatbar-logo,
     .gaget-floatbar-logo.is-brand {
-        max-width: min(68vw, 250px) !important;
-        gap: 9px !important;
+        max-width: min(70vw, 270px) !important;
+        gap: 10px !important;
     }
     .gaget-logo-text {
         font-size: 15px !important;
-        max-width: min(48vw, 168px) !important;
+        max-width: min(50vw, 176px) !important;
         display: block !important;
         font-weight: 800 !important;
     }
     .gaget-logo-mark {
-        width: 40px !important;
-        height: 40px !important;
-        max-width: 40px !important;
-        max-height: 40px !important;
+        width: 46px !important;
+        height: 46px !important;
+        max-width: 46px !important;
+        max-height: 46px !important;
     }
     .tn-footer-logo-img {
         width: 56px !important;

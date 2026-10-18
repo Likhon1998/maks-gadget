@@ -111,8 +111,8 @@ body.gaget-store {
     align-items: center;
     gap: 10px;
     width: 100%;
-    min-height: 64px;
-    height: 64px;
+    min-height: 68px;
+    height: 68px;
     padding: 6px 12px 6px 14px;
     background: #fff;
     border: 1px solid #e8edf3;
@@ -133,21 +133,21 @@ body.gaget-store {
 .gaget-floatbar-logo {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 11px;
     text-decoration: none;
     min-width: 0;
-    max-width: min(320px, 48vw);
+    max-width: min(340px, 50vw);
     color: inherit;
     line-height: 1;
 }
 .gaget-floatbar-logo.is-brand {
-    gap: 10px;
+    gap: 11px;
 }
 .gaget-logo-icon {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     background: var(--g-blue);
-    border-radius: 12px;
+    border-radius: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -155,14 +155,14 @@ body.gaget-store {
     color: #fff;
 }
 .gaget-logo-icon svg {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
 }
 .gaget-logo-mark {
-    width: 44px !important;
-    height: 44px !important;
-    max-width: 44px !important;
-    max-height: 44px !important;
+    width: 52px !important;
+    height: 52px !important;
+    max-width: 52px !important;
+    max-height: 52px !important;
     object-fit: contain;
     object-position: center;
     border-radius: 0;
@@ -171,12 +171,13 @@ body.gaget-store {
     display: block;
     border: 0;
     box-shadow: none;
+    image-rendering: -webkit-optimize-contrast;
 }
 .gaget-logo-wordmark {
-    height: 44px !important;
+    height: 52px !important;
     width: auto !important;
-    max-width: 160px !important;
-    max-height: 44px !important;
+    max-width: 180px !important;
+    max-height: 52px !important;
     object-fit: contain;
     object-position: left center;
     border-radius: 0;
@@ -185,14 +186,14 @@ body.gaget-store {
     display: block;
 }
 .gaget-logo-text {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.03em;
     text-transform: none;
     line-height: 1.15;
     white-space: nowrap;
-    max-width: min(200px, 40vw);
+    max-width: min(210px, 42vw);
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -811,36 +812,36 @@ body.gaget-store {
     .gaget-mobile-drawer { display: none !important; }
 }
 @media (min-width: 1360px) {
-    .gaget-floatbar { gap: 12px; padding: 6px 14px 6px 16px; height: 66px; min-height: 66px; }
+    .gaget-floatbar { gap: 12px; padding: 6px 14px 6px 16px; height: 70px; min-height: 70px; }
     .gaget-nav-link { padding: 0 8px; font-size: 13px; }
     .gaget-floatbar-search { flex-basis: 320px; max-width: 380px; }
-    .gaget-logo-text { font-size: 17px; max-width: 220px; }
+    .gaget-logo-text { font-size: 18px; max-width: 230px; }
     .gaget-logo-mark {
-        width: 46px !important;
-        height: 46px !important;
-        max-width: 46px !important;
-        max-height: 46px !important;
+        width: 54px !important;
+        height: 54px !important;
+        max-width: 54px !important;
+        max-height: 54px !important;
     }
     .gaget-logo-icon {
-        width: 46px;
-        height: 46px;
-        border-radius: 12px;
+        width: 54px;
+        height: 54px;
+        border-radius: 13px;
     }
-    .gaget-floatbar-logo.is-brand { max-width: 340px; gap: 11px; }
+    .gaget-floatbar-logo.is-brand { max-width: 360px; gap: 12px; }
 }
 @media (min-width: 1200px) and (max-width: 1359px) {
     .gaget-nav-link { padding: 0 5px; font-size: 12px; }
     .gaget-floatbar-search { flex-basis: 240px; max-width: 280px; min-width: 140px; }
     .gaget-action-btn { padding: 2px 5px; min-width: 40px; }
     .gaget-special-offer { padding: 0 10px; font-size: 11px; margin-left: 4px; }
-    .gaget-logo-text { font-size: 16px; max-width: 190px; }
+    .gaget-logo-text { font-size: 17px; max-width: 200px; }
     .gaget-logo-mark {
-        width: 44px !important;
-        height: 44px !important;
-        max-width: 44px !important;
-        max-height: 44px !important;
+        width: 52px !important;
+        height: 52px !important;
+        max-width: 52px !important;
+        max-height: 52px !important;
     }
-    .gaget-floatbar-logo.is-brand { max-width: 300px; gap: 10px; }
+    .gaget-floatbar-logo.is-brand { max-width: 320px; gap: 11px; }
 }
 
 /* Tablet / compact: logo + actions in bar, search below */
@@ -849,20 +850,20 @@ body.gaget-store {
     .gaget-floatbar-search { display: none !important; }
     .gaget-floatbar-search-mobile { display: block; }
     .gaget-floatbar {
-        height: 60px;
-        min-height: 60px;
+        height: 64px;
+        min-height: 64px;
         border-radius: 20px;
         gap: 8px;
         padding: 6px 10px 6px 12px;
     }
     .gaget-logo-mark {
-        width: 42px !important;
-        height: 42px !important;
-        max-width: 42px !important;
-        max-height: 42px !important;
+        width: 48px !important;
+        height: 48px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
     }
-    .gaget-logo-text { font-size: 15px; max-width: min(200px, 42vw); }
-    .gaget-floatbar-logo.is-brand { max-width: min(280px, 62vw); gap: 10px; }
+    .gaget-logo-text { font-size: 16px; max-width: min(210px, 44vw); }
+    .gaget-floatbar-logo.is-brand { max-width: min(300px, 64vw); gap: 10px; }
     .gaget-special-offer { display: none; }
     .gaget-sticky-header { padding: 10px 0 14px; }
     .gaget-header-spacer { height: var(--g-header-h, 140px); }
@@ -871,8 +872,8 @@ body.gaget-store {
     .gaget-floatbar-shell { padding: 0 10px; }
     .gaget-floatbar {
         padding: 5px 8px 5px 10px;
-        height: 56px;
-        min-height: 56px;
+        height: 60px;
+        min-height: 60px;
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
@@ -886,17 +887,17 @@ body.gaget-store {
     .gaget-action-label { display: none; }
     .gaget-action-btn { padding: 4px 6px; min-width: 0; }
     .gaget-logo-text {
-        max-width: min(48vw, 168px);
+        max-width: min(50vw, 176px);
         overflow: hidden;
         text-overflow: ellipsis;
         font-size: 15px;
         display: block;
     }
     .gaget-logo-mark {
-        width: 40px !important;
-        height: 40px !important;
-        max-width: 40px !important;
-        max-height: 40px !important;
+        width: 46px !important;
+        height: 46px !important;
+        max-width: 46px !important;
+        max-height: 46px !important;
     }
     .gaget-sticky-header { padding: 8px 0 12px; }
     .gaget-floatbar-search-mobile {
@@ -7044,14 +7045,14 @@ body.gaget-store {
 }
 
 @media (max-width: 480px) {
-    .gaget-floatbar { height: 54px; min-height: 54px; }
-    .gaget-logo-text { max-width: min(46vw, 156px); display: block; font-size: 14px; }
-    .gaget-floatbar-logo.is-brand { max-width: min(68vw, 240px); gap: 9px; }
+    .gaget-floatbar { height: 58px; min-height: 58px; }
+    .gaget-logo-text { max-width: min(48vw, 168px); display: block; font-size: 15px; }
+    .gaget-floatbar-logo.is-brand { max-width: min(70vw, 260px); gap: 10px; }
     .gaget-logo-mark {
-        width: 38px !important;
-        height: 38px !important;
-        max-width: 38px !important;
-        max-height: 38px !important;
+        width: 44px !important;
+        height: 44px !important;
+        max-width: 44px !important;
+        max-height: 44px !important;
     }
     .gaget-cart-badge { top: -2px; right: 0; }
     .tn-flash-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -8602,15 +8603,15 @@ body.gaget-store,
         grid-template-columns: 100px minmax(0, 1fr) !important;
     }
     .gaget-logo-text {
-        font-size: 14px;
-        max-width: min(46vw, 156px);
+        font-size: 15px;
+        max-width: min(48vw, 168px);
         display: block;
     }
     .gaget-logo-mark {
-        width: 38px !important;
-        height: 38px !important;
-        max-width: 38px !important;
-        max-height: 38px !important;
+        width: 44px !important;
+        height: 44px !important;
+        max-width: 44px !important;
+        max-height: 44px !important;
     }
     .mg-hero3-side {
         grid-template-columns: 1fr !important;

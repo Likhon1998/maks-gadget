@@ -42,15 +42,15 @@
                         <img src="{{ $headerLogo }}?v={{ @filemtime(public_storage_path($headerLogoPath)) ?: time() }}"
                              alt="{{ $headerName }}"
                              class="gaget-logo-mark"
-                             width="44"
-                             height="44"
+                             width="52"
+                             height="52"
                              decoding="async">
                     @elseif($headerIcon)
                         <img src="{{ $headerIcon }}?v={{ $headerIconVer }}"
                              alt="{{ $headerName }}"
                              class="gaget-logo-mark"
-                             width="44"
-                             height="44"
+                             width="52"
+                             height="52"
                              decoding="async">
                     @else
                         <span class="gaget-logo-icon" aria-hidden="true">
