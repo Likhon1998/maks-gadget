@@ -40,17 +40,17 @@
                    aria-label="{{ $headerName }}">
                     @if($headerLogo)
                         <img src="{{ $headerLogo }}?v={{ @filemtime(public_storage_path($headerLogoPath)) ?: time() }}"
-                             alt=""
+                             alt="{{ $headerName }}"
                              class="gaget-logo-mark"
-                             width="40"
-                             height="40"
+                             width="56"
+                             height="56"
                              decoding="async">
                     @elseif($headerIcon)
                         <img src="{{ $headerIcon }}?v={{ $headerIconVer }}"
-                             alt=""
+                             alt="{{ $headerName }}"
                              class="gaget-logo-mark"
-                             width="40"
-                             height="40"
+                             width="56"
+                             height="56"
                              decoding="async">
                     @else
                         <span class="gaget-logo-icon" aria-hidden="true">

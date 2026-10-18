@@ -72,17 +72,17 @@
                     @endphp
                     @if($storeLogo)
                         <img src="{{ $storeLogo }}?v={{ @filemtime(public_storage_path($settings->logo_path)) ?: time() }}"
-                             alt=""
+                             alt="{{ $storeName }}"
                              class="tn-footer-logo-img"
-                             width="44"
-                             height="44"
+                             width="56"
+                             height="56"
                              decoding="async">
                     @elseif($footerIcon)
                         <img src="{{ $footerIcon }}?v={{ $footerIconVer }}"
-                             alt=""
+                             alt="{{ $storeName }}"
                              class="tn-footer-logo-img"
-                             width="44"
-                             height="44"
+                             width="56"
+                             height="56"
                              decoding="async">
                     @else
                         <span class="tn-footer-logo-mark" aria-hidden="true">

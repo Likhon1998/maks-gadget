@@ -58,28 +58,33 @@
         background: var(--m-soft) !important;
         border-color: transparent !important;
     }
+    .gaget-floatbar {
+        height: 66px !important;
+        min-height: 66px !important;
+    }
     .gaget-floatbar-logo,
     .gaget-floatbar-logo.is-brand {
-        max-width: min(62vw, 210px) !important;
-        gap: 8px !important;
+        max-width: min(68vw, 240px) !important;
+        gap: 10px !important;
     }
     .gaget-logo-text {
-        font-size: 13.5px !important;
-        max-width: min(42vw, 140px) !important;
+        font-size: 15px !important;
+        max-width: min(46vw, 160px) !important;
         display: block !important;
+        font-weight: 800 !important;
     }
     .gaget-logo-mark {
-        width: 34px !important;
-        height: 34px !important;
-        max-width: 34px !important;
-        max-height: 34px !important;
+        width: 48px !important;
+        height: 48px !important;
+        max-width: 48px !important;
+        max-height: 48px !important;
     }
     .tn-footer-logo-img {
-        width: 40px !important;
-        height: 40px !important;
+        width: 52px !important;
+        height: 52px !important;
     }
     .tn-footer-logo-text {
-        font-size: 18px !important;
+        font-size: 20px !important;
     }
     .gaget-action-btn {
         min-width: 40px !important;
