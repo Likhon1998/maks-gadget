@@ -59,32 +59,32 @@
         border-color: transparent !important;
     }
     .gaget-floatbar {
-        height: 66px !important;
-        min-height: 66px !important;
+        height: 72px !important;
+        min-height: 72px !important;
     }
     .gaget-floatbar-logo,
     .gaget-floatbar-logo.is-brand {
-        max-width: min(68vw, 240px) !important;
-        gap: 10px !important;
+        max-width: min(74vw, 300px) !important;
+        gap: 12px !important;
     }
     .gaget-logo-text {
-        font-size: 15px !important;
-        max-width: min(46vw, 160px) !important;
+        font-size: 16px !important;
+        max-width: min(52vw, 190px) !important;
         display: block !important;
         font-weight: 800 !important;
     }
     .gaget-logo-mark {
-        width: 48px !important;
-        height: 48px !important;
-        max-width: 48px !important;
-        max-height: 48px !important;
-    }
-    .tn-footer-logo-img {
         width: 52px !important;
         height: 52px !important;
+        max-width: 52px !important;
+        max-height: 52px !important;
+    }
+    .tn-footer-logo-img {
+        width: 56px !important;
+        height: 56px !important;
     }
     .tn-footer-logo-text {
-        font-size: 20px !important;
+        font-size: 22px !important;
     }
     .gaget-action-btn {
         min-width: 40px !important;
@@ -656,9 +656,9 @@
         text-decoration: none;
     }
     .gaget-mobile-drawer-brand-mark {
-        width: 38px;
-        height: 38px;
-        border-radius: 12px;
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
         object-fit: contain;
         background: var(--m-soft);
         flex-shrink: 0;
@@ -668,7 +668,7 @@
         place-items: center;
         background: #0f172a;
         color: #fff;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 800;
     }
     .gaget-mobile-drawer-brand-text {
@@ -677,7 +677,7 @@
         min-width: 0;
     }
     .gaget-mobile-drawer-brand-name {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 800;
         letter-spacing: -0.02em;
         color: var(--m-ink);
