@@ -622,7 +622,7 @@ body.gaget-store {
 .gaget-search-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 90;
+    z-index: 110;
     background: rgba(15, 23, 42, 0.55);
     -webkit-backdrop-filter: blur(14px) saturate(1.1);
     backdrop-filter: blur(14px) saturate(1.1);
@@ -638,12 +638,12 @@ html.gaget-search-open .gaget-search-backdrop {
     transition: opacity .24s ease, visibility 0s;
 }
 html.gaget-search-open .gaget-sticky-header {
-    z-index: 95;
+    z-index: 120 !important;
 }
 html.gaget-search-open .gaget-floatbar {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
 }
 html.gaget-search-open .gaget-floatbar-brand,
 html.gaget-search-open .gaget-floatbar-nav,
@@ -655,16 +655,22 @@ html.gaget-search-open .gaget-special-offer {
 }
 html.gaget-search-open .gaget-floatbar-search,
 html.gaget-search-open .gaget-floatbar-search-mobile {
-    position: fixed;
-    left: 50%;
-    top: max(10vh, 72px);
-    width: min(640px, calc(100vw - 32px));
-    max-width: none;
-    min-width: 0;
-    flex: none;
-    margin: 0;
-    z-index: 100;
+    position: fixed !important;
+    left: 50% !important;
+    top: max(10vh, 72px) !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: min(640px, calc(100vw - 32px)) !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: none !important;
+    margin: 0 !important;
+    display: block !important;
+    z-index: 130 !important;
     transform: translateX(-50%);
+    pointer-events: auto !important;
+    opacity: 1 !important;
+    visibility: visible !important;
     animation: gaget-search-panel-in .28s cubic-bezier(.16, 1, .3, 1);
 }
 @keyframes gaget-search-panel-in {
@@ -680,10 +686,14 @@ html.gaget-search-open .gaget-search-wrap {
         0 12px 28px -12px rgba(15, 23, 42, 0.18);
     overflow: hidden;
     padding: 10px;
+    display: flex;
+    flex-direction: column;
+    max-height: min(78vh, 640px);
 }
 html.gaget-search-open .gaget-search-bar {
     height: 56px;
     min-height: 56px;
+    flex: 0 0 auto;
     background: #f8fafc;
     border: 1px solid #e8edf3;
     border-radius: 16px;
@@ -721,22 +731,27 @@ html.gaget-search-open .gaget-search-btn svg {
     height: 18px;
 }
 html.gaget-search-open .gaget-search-suggest {
-    position: static;
-    left: auto;
-    right: auto;
-    top: auto;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
     margin-top: 8px;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-    background: transparent;
-    overflow: visible;
-    display: flex;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: hidden;
     flex-direction: column;
-    max-height: min(58vh, 460px);
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+}
+html.gaget-search-open .gaget-search-suggest:not([style*="display: none"]) {
+    display: flex;
 }
 html.gaget-search-open .gaget-search-suggest__head {
-    padding: 8px 10px 10px;
+    flex: 0 0 auto;
+    padding: 6px 10px 8px;
     background: transparent;
     border-bottom: 0;
     font-size: 12px;
@@ -749,8 +764,10 @@ html.gaget-search-open .gaget-search-suggest__hint {
     color: var(--g-blue, #2563eb);
 }
 html.gaget-search-open .gaget-search-suggest__list {
-    max-height: none;
+    max-height: none !important;
     flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
     padding: 0 2px 4px;
     scrollbar-width: thin;
@@ -767,16 +784,19 @@ html.gaget-search-open .gaget-search-suggest__list::-webkit-scrollbar-thumb {
     border-radius: 999px;
 }
 html.gaget-search-open .gaget-search-suggest__list::-webkit-scrollbar-button {
-    display: none;
-    width: 0;
-    height: 0;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 html.gaget-search-open .gaget-search-suggest__item {
     gap: 14px;
     padding: 10px 12px;
-    margin-bottom: 2px;
-    border-bottom: 0;
+    margin: 0 0 2px;
+    border-bottom: 0 !important;
     border-radius: 14px;
+}
+html.gaget-search-open .gaget-search-suggest__item:first-child {
+    margin-top: 0;
 }
 html.gaget-search-open .gaget-search-suggest__item:hover,
 html.gaget-search-open .gaget-search-suggest__item.is-active {
@@ -787,6 +807,8 @@ html.gaget-search-open .gaget-search-suggest__item img {
     height: 56px;
     border-radius: 14px;
     border: 1px solid #eef2f7;
+    object-fit: cover;
+    flex-shrink: 0;
 }
 html.gaget-search-open .gaget-search-suggest__name {
     font-size: 14px;
@@ -814,21 +836,24 @@ html.gaget-search-open .gaget-search-suggest__price {
     border-radius: 999px;
     padding: 6px 10px;
     line-height: 1;
+    flex-shrink: 0;
 }
 html.gaget-search-open .gaget-search-suggest__empty {
     padding: 36px 16px;
     font-size: 14px;
     color: #64748b;
+    flex: 0 0 auto;
 }
 html.gaget-search-open .gaget-search-suggest__all {
     margin-top: 4px;
-    border-top: 0;
+    border-top: 0 !important;
     border-radius: 14px;
     background: #eff6ff;
     color: var(--g-blue, #2563eb);
     font-size: 13px;
     font-weight: 700;
     padding: 14px 16px;
+    flex: 0 0 auto;
 }
 html.gaget-search-open .gaget-search-suggest__all:hover {
     background: #dbeafe;
@@ -842,6 +867,7 @@ html.gaget-search-open .gaget-search-suggest__foot {
     color: #94a3b8;
     font-size: 11px;
     font-weight: 500;
+    flex: 0 0 auto;
 }
 html.gaget-search-open .gaget-search-suggest__kbd {
     display: inline-flex;
@@ -868,12 +894,18 @@ html.gaget-search-open body {
 }
 @media (max-width: 1199px) {
     html.gaget-search-open .gaget-floatbar-search-mobile {
-        top: max(8vh, 24px);
-        width: min(100vw - 24px, 640px);
+        top: max(8vh, 24px) !important;
+        width: min(100vw - 24px, 640px) !important;
+        display: block !important;
     }
     html.gaget-search-open .gaget-floatbar-shell > .gaget-floatbar {
         opacity: 0;
         pointer-events: none;
+    }
+    /* Keep mobile search interactive even while floatbar is faded */
+    html.gaget-search-open .gaget-floatbar-search-mobile {
+        pointer-events: auto !important;
+        opacity: 1 !important;
     }
 }
 @media (prefers-reduced-motion: reduce) {

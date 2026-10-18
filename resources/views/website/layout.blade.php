@@ -113,6 +113,7 @@
                 activeIndex: -1,
                 currency: currencySymbol || '৳',
                 _req: 0,
+                _ignoreOutsideUntil: 0,
                 get shopUrl() {
                     const params = new URLSearchParams();
                     if (this.q) params.set('search', this.q);
@@ -132,13 +133,20 @@
                 },
                 activate() {
                     this.open = true;
+                    this._ignoreOutsideUntil = Date.now() + 450;
                     document.documentElement.classList.add('gaget-search-open');
+                    this.$nextTick(() => {
+                        const input = this.$el && this.$el.querySelector('.gaget-search-input');
+                        if (input && document.activeElement !== input) {
+                            try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+                        }
+                    });
                 },
                 deactivate() {
                     if (!this.open) return;
+                    document.documentElement.classList.remove('gaget-search-open');
                     this.open = false;
                     this.activeIndex = -1;
-                    document.documentElement.classList.remove('gaget-search-open');
                 },
                 onFocus() {
                     this.activate();
@@ -866,6 +874,9 @@
         /* Fixed floating pill header — padding creates clearance above hero */
         .gaget-sticky-header{position:fixed!important;top:0;left:0;right:0;width:100%;z-index:80;background:transparent!important;box-shadow:none!important;pointer-events:none;padding:12px 0 18px;box-sizing:border-box;overflow:visible!important}
         .gaget-sticky-header>*{pointer-events:auto}
+        html.gaget-search-open .gaget-sticky-header{z-index:120!important;overflow:visible!important}
+        html.gaget-search-open .gaget-floatbar-search,
+        html.gaget-search-open .gaget-floatbar-search-mobile{pointer-events:auto!important;z-index:130!important}
         .gaget-header-spacer{display:block;width:100%;height:var(--g-header-h,100px);pointer-events:none;background:#f1f5f9}
 
         /* Safety: brand logos must never render at intrinsic SVG/PNG size */
