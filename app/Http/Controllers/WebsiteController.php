@@ -13,6 +13,7 @@ use App\Services\DeliveryChargeService;
 use App\Services\OnlineOrderTrackingService;
 use App\Services\StockService;
 use App\Services\WebsiteService;
+use App\Support\SmartProductSearch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -97,17 +98,8 @@ class WebsiteController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->search;
             $like = Schema::getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
-            $query->where(function ($q) use ($search, $like) {
-                $q->where('name', $like, "%{$search}%")
-                    ->orWhere('brand_name', $like, "%{$search}%")
-                    ->orWhere('sku', $like, "%{$search}%")
-                    ->orWhere('barcode', $like, "%{$search}%")
-                    ->orWhere('short_description', $like, "%{$search}%")
-                    ->orWhereHas('brand', fn ($brand) => $brand->where('name', $like, "%{$search}%"))
-                    ->orWhereHas('category', fn ($category) => $category->where('name', $like, "%{$search}%"));
-            });
+            SmartProductSearch::applyToQuery($query, (string) $request->search, $like);
         }
 
         if ($request->filled('min_price')) {
@@ -185,30 +177,32 @@ class WebsiteController extends Controller
         $limit = min(10, max(1, (int) $request->query('limit', 8)));
         $like = Schema::getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
 
-        $query = $this->website->catalogQuery($shopId)->with(['category', 'brand']);
-
+        $base = $this->website->catalogQuery($shopId)->with(['category', 'brand']);
         if ($category !== '') {
-            $query->whereHas('category', fn ($builder) => $builder->whereSlugOrId($category));
+            $base->whereHas('category', fn ($builder) => $builder->whereSlugOrId($category));
         }
 
-        if ($q !== '') {
-            $query->where(function ($builder) use ($q, $like) {
-                $builder->where('name', $like, "%{$q}%")
-                    ->orWhere('brand_name', $like, "%{$q}%")
-                    ->orWhere('sku', $like, "%{$q}%")
-                    ->orWhere('barcode', $like, "%{$q}%")
-                    ->orWhere('short_description', $like, "%{$q}%")
-                    ->orWhereHas('brand', fn ($brand) => $brand->where('name', $like, "%{$q}%"))
-                    ->orWhereHas('category', fn ($category) => $category->where('name', $like, "%{$q}%"));
-            })->orderBy('name');
+        if ($q === '') {
+            $products = $this->website->dedupeVariantCollection(
+                (clone $base)->orderByDesc('is_best_seller')->orderByDesc('review_count')->latest()->limit($limit * 3)->get(),
+                $limit
+            );
         } else {
-            $query->orderByDesc('is_best_seller')
-                ->orderByDesc('review_count')
-                ->latest();
+            $matched = (clone $base);
+            SmartProductSearch::applyToQuery($matched, $q, $like);
+            $pool = $matched->limit(80)->get();
+
+            // If typo/alias SQL still returns little, fuzzy-rank a broader catalog slice.
+            if ($pool->count() < $limit && mb_strlen($q) >= 3) {
+                $broader = (clone $base)->limit(220)->get();
+                $pool = $pool->concat($broader)->unique('id')->values();
+            }
+
+            $ranked = SmartProductSearch::rank($pool, $q, $limit * 3);
+            $products = $this->website->dedupeVariantCollection($ranked, $limit);
         }
 
-        $products = $this->website->dedupeVariantCollection($query->limit($limit * 3)->get(), $limit)
-            ->map(fn (Product $product) => [
+        $payload = $products->map(fn (Product $product) => [
             'id' => $product->id,
             'name' => $product->storefrontDisplayName(),
             'brand' => $product->brand?->name ?? $product->brand_name,
@@ -219,7 +213,7 @@ class WebsiteController extends Controller
         ]);
 
         return response()->json([
-            'products' => $products,
+            'products' => $payload,
             'mode' => $q === '' ? 'best' : 'search',
         ]);
     }
