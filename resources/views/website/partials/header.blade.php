@@ -244,18 +244,19 @@
 
                     <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.160ms>
                         <div class="gaget-search-suggest__head">
-                            <span x-text="mode === 'best' ? 'Best picks for you' : 'Matching products'"></span>
-                            <span class="gaget-search-suggest__hint" x-show="loading">Searching…</span>
+                            <span x-text="loading ? 'Searching…' : (mode === 'best' ? 'Popular right now' : (products.length ? 'Products for you' : 'No matches'))"></span>
+                            <span class="gaget-search-suggest__hint" x-show="!loading && products.length > 0" x-text="products.length + (products.length === 1 ? ' result' : ' results')"></span>
                         </div>
                         <template x-if="!loading && products.length === 0">
-                            <p class="gaget-search-suggest__empty" x-text="q ? 'No products found' : 'No products available yet'"></p>
+                            <p class="gaget-search-suggest__empty" x-text="q ? 'No products match “' + q + '”. Try another keyword.' : 'Start typing to find products.'"></p>
                         </template>
                         <div class="gaget-search-suggest__list" x-show="products.length > 0">
                             <template x-for="(item, index) in products" :key="item.id">
                                 <a :href="item.url"
                                    class="gaget-search-suggest__item"
                                    :class="{ 'is-active': index === activeIndex }"
-                                   @mouseenter="activeIndex = index">
+                                   @mouseenter="activeIndex = index"
+                                   @click="deactivate()">
                                     <img :src="item.image" :alt="item.name" loading="lazy">
                                     <div class="min-w-0 flex-1">
                                         <p class="gaget-search-suggest__name" x-text="item.name"></p>
@@ -265,9 +266,13 @@
                                 </a>
                             </template>
                         </div>
-                        <a :href="shopUrl" class="gaget-search-suggest__all" x-show="q.length > 0">
+                        <a :href="shopUrl" class="gaget-search-suggest__all" x-show="q.length > 0" @click="deactivate()">
                             View all results for “<span x-text="q"></span>”
                         </a>
+                        <div class="gaget-search-suggest__foot" aria-hidden="true">
+                            <span class="gaget-search-suggest__kbd"><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+                            <span class="gaget-search-suggest__kbd"><kbd>Esc</kbd> close</span>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -467,18 +472,19 @@
                 </div>
                 <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.160ms>
                     <div class="gaget-search-suggest__head">
-                        <span x-text="mode === 'best' ? 'Best picks for you' : 'Matching products'"></span>
-                        <span class="gaget-search-suggest__hint" x-show="loading">Searching…</span>
+                        <span x-text="loading ? 'Searching…' : (mode === 'best' ? 'Popular right now' : (products.length ? 'Products for you' : 'No matches'))"></span>
+                        <span class="gaget-search-suggest__hint" x-show="!loading && products.length > 0" x-text="products.length + (products.length === 1 ? ' result' : ' results')"></span>
                     </div>
                     <template x-if="!loading && products.length === 0">
-                        <p class="gaget-search-suggest__empty" x-text="q ? 'No products found' : 'No products available yet'"></p>
+                        <p class="gaget-search-suggest__empty" x-text="q ? 'No products match “' + q + '”. Try another keyword.' : 'Start typing to find products.'"></p>
                     </template>
                     <div class="gaget-search-suggest__list" x-show="products.length > 0">
                         <template x-for="(item, index) in products" :key="'m'+item.id">
                             <a :href="item.url"
                                class="gaget-search-suggest__item"
                                :class="{ 'is-active': index === activeIndex }"
-                               @mouseenter="activeIndex = index">
+                               @mouseenter="activeIndex = index"
+                               @click="deactivate()">
                                 <img :src="item.image" :alt="item.name" loading="lazy">
                                 <div class="min-w-0 flex-1">
                                     <p class="gaget-search-suggest__name" x-text="item.name"></p>
@@ -488,9 +494,12 @@
                             </a>
                         </template>
                     </div>
-                    <a :href="shopUrl" class="gaget-search-suggest__all" x-show="q.length > 0">
+                    <a :href="shopUrl" class="gaget-search-suggest__all" x-show="q.length > 0" @click="deactivate()">
                         View all results for “<span x-text="q"></span>”
                     </a>
+                    <div class="gaget-search-suggest__foot" aria-hidden="true">
+                        <span class="gaget-search-suggest__kbd"><kbd>Esc</kbd> close</span>
+                    </div>
                 </div>
             </form>
         </div>

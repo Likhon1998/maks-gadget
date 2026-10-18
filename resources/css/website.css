@@ -618,113 +618,268 @@ body.gaget-store {
 .gaget-search-btn svg { width: 14px; height: 14px; }
 .gaget-search-btn:hover { background: #1e293b; transform: scale(1.04); }
 
-/* Full-page search focus mode */
+/* Full-page search focus mode — centered command panel */
 .gaget-search-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 70;
-    background: rgba(15, 23, 42, 0.38);
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    z-index: 90;
+    background: rgba(15, 23, 42, 0.55);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+    backdrop-filter: blur(14px) saturate(1.1);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity .22s ease, visibility 0s linear .22s;
+    transition: opacity .24s ease, visibility 0s linear .24s;
 }
 html.gaget-search-open .gaget-search-backdrop {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transition: opacity .22s ease, visibility 0s;
+    transition: opacity .24s ease, visibility 0s;
 }
 html.gaget-search-open .gaget-sticky-header {
-    z-index: 85;
+    z-index: 95;
+}
+html.gaget-search-open .gaget-floatbar {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+html.gaget-search-open .gaget-floatbar-brand,
+html.gaget-search-open .gaget-floatbar-nav,
+html.gaget-search-open .gaget-floatbar-actions,
+html.gaget-search-open .gaget-special-offer {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease;
 }
 html.gaget-search-open .gaget-floatbar-search,
 html.gaget-search-open .gaget-floatbar-search-mobile {
-    position: relative;
-    z-index: 90;
+    position: fixed;
+    left: 50%;
+    top: max(10vh, 72px);
+    width: min(640px, calc(100vw - 32px));
+    max-width: none;
+    min-width: 0;
+    flex: none;
+    margin: 0;
+    z-index: 100;
+    transform: translateX(-50%);
+    animation: gaget-search-panel-in .28s cubic-bezier(.16, 1, .3, 1);
 }
-html.gaget-search-open .gaget-floatbar-search {
-    flex: 1 1 460px;
-    max-width: min(560px, 54vw);
+@keyframes gaget-search-panel-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(.98); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
-html.gaget-search-open .gaget-floatbar-nav {
-    opacity: 0.28;
-    pointer-events: none;
-    transition: opacity .2s ease;
-}
-html.gaget-search-open .gaget-floatbar-actions,
-html.gaget-search-open .gaget-floatbar-brand .gaget-mobile-menu-btn {
-    opacity: 0.4;
-    pointer-events: none;
-    transition: opacity .2s ease;
+html.gaget-search-open .gaget-search-wrap {
+    background: #fff;
+    border-radius: 22px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    box-shadow:
+        0 40px 80px -20px rgba(15, 23, 42, 0.35),
+        0 12px 28px -12px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+    padding: 10px;
 }
 html.gaget-search-open .gaget-search-bar {
-    height: 50px;
-    min-height: 50px;
+    height: 56px;
+    min-height: 56px;
+    background: #f8fafc;
+    border: 1px solid #e8edf3;
+    border-radius: 16px;
+    box-shadow: none;
+    padding: 4px 4px 4px 16px;
+}
+html.gaget-search-open .gaget-search-bar:focus-within {
     background: #fff;
     border-color: #93c5fd;
-    box-shadow:
-        0 0 0 4px rgba(37, 99, 235, 0.14),
-        0 18px 40px rgba(15, 23, 42, 0.14);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 html.gaget-search-open .gaget-search-input {
-    font-size: 15px;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+html.gaget-search-open .gaget-search-lead {
+    margin-right: 10px;
+    color: #64748b;
 }
 html.gaget-search-open .gaget-search-lead svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
 }
 html.gaget-search-open .gaget-search-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+    background: var(--g-blue, #2563eb);
+}
+html.gaget-search-open .gaget-search-btn:hover {
+    background: #1d4ed8;
 }
 html.gaget-search-open .gaget-search-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
 }
 html.gaget-search-open .gaget-search-suggest {
-    top: calc(100% + 12px);
-    border-radius: 18px;
-    border-color: rgba(15, 23, 42, 0.08);
-    box-shadow:
-        0 28px 64px -16px rgba(15, 23, 42, 0.28),
-        0 10px 24px -10px rgba(15, 23, 42, 0.12);
+    position: static;
+    left: auto;
+    right: auto;
+    top: auto;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    max-height: min(58vh, 460px);
+}
+html.gaget-search-open .gaget-search-suggest__head {
+    padding: 8px 10px 10px;
+    background: transparent;
+    border-bottom: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: #64748b;
+}
+html.gaget-search-open .gaget-search-suggest__hint {
+    color: var(--g-blue, #2563eb);
 }
 html.gaget-search-open .gaget-search-suggest__list {
-    max-height: min(58vh, 440px);
+    max-height: none;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 0 2px 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+html.gaget-search-open .gaget-search-suggest__list::-webkit-scrollbar {
+    width: 6px;
+}
+html.gaget-search-open .gaget-search-suggest__list::-webkit-scrollbar-track {
+    background: transparent;
+}
+html.gaget-search-open .gaget-search-suggest__list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+html.gaget-search-open .gaget-search-suggest__list::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
 }
 html.gaget-search-open .gaget-search-suggest__item {
-    padding: 12px 16px;
+    gap: 14px;
+    padding: 10px 12px;
+    margin-bottom: 2px;
+    border-bottom: 0;
+    border-radius: 14px;
+}
+html.gaget-search-open .gaget-search-suggest__item:hover,
+html.gaget-search-open .gaget-search-suggest__item.is-active {
+    background: #f1f5f9;
 }
 html.gaget-search-open .gaget-search-suggest__item img {
-    width: 52px;
-    height: 52px;
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    border: 1px solid #eef2f7;
 }
 html.gaget-search-open .gaget-search-suggest__name {
     font-size: 14px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.3;
 }
 html.gaget-search-open .gaget-search-suggest__meta {
+    margin-top: 3px;
     font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
 }
 html.gaget-search-open .gaget-search-suggest__price {
     font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
+    background: #f8fafc;
+    border: 1px solid #e8edf3;
+    border-radius: 999px;
+    padding: 6px 10px;
+    line-height: 1;
+}
+html.gaget-search-open .gaget-search-suggest__empty {
+    padding: 36px 16px;
+    font-size: 14px;
+    color: #64748b;
+}
+html.gaget-search-open .gaget-search-suggest__all {
+    margin-top: 4px;
+    border-top: 0;
+    border-radius: 14px;
+    background: #eff6ff;
+    color: var(--g-blue, #2563eb);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 14px 16px;
+}
+html.gaget-search-open .gaget-search-suggest__all:hover {
+    background: #dbeafe;
+}
+html.gaget-search-open .gaget-search-suggest__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 10px 2px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 500;
+}
+html.gaget-search-open .gaget-search-suggest__kbd {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+html.gaget-search-open .gaget-search-suggest__kbd kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 10px;
+    font-weight: 700;
+    color: #64748b;
+    font-family: inherit;
 }
 html.gaget-search-open,
 html.gaget-search-open body {
     overflow: hidden;
 }
 @media (max-width: 1199px) {
-    html.gaget-search-open .gaget-floatbar-search-mobile .gaget-search-bar {
-        height: 52px;
-        min-height: 52px;
+    html.gaget-search-open .gaget-floatbar-search-mobile {
+        top: max(8vh, 24px);
+        width: min(100vw - 24px, 640px);
     }
-    html.gaget-search-open .gaget-floatbar-search-mobile .gaget-search-suggest {
-        left: 0;
-        right: 0;
-        width: 100%;
+    html.gaget-search-open .gaget-floatbar-shell > .gaget-floatbar {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    html.gaget-search-open .gaget-floatbar-search,
+    html.gaget-search-open .gaget-floatbar-search-mobile {
+        animation: none;
     }
 }
 
