@@ -36,28 +36,28 @@
                 </button>
 
                 <a href="{{ route('home') }}"
-                   class="gaget-floatbar-logo{{ $headerLogo ? ' is-wordmark' : ' is-mark' }}"
+                   class="gaget-floatbar-logo is-brand"
                    aria-label="{{ $headerName }}">
                     @if($headerLogo)
-                        {{-- Full logo alone — don't duplicate the store name beside it --}}
                         <img src="{{ $headerLogo }}?v={{ @filemtime(public_storage_path($headerLogoPath)) ?: time() }}"
-                             alt="{{ $headerName }}"
-                             class="gaget-logo-wordmark"
+                             alt=""
+                             class="gaget-logo-mark"
+                             width="40"
+                             height="40"
                              decoding="async">
                     @elseif($headerIcon)
                         <img src="{{ $headerIcon }}?v={{ $headerIconVer }}"
                              alt=""
                              class="gaget-logo-mark"
-                             width="36"
-                             height="36"
+                             width="40"
+                             height="40"
                              decoding="async">
-                        <span class="gaget-logo-text">{{ $headerName }}</span>
                     @else
                         <span class="gaget-logo-icon" aria-hidden="true">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </span>
-                        <span class="gaget-logo-text">{{ $headerName }}</span>
                     @endif
+                    <span class="gaget-logo-text">{{ $headerName }}</span>
                 </a>
             </div>
 

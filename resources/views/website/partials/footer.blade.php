@@ -61,7 +61,7 @@
         <div class="tn-footer-main">
             <div class="tn-footer-brand">
                 <a href="{{ route('home') }}"
-                   class="tn-footer-logo{{ $storeLogo ? ' is-wordmark' : ' is-mark' }}"
+                   class="tn-footer-logo is-brand"
                    aria-label="{{ $storeName }}">
                     @php
                         $footerIconPath = $settings->favicon_path ?: null;
@@ -72,8 +72,10 @@
                     @endphp
                     @if($storeLogo)
                         <img src="{{ $storeLogo }}?v={{ @filemtime(public_storage_path($settings->logo_path)) ?: time() }}"
-                             alt="{{ $storeName }}"
-                             class="tn-footer-logo-wordmark"
+                             alt=""
+                             class="tn-footer-logo-img"
+                             width="44"
+                             height="44"
                              decoding="async">
                     @elseif($footerIcon)
                         <img src="{{ $footerIcon }}?v={{ $footerIconVer }}"
@@ -82,15 +84,14 @@
                              width="44"
                              height="44"
                              decoding="async">
-                        <span class="tn-footer-logo-text">{{ $storeName }}</span>
                     @else
                         <span class="tn-footer-logo-mark" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                             </svg>
                         </span>
-                        <span class="tn-footer-logo-text">{{ $storeName }}</span>
                     @endif
+                    <span class="tn-footer-logo-text">{{ $storeName }}</span>
                 </a>
                 @if($tagline !== '')
                     <p class="tn-footer-tagline">{{ $tagline }}</p>
