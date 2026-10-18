@@ -1,5 +1,5 @@
 @php $menuBrands = collect($brands ?? []); @endphp
-<div class="gaget-nav-dropdown-menu gaget-nav-dropdown-menu--end gaget-mega gaget-mega--brands"
+<div class="gaget-nav-dropdown-menu gaget-mega gaget-mega--brands"
      x-show="open"
      x-cloak
      x-transition:enter="gaget-mega-enter"

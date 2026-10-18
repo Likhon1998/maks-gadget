@@ -120,12 +120,32 @@
                     const qs = params.toString();
                     return qs ? `${shopBaseUrl}?${qs}` : shopBaseUrl;
                 },
-                onFocus() {
+                init() {
+                    this._onClose = () => this.deactivate();
+                    window.addEventListener('gaget:search-close', this._onClose);
+                    if (typeof this.$cleanup === 'function') {
+                        this.$cleanup(() => {
+                            window.removeEventListener('gaget:search-close', this._onClose);
+                            this.deactivate();
+                        });
+                    }
+                },
+                activate() {
                     this.open = true;
+                    document.documentElement.classList.add('gaget-search-open');
+                },
+                deactivate() {
+                    if (!this.open) return;
+                    this.open = false;
+                    this.activeIndex = -1;
+                    document.documentElement.classList.remove('gaget-search-open');
+                },
+                onFocus() {
+                    this.activate();
                     this.fetchSuggestions();
                 },
                 async fetchSuggestions() {
-                    this.open = true;
+                    this.activate();
                     this.loading = true;
                     this.activeIndex = -1;
                     const req = ++this._req;
@@ -151,13 +171,14 @@
                 },
                 move(step) {
                     if (!this.products.length) return;
-                    this.open = true;
+                    this.activate();
                     const len = this.products.length;
                     this.activeIndex = (this.activeIndex + step + len) % len;
                 },
                 onEnter(event) {
                     if (this.open && this.activeIndex >= 0 && this.products[this.activeIndex]) {
                         event.preventDefault();
+                        this.deactivate();
                         window.location.href = this.products[this.activeIndex].url;
                     }
                 },
@@ -874,6 +895,9 @@
 </div>
 
 @include('website.partials.header')
+<div class="gaget-search-backdrop"
+     aria-hidden="true"
+     onclick="window.dispatchEvent(new CustomEvent('gaget:search-close'))"></div>
 <script>
 (function () {
     function syncHeaderHeight() {

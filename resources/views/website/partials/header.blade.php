@@ -87,7 +87,7 @@
                                 @include('website.partials.nav-menu-categories', ['allUrl' => $link->url ?: route('website.shop')])
                             </div>
                         @elseif(strcasecmp($navLabel, 'Brands') === 0 || strcasecmp($navLabel, 'Brand') === 0)
-                            <div class="gaget-nav-dropdown"
+                            <div class="gaget-nav-dropdown gaget-nav-dropdown--brands"
                                  x-data="navDropdown()"
                                  :class="{ 'is-open': open }"
                                  @mouseenter="show()"
@@ -188,7 +188,7 @@
 
                         <a href="{{ route('website.shop', ['filter'=>'deals']) }}" class="gaget-nav-link">Deals</a>
 
-                        <div class="gaget-nav-dropdown"
+                        <div class="gaget-nav-dropdown gaget-nav-dropdown--brands"
                              x-data="navDropdown()"
                                  :class="{ 'is-open': open }"
                                  @mouseenter="show()"
@@ -217,8 +217,9 @@
             {{-- Search (in-bar on desktop) --}}
             <div class="gaget-floatbar-search"
                  x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '৳'))"
-                 @click.outside="open = false">
-                <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="open = false">
+                 :class="{ 'is-expanded': open }"
+                 @click.outside="open && deactivate()">
+                <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="deactivate()">
                     <div class="gaget-search-bar">
                         <span class="gaget-search-lead" aria-hidden="true">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -232,7 +233,7 @@
                                autocomplete="off"
                                @focus="onFocus()"
                                @input.debounce.200ms="fetchSuggestions()"
-                               @keydown.escape.prevent="open = false"
+                               @keydown.escape.prevent="deactivate()"
                                @keydown.arrow-down.prevent="move(1)"
                                @keydown.arrow-up.prevent="move(-1)"
                                @keydown.enter="onEnter($event)">
@@ -241,7 +242,7 @@
                         </button>
                     </div>
 
-                    <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.120ms>
+                    <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.160ms>
                         <div class="gaget-search-suggest__head">
                             <span x-text="mode === 'best' ? 'Best picks for you' : 'Matching products'"></span>
                             <span class="gaget-search-suggest__hint" x-show="loading">Searching…</span>
@@ -440,8 +441,9 @@
         {{-- Compact search under pill on smaller screens --}}
         <div class="gaget-floatbar-search-mobile"
              x-data="headerSearch(@js(route('website.search.suggest')), @js(route('website.shop')), @js($settings->currency_symbol ?? '৳'))"
-             @click.outside="open = false">
-            <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="open = false">
+             :class="{ 'is-expanded': open }"
+             @click.outside="open && deactivate()">
+            <form action="{{ route('website.shop') }}" method="GET" class="gaget-search-wrap" @submit="deactivate()">
                 <div class="gaget-search-bar">
                     <span class="gaget-search-lead" aria-hidden="true">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -455,7 +457,7 @@
                            autocomplete="off"
                            @focus="onFocus()"
                            @input.debounce.200ms="fetchSuggestions()"
-                           @keydown.escape.prevent="open = false"
+                           @keydown.escape.prevent="deactivate()"
                            @keydown.arrow-down.prevent="move(1)"
                            @keydown.arrow-up.prevent="move(-1)"
                            @keydown.enter="onEnter($event)">
@@ -463,7 +465,7 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </button>
                 </div>
-                <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.120ms>
+                <div class="gaget-search-suggest" x-show="open" x-cloak x-transition.opacity.duration.160ms>
                     <div class="gaget-search-suggest__head">
                         <span x-text="mode === 'best' ? 'Best picks for you' : 'Matching products'"></span>
                         <span class="gaget-search-suggest__hint" x-show="loading">Searching…</span>
