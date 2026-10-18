@@ -415,16 +415,10 @@ class Product extends Model
             ->get();
     }
 
-    /** Model name without trailing "— Green / 8GB" style suffixes used for admin clarity. */
+    /** Exact product name from admin — never truncated or rewritten for the storefront. */
     public function storefrontDisplayName(): string
     {
-        if (! $this->variant_group) {
-            return (string) $this->name;
-        }
-
-        $name = trim(preg_replace('/\s*[—\-–].*$/u', '', (string) $this->name) ?? '');
-
-        return $name !== '' ? $name : (string) $this->name;
+        return (string) $this->name;
     }
 
     /** Selected options in a short line, e.g. "White · With cable · 8GB/128GB". */

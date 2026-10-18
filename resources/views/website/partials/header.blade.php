@@ -35,23 +35,29 @@
                     <svg x-show="mobileOpen" x-cloak class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
 
-                <a href="{{ route('home') }}" class="gaget-floatbar-logo" aria-label="{{ $headerName }}">
+                <a href="{{ route('home') }}"
+                   class="gaget-floatbar-logo{{ $headerLogo ? ' is-wordmark' : ' is-mark' }}"
+                   aria-label="{{ $headerName }}">
                     @if($headerLogo)
+                        {{-- Full logo alone — don't duplicate the store name beside it --}}
                         <img src="{{ $headerLogo }}?v={{ @filemtime(public_storage_path($headerLogoPath)) ?: time() }}"
                              alt="{{ $headerName }}"
-                             class="gaget-logo-wordmark">
+                             class="gaget-logo-wordmark"
+                             decoding="async">
                     @elseif($headerIcon)
                         <img src="{{ $headerIcon }}?v={{ $headerIconVer }}"
-                             alt="{{ $headerName }}"
+                             alt=""
                              class="gaget-logo-mark"
                              width="36"
-                             height="36">
+                             height="36"
+                             decoding="async">
+                        <span class="gaget-logo-text">{{ $headerName }}</span>
                     @else
                         <span class="gaget-logo-icon" aria-hidden="true">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                         </span>
+                        <span class="gaget-logo-text">{{ $headerName }}</span>
                     @endif
-                    <span class="gaget-logo-text{{ $headerLogo ? ' gaget-logo-text--with-logo' : '' }}">{{ $headerName }}</span>
                 </a>
             </div>
 

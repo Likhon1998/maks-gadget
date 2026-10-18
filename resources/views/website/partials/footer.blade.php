@@ -60,9 +60,11 @@
     <div class="tn-container tn-footer-shell">
         <div class="tn-footer-main">
             <div class="tn-footer-brand">
-                <a href="{{ route('home') }}" class="tn-footer-logo">
+                <a href="{{ route('home') }}"
+                   class="tn-footer-logo{{ $storeLogo ? ' is-wordmark' : ' is-mark' }}"
+                   aria-label="{{ $storeName }}">
                     @php
-                        $footerIconPath = $settings->favicon_path ?: $settings->logo_path;
+                        $footerIconPath = $settings->favicon_path ?: null;
                         $footerIcon = $footerIconPath ? public_storage_url($footerIconPath) : null;
                         $footerIconVer = $footerIconPath
                             ? (@filemtime(public_storage_path($footerIconPath)) ?: time())
@@ -71,15 +73,15 @@
                     @if($storeLogo)
                         <img src="{{ $storeLogo }}?v={{ @filemtime(public_storage_path($settings->logo_path)) ?: time() }}"
                              alt="{{ $storeName }}"
-                             class="tn-footer-logo-wordmark">
-                        <span class="tn-footer-logo-text">{{ $storeName }}</span>
+                             class="tn-footer-logo-wordmark"
+                             decoding="async">
                     @elseif($footerIcon)
                         <img src="{{ $footerIcon }}?v={{ $footerIconVer }}"
-                             alt="{{ $storeName }}"
+                             alt=""
                              class="tn-footer-logo-img"
-                             width="52"
-                             height="52"
-                             style="width:52px;height:52px;object-fit:contain;background:transparent;border:0;border-radius:0;">
+                             width="44"
+                             height="44"
+                             decoding="async">
                         <span class="tn-footer-logo-text">{{ $storeName }}</span>
                     @else
                         <span class="tn-footer-logo-mark" aria-hidden="true">

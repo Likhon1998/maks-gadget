@@ -58,22 +58,30 @@
         background: var(--m-soft) !important;
         border-color: transparent !important;
     }
+    .gaget-floatbar-logo {
+        max-width: min(52vw, 170px) !important;
+    }
+    .gaget-floatbar-logo.is-wordmark {
+        max-width: min(48vw, 160px) !important;
+    }
     .gaget-logo-text {
         font-size: 13px !important;
-        max-width: min(38vw, 128px) !important;
+        max-width: min(34vw, 112px) !important;
     }
     .gaget-logo-wordmark {
-        height: 44px !important;
-        max-height: 44px !important;
-        max-width: min(30vw, 120px) !important;
+        height: 34px !important;
+        max-height: 34px !important;
+        max-width: 100% !important;
     }
-    .gaget-logo-text--with-logo {
-        font-size: 13px !important;
-        max-width: min(30vw, 110px) !important;
+    .gaget-logo-mark {
+        width: 30px !important;
+        height: 30px !important;
+        max-width: 30px !important;
+        max-height: 30px !important;
     }
     .tn-footer-logo-wordmark {
-        height: 64px !important;
-        max-width: min(160px, 40vw) !important;
+        height: 42px !important;
+        max-width: min(180px, 52vw) !important;
         margin: 0 !important;
     }
     .gaget-action-btn {
@@ -893,7 +901,11 @@
         line-height: 1.35 !important;
         min-height: 0 !important;
         max-height: none !important;
-        -webkit-line-clamp: 2 !important;
+        display: block !important;
+        -webkit-line-clamp: unset !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        word-break: break-word !important;
     }
     .tn-product-stars { min-height: 14px !important; }
     .tn-product-star { font-size: 10px !important; }

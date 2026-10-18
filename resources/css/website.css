@@ -131,18 +131,24 @@ body.gaget-store {
     min-width: 0;
 }
 .gaget-floatbar-logo {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     text-decoration: none;
     min-width: 0;
+    max-width: min(240px, 34vw);
     color: inherit;
+    line-height: 0;
+}
+.gaget-floatbar-logo.is-wordmark {
+    gap: 0;
+    max-width: min(220px, 36vw);
 }
 .gaget-logo-icon {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     background: var(--g-blue);
-    border-radius: 9px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -150,16 +156,17 @@ body.gaget-store {
     color: #fff;
 }
 .gaget-logo-icon svg {
-    width: 17px;
-    height: 17px;
+    width: 18px;
+    height: 18px;
 }
 .gaget-logo-mark {
-    width: 32px !important;
-    height: 32px !important;
-    max-width: 32px !important;
-    max-height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
     object-fit: contain;
-    border-radius: 0;
+    object-position: left center;
+    border-radius: 8px;
     flex-shrink: 0;
     background: transparent !important;
     display: block;
@@ -167,33 +174,28 @@ body.gaget-store {
     box-shadow: none;
 }
 .gaget-logo-wordmark {
-    height: 54px !important;
+    height: 40px !important;
     width: auto !important;
-    max-width: 200px !important;
-    max-height: 54px !important;
+    max-width: 100% !important;
+    max-height: 40px !important;
     object-fit: contain;
+    object-position: left center;
     border-radius: 0;
-    flex-shrink: 0;
+    flex-shrink: 1;
     background: transparent !important;
     display: block;
 }
-.gaget-logo-text--with-logo {
-    font-size: 15px;
-    letter-spacing: -0.01em;
-}
-@media (max-width: 379px) {
-    .gaget-logo-text--with-logo { display: none !important; }
-}
 .gaget-logo-text {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.02em;
-    text-transform: uppercase;
-    line-height: 1.1;
+    text-transform: none;
+    line-height: 1.15;
     white-space: nowrap;
-    max-width: none;
-    overflow: visible;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .gaget-floatbar-nav {
@@ -813,14 +815,20 @@ body.gaget-store {
     .gaget-floatbar { gap: 10px; padding: 6px 12px 6px 14px; }
     .gaget-nav-link { padding: 0 8px; font-size: 13px; }
     .gaget-floatbar-search { flex-basis: 320px; max-width: 380px; }
-    .gaget-logo-text { font-size: 14px; }
+    .gaget-logo-text { font-size: 15px; max-width: 160px; }
+    .gaget-logo-wordmark {
+        height: 42px !important;
+        max-height: 42px !important;
+    }
+    .gaget-floatbar-logo.is-wordmark { max-width: 240px; }
 }
 @media (min-width: 1200px) and (max-width: 1359px) {
     .gaget-nav-link { padding: 0 5px; font-size: 12px; }
     .gaget-floatbar-search { flex-basis: 240px; max-width: 280px; min-width: 140px; }
     .gaget-action-btn { padding: 2px 5px; min-width: 40px; }
     .gaget-special-offer { padding: 0 10px; font-size: 11px; margin-left: 4px; }
-    .gaget-logo-text { font-size: 12px; }
+    .gaget-logo-text { font-size: 13px; max-width: 120px; }
+    .gaget-floatbar-logo.is-wordmark { max-width: 180px; }
 }
 
 /* Tablet / compact: logo + actions in bar, search below */
@@ -835,9 +843,10 @@ body.gaget-store {
         gap: 6px;
     }
     .gaget-logo-wordmark {
-        height: 48px !important;
-        max-height: 48px !important;
+        height: 36px !important;
+        max-height: 36px !important;
     }
+    .gaget-floatbar-logo.is-wordmark { max-width: min(180px, 42vw); }
     .gaget-special-offer { display: none; }
     .gaget-sticky-header { padding: 10px 0 14px; }
     .gaget-header-spacer { height: var(--g-header-h, 130px); }
@@ -861,10 +870,16 @@ body.gaget-store {
     .gaget-action-label { display: none; }
     .gaget-action-btn { padding: 4px 6px; min-width: 0; }
     .gaget-logo-text {
-        max-width: min(42vw, 130px);
+        max-width: min(36vw, 120px);
         overflow: hidden;
         text-overflow: ellipsis;
-        font-size: 12.5px;
+        font-size: 13px;
+    }
+    .gaget-logo-mark {
+        width: 32px !important;
+        height: 32px !important;
+        max-width: 32px !important;
+        max-height: 32px !important;
     }
     .gaget-sticky-header { padding: 8px 0 12px; }
     .gaget-floatbar-search-mobile {
@@ -2033,6 +2048,11 @@ body.gaget-store {
     margin-bottom: 6px;
     text-decoration: none;
     display: block;
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+    min-height: 0;
+    max-height: none;
 }
 .gaget-product-name:hover { color: var(--g-blue); }
 .gaget-stars {
@@ -3087,9 +3107,12 @@ body.gaget-store {
 }
 .tn-flash-grid--8 .tn-product-name {
     font-size: 11.5px;
-    line-height: 1.25;
-    min-height: 2.5em;
-    -webkit-line-clamp: 2;
+    line-height: 1.3;
+    min-height: 0;
+    max-height: none;
+    -webkit-line-clamp: unset;
+    display: block;
+    overflow: visible;
 }
 .tn-flash-grid--8 .tn-product-stars {
     min-height: 14px;
@@ -3175,7 +3198,10 @@ body.gaget-store {
         font-size: 13px;
         line-height: 1.35;
         min-height: 0;
-        -webkit-line-clamp: 2;
+        max-height: none;
+        -webkit-line-clamp: unset;
+        display: block;
+        overflow: visible;
     }
     .tn-flash-grid--8 .tn-product-star,
     .tn-flash-grid--10 .tn-product-star { font-size: 11px; }
@@ -3454,13 +3480,13 @@ body.gaget-store {
     font-weight: 700;
     color: #0f172a;
     text-decoration: none;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    min-height: 2.6em;
-    max-height: 2.6em;
+    line-height: 1.35;
+    display: block;
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+    min-height: 0;
+    max-height: none;
 }
 .tn-product-name:hover { color: #2563eb; }
 .tn-product-stars {
@@ -4847,12 +4873,17 @@ body.gaget-store {
     gap: 12px;
     text-decoration: none;
     margin-bottom: 14px;
+    max-width: 100%;
+    line-height: 0;
+}
+.tn-footer-logo.is-wordmark {
+    gap: 0;
 }
 .tn-footer-logo-mark {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
-    background: transparent;
+    background: #f3f4f6;
     color: #111827;
     display: inline-flex;
     align-items: center;
@@ -4862,18 +4893,22 @@ body.gaget-store {
     flex-shrink: 0;
 }
 .tn-footer-logo-img {
-    width: 52px !important;
-    height: 52px !important;
+    width: 44px !important;
+    height: 44px !important;
     object-fit: contain;
+    object-position: left center;
     background: transparent !important;
     display: block;
     flex-shrink: 0;
+    border: 0;
+    border-radius: 10px;
 }
 .tn-footer-logo-wordmark {
-    height: 76px;
+    height: 48px;
     width: auto;
-    max-width: min(240px, 50vw);
+    max-width: min(220px, 56vw);
     object-fit: contain;
+    object-position: left center;
     border-radius: 0;
     background: transparent;
     display: block;
@@ -4885,15 +4920,15 @@ body.gaget-store {
     background: transparent;
 }
 .tn-footer-logo-mark svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
 }
 .tn-footer-logo-text {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
     letter-spacing: -.03em;
     color: #111827;
-    line-height: 1.1;
+    line-height: 1.15;
 }
 .tn-footer-tagline {
     margin: 0 0 22px;
@@ -6991,7 +7026,12 @@ body.gaget-store {
 }
 
 @media (max-width: 480px) {
-    .gaget-logo-text { max-width: min(38vw, 120px); }
+    .gaget-logo-text { max-width: min(32vw, 108px); }
+    .gaget-floatbar-logo.is-wordmark { max-width: min(46vw, 150px); }
+    .gaget-logo-wordmark {
+        height: 32px !important;
+        max-height: 32px !important;
+    }
     .gaget-cart-badge { top: -2px; right: 0; }
     .tn-flash-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
     .tn-cat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -8517,10 +8557,13 @@ body.gaget-store,
     .gaget-product-name {
         font-size: 12.5px;
         line-height: 1.35;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        display: block;
+        -webkit-line-clamp: unset;
+        overflow: visible;
+        white-space: normal;
+        word-break: break-word;
+        min-height: 0;
+        max-height: none;
     }
     .tn-product-add-label { display: none; }
     .tn-product-foot {
