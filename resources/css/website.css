@@ -653,8 +653,16 @@ html.gaget-search-open .gaget-special-offer {
     pointer-events: none;
     transition: opacity .18s ease;
 }
-html.gaget-search-open .gaget-floatbar-search,
-html.gaget-search-open .gaget-floatbar-search-mobile {
+/* Hide the inactive twin search so it cannot cover the caret/input */
+html.gaget-search-open .gaget-floatbar-search:not(.is-expanded),
+html.gaget-search-open .gaget-floatbar-search-mobile:not(.is-expanded) {
+    display: none !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+/* Only the active search becomes the centered plate */
+html.gaget-search-open .gaget-floatbar-search.is-expanded,
+html.gaget-search-open .gaget-floatbar-search-mobile.is-expanded {
     position: fixed !important;
     left: 50% !important;
     top: max(10vh, 72px) !important;
@@ -709,6 +717,11 @@ html.gaget-search-open .gaget-search-input {
     font-size: 16px;
     font-weight: 500;
     letter-spacing: -0.01em;
+    color: #0f172a;
+    caret-color: #2563eb;
+    -webkit-text-fill-color: #0f172a;
+    opacity: 1;
+    pointer-events: auto !important;
 }
 html.gaget-search-open .gaget-search-lead {
     margin-right: 10px;
@@ -893,24 +906,18 @@ html.gaget-search-open body {
     overflow: hidden;
 }
 @media (max-width: 1199px) {
-    html.gaget-search-open .gaget-floatbar-search-mobile {
+    html.gaget-search-open .gaget-floatbar-search-mobile.is-expanded {
         top: max(8vh, 24px) !important;
         width: min(100vw - 24px, 640px) !important;
-        display: block !important;
     }
     html.gaget-search-open .gaget-floatbar-shell > .gaget-floatbar {
         opacity: 0;
         pointer-events: none;
     }
-    /* Keep mobile search interactive even while floatbar is faded */
-    html.gaget-search-open .gaget-floatbar-search-mobile {
-        pointer-events: auto !important;
-        opacity: 1 !important;
-    }
 }
 @media (prefers-reduced-motion: reduce) {
-    html.gaget-search-open .gaget-floatbar-search,
-    html.gaget-search-open .gaget-floatbar-search-mobile {
+    html.gaget-search-open .gaget-floatbar-search.is-expanded,
+    html.gaget-search-open .gaget-floatbar-search-mobile.is-expanded {
         animation: none;
     }
 }

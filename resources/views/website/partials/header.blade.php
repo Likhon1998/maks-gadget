@@ -232,7 +232,7 @@
                                class="gaget-search-input"
                                autocomplete="off"
                                @focus="onFocus()"
-                               @click="onFocus()"
+                               @click="onInputClick($event)"
                                @input.debounce.200ms="fetchSuggestions()"
                                @keydown.escape.prevent="deactivate()"
                                @keydown.arrow-down.prevent="move(1)"
@@ -243,7 +243,7 @@
                         </button>
                     </div>
 
-                    <div class="gaget-search-suggest" x-show="open" x-cloak>
+                    <div class="gaget-search-suggest" x-show="open" x-cloak @mousedown.prevent>
                         <div class="gaget-search-suggest__head">
                             <span x-text="loading ? 'Searching…' : (mode === 'best' ? 'Popular right now' : (products.length ? 'Products for you' : 'No matches'))"></span>
                             <span class="gaget-search-suggest__hint" x-show="!loading && products.length > 0" x-text="products.length + (products.length === 1 ? ' result' : ' results')"></span>
@@ -462,7 +462,7 @@
                            class="gaget-search-input"
                            autocomplete="off"
                            @focus="onFocus()"
-                           @click="onFocus()"
+                           @click="onInputClick($event)"
                            @input.debounce.200ms="fetchSuggestions()"
                            @keydown.escape.prevent="deactivate()"
                            @keydown.arrow-down.prevent="move(1)"
@@ -472,7 +472,7 @@
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     </button>
                 </div>
-                <div class="gaget-search-suggest" x-show="open" x-cloak>
+                <div class="gaget-search-suggest" x-show="open" x-cloak @mousedown.prevent>
                     <div class="gaget-search-suggest__head">
                         <span x-text="loading ? 'Searching…' : (mode === 'best' ? 'Popular right now' : (products.length ? 'Products for you' : 'No matches'))"></span>
                         <span class="gaget-search-suggest__hint" x-show="!loading && products.length > 0" x-text="products.length + (products.length === 1 ? ' result' : ' results')"></span>
