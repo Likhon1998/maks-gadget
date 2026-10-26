@@ -104,7 +104,11 @@
         .sidebar-brand-mark{border-radius:8px;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
         .admin-sidebar-nav{
             padding:.45rem .55rem 1.25rem;
-            scrollbar-width:thin;scrollbar-color:rgba(148,163,184,.2) transparent
+            scrollbar-width:none;
+            -ms-overflow-style:none
+        }
+        .admin-sidebar-nav::-webkit-scrollbar{
+            width:0;height:0;display:none
         }
         .nav-divider{height:1px;margin:.55rem .4rem .5rem;background:var(--sb-line)}
 
