@@ -95,7 +95,6 @@ class SalesLedgerController extends Controller
     private function physicalRow(Order $order): array
     {
         $isVoided = in_array($order->status, ['refunded', 'cancelled', 'returned'], true);
-        $withinWindow = $order->created_at >= now()->subDays(7);
         $gross = (float) $order->total_amount;
         $discount = (float) ($order->discount_amount ?? 0);
         $credit = (float) ($order->credit_amount ?? 0);
@@ -139,8 +138,8 @@ class SalesLedgerController extends Controller
             'is_voided' => $isVoided,
             'is_exchange_receipt' => (bool) $order->is_exchange_receipt,
             'was_exchanged_from' => $wasExchangedFrom,
-            'can_return' => ! $isVoided && ! $order->is_exchange_receipt && ! $wasExchangedFrom && $withinWindow,
-            'return_expired' => ! $isVoided && ! $order->is_exchange_receipt && ! $wasExchangedFrom && ! $withinWindow,
+            'can_return' => ! $isVoided && ! $order->is_exchange_receipt && ! $wasExchangedFrom,
+            'return_expired' => false,
             'cashier' => $order->user->name ?? 'Unknown',
             'customer_name' => $order->customer->name ?? null,
             'customer_phone' => $order->customer->phone ?? null,
@@ -164,7 +163,6 @@ class SalesLedgerController extends Controller
     private function onlineRow(Order $order): array
     {
         $isVoided = in_array($order->status, ['refunded', 'cancelled', 'returned'], true);
-        $withinWindow = $order->created_at >= now()->subDays(7);
         // Net product total (exclude delivery so the UI can show delivery on its own line).
         $netRevenue = max(
             0,
@@ -176,11 +174,11 @@ class SalesLedgerController extends Controller
         $moneyCollected = $this->moneyWasCollected($order);
 
         // Refund only after delivery (money can actually be returned to the customer).
-        $canRefund = ! $isVoided && $withinWindow && $moneyCollected
+        $canRefund = ! $isVoided && $moneyCollected
             && $order->status === 'completed';
 
         // Returned for undelivered orders (pending / packing / shipped) — no Refund button.
-        $canMarkReturned = ! $isVoided && $withinWindow
+        $canMarkReturned = ! $isVoided
             && in_array($order->status, ['pending', 'pending_fulfillment', 'processing', 'shipped'], true);
 
         return [
@@ -284,10 +282,6 @@ class SalesLedgerController extends Controller
 
         if (! in_array($order->status, ['pending', 'pending_fulfillment', 'processing', 'shipped'], true)) {
             return back()->with('error', 'Only undelivered orders can be marked as Returned.');
-        }
-
-        if ($order->created_at < now()->subDays(7)) {
-            return back()->with('error', 'The 7-day return window has expired for this order.');
         }
 
         try {

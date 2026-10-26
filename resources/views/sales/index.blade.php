@@ -241,9 +241,6 @@
                                             <template x-if="order.is_exchange_receipt && !order.is_voided">
                                                 <span class="text-[11px] font-medium text-slate-400 px-2">Final sale</span>
                                             </template>
-                                            <template x-if="order.return_expired">
-                                                <span class="text-[11px] font-medium text-slate-400 px-2" title="Return window is 7 days">Return expired</span>
-                                            </template>
                                         </div>
                                     </td>
                                 </tr>

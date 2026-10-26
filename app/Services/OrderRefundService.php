@@ -14,8 +14,6 @@ use InvalidArgumentException;
  */
 class OrderRefundService
 {
-    public const WINDOW_DAYS = 7;
-
     public function __construct(
         protected AccountService $accounts,
         protected StockService $stock,
@@ -61,9 +59,6 @@ class OrderRefundService
         }
         if ($this->wasExchanged($order)) {
             return 'This order was already exchanged. Refunding it would double-restock and cash-out incorrectly.';
-        }
-        if ($order->created_at < now()->subDays(self::WINDOW_DAYS)) {
-            return 'The '.self::WINDOW_DAYS.'-day refund window has expired for this order.';
         }
         if ($order->isOnlineOrder()) {
             if ($order->status !== 'completed') {
