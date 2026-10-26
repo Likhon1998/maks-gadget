@@ -21,7 +21,7 @@
             previewName: @js($user->name),
             previewEmail: @js($user->email),
             removeAvatar: false,
-            active: @js($errors->updatePassword->isNotEmpty() ? 'password' : ($errors->userDeletion->isNotEmpty() ? 'danger' : 'profile')),
+            active: @js((request('tab') === 'password' || $errors->updatePassword->isNotEmpty()) ? 'password' : ($errors->userDeletion->isNotEmpty() ? 'danger' : 'profile')),
             showCurrent: false,
             showNew: false,
             showConfirm: false,

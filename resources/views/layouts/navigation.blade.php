@@ -371,6 +371,7 @@
                 </x-slot>
                 <x-slot name="content">
                     <x-dropdown-link :href="route('profile.edit')">{{ __('Profile') }}</x-dropdown-link>
+                    <x-dropdown-link :href="route('profile.edit', ['tab' => 'password'])">{{ __('Change password') }}</x-dropdown-link>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();" class="text-rose-600">

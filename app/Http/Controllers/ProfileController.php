@@ -53,11 +53,13 @@ class ProfileController extends Controller
 
     public function destroy(Request $request): RedirectResponse
     {
+        $guard = Auth::guard('admin')->check() ? 'admin' : Auth::getDefaultDriver();
+
         $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+            'password' => ['required', 'current_password:'.$guard],
         ]);
 
-        $user = $request->user();
+        $user = $request->user($guard) ?? $request->user();
 
         if ($user->avatar_path) {
             Storage::disk('public')->delete($user->avatar_path);
