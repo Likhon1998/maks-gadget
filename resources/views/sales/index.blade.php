@@ -25,6 +25,12 @@
              'todayKey' => $todayKey ?? null,
          ]))"
          x-cloak>
+        <style>
+            .sales-ledger-fit { overflow: hidden; }
+            .sales-ledger-fit table { width: 100%; max-width: 100%; table-layout: fixed; border-collapse: collapse; }
+            .sales-ledger-fit th,
+            .sales-ledger-fit td { overflow: hidden; vertical-align: top; }
+        </style>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
 
             @if (session('success'))
@@ -137,7 +143,7 @@
                 </div>
             </div>
 
-            <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-slate-200">
+            <div class="sales-ledger-fit bg-white overflow-hidden shadow-sm rounded-2xl border border-slate-200">
                 <div class="px-5 py-3 border-b border-slate-100 flex flex-col md:flex-row justify-between md:items-center gap-3">
                     <div>
                         <h3 class="font-semibold text-slate-800 text-sm" x-text="channel === 'online' ? 'Online order history' : 'POS transactions'"></h3>
@@ -162,84 +168,91 @@
                 </div>
 
                 {{-- PHYSICAL TABLE --}}
-                <div class="overflow-x-auto" x-show="channel === 'physical'">
-                    <table class="min-w-full">
+                <div x-show="channel === 'physical'">
+                    <table>
+                        <colgroup>
+                            <col style="width:15%">
+                            <col style="width:16%">
+                            <col style="width:18%">
+                            <col style="width:12%">
+                            <col style="width:16%">
+                            <col style="width:11%">
+                            <col style="width:12%">
+                        </colgroup>
                         <thead>
                             <tr class="bg-slate-50/80 border-b border-slate-100">
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Invoice</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Customer</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Items</th>
-                                <th class="px-5 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Amount</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Payment</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Cashier</th>
-                                <th class="px-5 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Invoice</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Customer</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Items</th>
+                                <th class="px-3 py-2.5 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Amount</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Payment</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Cashier</th>
+                                <th class="px-3 py-2.5 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            <template x-for="order in filteredPhysical" :key="'p-' + order.id">
+                            <template x-for="order in pagedPhysical" :key="'p-' + order.id">
                                 <tr class="hover:bg-slate-50/70 transition align-top" :class="order.is_voided ? 'bg-rose-50/40' : ''">
-                                    <td class="px-5 py-3 whitespace-nowrap">
-                                        <div class="text-[13px] font-semibold font-mono" :class="order.is_voided ? 'text-rose-500 line-through' : 'text-indigo-600'" x-text="order.invoice"></div>
-                                        <div class="text-[11px] text-slate-500 mt-1">
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <div class="text-[13px] font-semibold font-mono truncate" :class="order.is_voided ? 'text-rose-500 line-through' : 'text-indigo-600'" :title="order.invoice" x-text="order.invoice"></div>
+                                        <div class="text-[11px] text-slate-500 mt-1 truncate">
                                             <span x-text="order.date_label"></span> · <span x-text="order.time_label"></span>
                                         </div>
                                         <span x-show="order.is_exchange_receipt" class="mt-1.5 inline-flex text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">Exchange receipt</span>
                                     </td>
-                                    <td class="px-5 py-3 whitespace-nowrap">
+                                    <td class="px-3 py-2.5 min-w-0">
                                         <template x-if="order.customer_name">
-                                            <div>
-                                                <div class="text-[13px] font-medium text-slate-800" x-text="order.customer_name"></div>
-                                                <div class="text-[11px] text-slate-500 mt-1 font-mono" x-text="order.customer_phone"></div>
+                                            <div class="min-w-0">
+                                                <div class="text-[13px] font-medium text-slate-800 truncate" :title="order.customer_name" x-text="order.customer_name"></div>
+                                                <div class="text-[11px] text-slate-500 mt-1 font-mono truncate" x-text="order.customer_phone"></div>
                                             </div>
                                         </template>
                                         <template x-if="!order.customer_name">
                                             <span class="text-xs text-slate-400 italic">Walk-in customer</span>
                                         </template>
                                     </td>
-                                    <td class="px-5 py-3">
-                                        <div class="text-[13px] text-slate-700 max-w-[220px] truncate" :title="order.items.map(i => i.qty + '× ' + i.name).join(', ')" x-text="order.item_summary"></div>
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <div class="text-[13px] text-slate-700 truncate" :title="order.items.map(i => i.qty + '× ' + i.name).join(', ')" x-text="order.item_summary"></div>
                                         <div class="text-[11px] text-slate-400 mt-1" x-text="order.units + ' unit(s)'"></div>
                                     </td>
-                                    <td class="px-5 py-3 whitespace-nowrap text-right">
-                                        <div class="text-[13px] font-semibold tabular-nums" :class="order.is_voided ? 'text-rose-500 line-through' : 'text-slate-900'" x-text="money(order.net)"></div>
-                                        <div x-show="order.discount_amount > 0" class="text-[11px] text-slate-400 mt-0.5 tabular-nums">
+                                    <td class="px-3 py-2.5 text-right min-w-0">
+                                        <div class="text-[13px] font-semibold tabular-nums truncate" :class="order.is_voided ? 'text-rose-500 line-through' : 'text-slate-900'" x-text="money(order.net)"></div>
+                                        <div x-show="order.discount_amount > 0" class="text-[11px] text-slate-400 mt-0.5 tabular-nums truncate">
                                             <span class="line-through" x-text="money(order.gross)"></span>
                                             <span class="text-amber-600 font-medium" x-text="' −' + money(order.discount_amount)"></span>
                                         </div>
-                                        <div x-show="order.exchange_credit > 0" class="text-[11px] text-amber-700 font-medium mt-0.5" x-text="'Exchange credit −' + money(order.exchange_credit)"></div>
+                                        <div x-show="order.exchange_credit > 0" class="text-[11px] text-amber-700 font-medium mt-0.5 truncate" x-text="'Credit −' + money(order.exchange_credit)"></div>
                                     </td>
-                                    <td class="px-5 py-3 whitespace-nowrap">
-                                        <div class="flex flex-wrap items-center gap-1.5">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border"
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <div class="flex flex-wrap items-center gap-1">
+                                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border"
                                                   :class="physicalBadgeClass(order)"
                                                   x-text="physicalBadgeLabel(order)"></span>
-                                            <span x-show="order.credit_amount > 0 && !order.is_voided && (order.payment_method || '').toLowerCase() !== 'baki'" class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border bg-orange-50 text-orange-700 border-orange-200">Baki</span>
+                                            <span x-show="order.credit_amount > 0 && !order.is_voided && (order.payment_method || '').toLowerCase() !== 'baki'" class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wide border bg-orange-50 text-orange-700 border-orange-200">Baki</span>
                                         </div>
-                                        <div x-show="!order.is_voided" class="text-[11px] mt-1.5 tabular-nums">
+                                        <div x-show="!order.is_voided" class="text-[11px] mt-1.5 tabular-nums leading-snug">
                                             <span class="text-emerald-700 font-medium" x-text="'Paid ' + money(order.collected)"></span>
                                             <span x-show="order.credit_amount > 0" class="text-orange-700 font-medium" x-text="' · Due ' + money(order.credit_amount)"></span>
                                         </div>
                                     </td>
-                                    <td class="px-5 py-3 whitespace-nowrap">
-                                        <div class="text-[13px] text-slate-600" x-text="order.cashier"></div>
-                                        <div class="text-[11px] text-slate-400 mt-1" x-show="order.counter" x-text="order.counter"></div>
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <div class="text-[13px] text-slate-600 truncate" :title="order.cashier" x-text="order.cashier"></div>
+                                        <div class="text-[11px] text-slate-400 mt-1 truncate" x-show="order.counter" x-text="order.counter"></div>
                                     </td>
-                                    <td class="px-5 py-3 whitespace-nowrap text-right">
-                                        <div class="inline-flex justify-end items-center gap-2">
+                                    <td class="px-3 py-2.5 text-right">
+                                        <div class="inline-flex flex-col items-end gap-1">
                                             <button type="button" @click="window.open(order.receipt_url, 'ReceiptWindow', 'width=400,height=600')"
-                                                    class="inline-flex items-center gap-1.5 text-slate-700 hover:text-indigo-700 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 px-2.5 py-1 rounded-lg text-xs font-medium transition">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                                    class="inline-flex items-center gap-1 text-slate-700 hover:text-indigo-700 bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 px-2 py-1 rounded-lg text-[11px] font-medium transition">
                                                 Receipt
                                             </button>
                                             <template x-if="order.can_return">
                                                 <button type="button" @click="openReturnModal(order)"
-                                                        class="inline-flex items-center gap-1.5 text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-lg text-xs font-medium transition">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                        class="inline-flex items-center gap-1 text-amber-700 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-1 rounded-lg text-[11px] font-medium transition">
                                                     Return
                                                 </button>
                                             </template>
                                             <template x-if="order.is_exchange_receipt && !order.is_voided">
-                                                <span class="text-[11px] font-medium text-slate-400 px-2">Final sale</span>
+                                                <span class="text-[11px] font-medium text-slate-400">Final sale</span>
                                             </template>
                                         </div>
                                     </td>
@@ -256,58 +269,69 @@
                 </div>
 
                 {{-- ONLINE TABLE --}}
-                <div class="overflow-x-auto" x-show="channel === 'online'">
-                    <table class="min-w-full divide-y divide-slate-100">
+                <div x-show="channel === 'online'">
+                    <table>
+                        <colgroup>
+                            <col style="width:12%">
+                            <col style="width:18%">
+                            <col style="width:18%">
+                            <col style="width:13%">
+                            <col style="width:14%">
+                            <col style="width:10%">
+                            <col style="width:15%">
+                        </colgroup>
                         <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Date</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Order</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Customer</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Revenue</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Fulfillment</th>
-                                <th class="px-5 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Payment</th>
-                                <th class="px-5 py-3 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Date</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Order</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Customer</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Revenue</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Fulfillment</th>
+                                <th class="px-3 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Payment</th>
+                                <th class="px-3 py-2.5 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-100">
-                            <template x-for="order in filteredOnline" :key="'o-' + order.id">
-                                <tr class="hover:bg-gray-50 transition" :class="order.is_voided ? 'bg-red-50/30' : ''">
-                                    <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-500 font-medium" x-text="order.created_at"></td>
-                                    <td class="px-5 py-3.5">
-                                        <a :href="order.show_url" class="text-[13px] font-semibold" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-indigo-600 hover:underline'" x-text="order.invoice"></a>
+                            <template x-for="order in pagedOnline" :key="'o-' + order.id">
+                                <tr class="hover:bg-gray-50 transition align-top" :class="order.is_voided ? 'bg-red-50/30' : ''">
+                                    <td class="px-3 py-2.5 text-[11px] text-gray-500 font-medium min-w-0">
+                                        <div class="truncate" :title="order.created_at" x-text="order.created_at"></div>
+                                    </td>
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <a :href="order.show_url" class="block text-[13px] font-semibold truncate" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-indigo-600 hover:underline'" :title="order.invoice" x-text="order.invoice"></a>
                                         <div class="mt-1 text-[11px] text-gray-500 space-y-0.5">
                                             <template x-for="(item, idx) in order.items.slice(0, 2)" :key="order.id + '-i-' + idx">
-                                                <div class="truncate max-w-[200px]" x-text="'▪ ' + item.qty + '× ' + item.name"></div>
+                                                <div class="truncate" x-text="'▪ ' + item.qty + '× ' + item.name"></div>
                                             </template>
                                             <div class="text-gray-400" x-show="order.items.length > 2" x-text="'+' + (order.items.length - 2) + ' more'"></div>
                                         </div>
                                     </td>
-                                    <td class="px-5 py-3.5">
-                                        <div class="text-[13px] font-medium text-slate-800" x-text="order.customer_name"></div>
-                                        <div class="text-[11px] text-gray-500 mt-0.5 font-mono" x-text="order.customer_phone"></div>
-                                        <div class="text-[10px] text-gray-400 mt-1 max-w-[180px] truncate" x-show="order.customer_address" :title="order.customer_address" x-text="order.customer_address"></div>
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <div class="text-[13px] font-medium text-slate-800 truncate" :title="order.customer_name" x-text="order.customer_name"></div>
+                                        <div class="text-[11px] text-gray-500 mt-0.5 font-mono truncate" x-text="order.customer_phone"></div>
+                                        <div class="text-[10px] text-gray-400 mt-1 truncate" x-show="order.customer_address" :title="order.customer_address" x-text="order.customer_address"></div>
                                     </td>
-                                    <td class="px-5 py-3.5 whitespace-nowrap">
-                                        <div class="text-[13px] font-semibold" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-gray-900'" x-text="'৳' + order.product_revenue"></div>
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <div class="text-[13px] font-semibold truncate" :class="order.is_voided ? 'text-red-500 line-through opacity-70' : 'text-gray-900'" x-text="'৳' + order.product_revenue"></div>
                                         <template x-if="order.discount_amount > 0">
-                                            <div class="text-[9px] text-amber-600 font-medium mt-0.5" x-text="'− ৳' + order.discount_amount_fmt + ' discount'"></div>
+                                            <div class="text-[10px] text-amber-600 font-medium mt-0.5 truncate" x-text="'− ৳' + order.discount_amount_fmt + ' discount'"></div>
                                         </template>
-                                        <div class="text-[10px] font-medium mt-0.5" :class="order.delivery_charge > 0 ? 'text-indigo-500' : 'text-gray-400'"
+                                        <div class="text-[10px] font-medium mt-0.5 truncate" :class="order.delivery_charge > 0 ? 'text-indigo-500' : 'text-gray-400'"
                                              x-text="order.delivery_charge > 0 ? ('+ ৳' + order.delivery_charge_fmt + ' delivery') : 'Free delivery'"></div>
                                     </td>
-                                    <td class="px-5 py-3.5 whitespace-nowrap">
-                                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border" :class="onlineStatusClass(order.status)" x-text="onlineStatusLabel(order.status)"></span>
-                                        <p class="text-[10px] text-purple-700 font-bold mt-1" x-show="order.status === 'shipped' && order.shipping_courier" x-text="order.shipping_courier"></p>
-                                        <p class="text-[10px] text-gray-500 font-mono" x-show="order.shipping_tracking_no" x-text="order.shipping_tracking_no"></p>
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <span class="inline-flex max-w-full px-1.5 py-0.5 rounded-full text-[10px] font-semibold border truncate" :class="onlineStatusClass(order.status)" x-text="onlineStatusLabel(order.status)"></span>
+                                        <p class="text-[10px] text-purple-700 font-bold mt-1 truncate" x-show="order.status === 'shipped' && order.shipping_courier" x-text="order.shipping_courier"></p>
+                                        <p class="text-[10px] text-gray-500 font-mono truncate" x-show="order.shipping_tracking_no" x-text="order.shipping_tracking_no"></p>
                                     </td>
-                                    <td class="px-5 py-3.5 whitespace-nowrap">
-                                        <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-gray-100 text-gray-700 border border-gray-200" x-text="order.payment_method"></span>
+                                    <td class="px-3 py-2.5 min-w-0">
+                                        <span class="inline-flex max-w-full px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-gray-100 text-gray-700 border border-gray-200 truncate" x-text="order.payment_method"></span>
                                     </td>
-                                    <td class="px-5 py-3.5 whitespace-nowrap text-right">
-                                        <div class="inline-flex flex-col sm:flex-row gap-1.5 justify-end">
-                                            <a :href="order.show_url" class="inline-flex items-center justify-center text-white bg-indigo-600 hover:bg-indigo-700 px-2.5 py-1 rounded text-xs font-medium">Manage & track</a>
+                                    <td class="px-3 py-2.5 text-right">
+                                        <div class="inline-flex flex-col items-end gap-1">
+                                            <a :href="order.show_url" class="inline-flex items-center justify-center text-white bg-indigo-600 hover:bg-indigo-700 px-2 py-1 rounded text-[11px] font-medium">Manage</a>
                                             <button type="button" @click="window.open(order.receipt_url, 'ReceiptWindow', 'width=400,height=600')"
-                                                    class="inline-flex items-center justify-center text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 px-2.5 py-1 rounded text-xs font-medium">Receipt</button>
+                                                    class="inline-flex items-center justify-center text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 px-2 py-1 rounded text-[11px] font-medium">Receipt</button>
                                             <template x-if="order.can_mark_returned">
                                                 <form method="POST" :action="order.return_url"
                                                       :data-confirm="'Mark ' + order.invoice + ' as Returned? Stock will come back. No cash refund (COD not collected).'"
@@ -315,7 +339,7 @@
                                                       data-confirm-ok="Mark returned"
                                                       data-confirm-tone="warning">
                                                     <input type="hidden" name="_token" :value="csrf">
-                                                    <button type="submit" class="inline-flex w-full items-center justify-center text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded text-xs font-medium">Returned</button>
+                                                    <button type="submit" class="inline-flex items-center justify-center text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-1 rounded text-[11px] font-medium">Returned</button>
                                                 </form>
                                             </template>
                                             <template x-if="order.can_refund">
@@ -325,7 +349,7 @@
                                                       data-confirm-ok="Refund"
                                                       data-confirm-tone="danger">
                                                     <input type="hidden" name="_token" :value="csrf">
-                                                    <button type="submit" class="inline-flex w-full items-center justify-center text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 px-2.5 py-1 rounded text-xs font-medium">Refund</button>
+                                                    <button type="submit" class="inline-flex items-center justify-center text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-100 px-2 py-1 rounded text-[11px] font-medium">Refund</button>
                                                 </form>
                                             </template>
                                         </div>
@@ -337,6 +361,26 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <div class="px-4 py-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                     x-show="listLength > 0">
+                    <p class="text-xs text-slate-500">
+                        Showing <span class="font-medium text-slate-700" x-text="pageStart"></span>–<span class="font-medium text-slate-700" x-text="pageEnd"></span>
+                        of <span class="font-medium text-slate-700" x-text="listLength"></span>
+                    </p>
+                    <div class="inline-flex items-center gap-1" x-show="pageCount > 1">
+                        <button type="button" @click="goPage(currentPage - 1)" :disabled="currentPage <= 1"
+                                class="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Prev</button>
+                        <template x-for="n in pageNumbers" :key="channel + '-pg-' + n">
+                            <button type="button" @click="goPage(n)"
+                                    class="px-2 py-1 rounded-lg text-xs font-medium border"
+                                    :class="n === currentPage ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-200 text-slate-600 hover:bg-slate-50'"
+                                    x-text="n"></button>
+                        </template>
+                        <button type="button" @click="goPage(currentPage + 1)" :disabled="currentPage >= pageCount"
+                                class="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed">Next</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -426,6 +470,8 @@
                     { key: 'all', label: 'All' },
                 ],
                 search: '',
+                page: 1,
+                perPage: 10,
                 status: 'all',
                 statusTabs: [
                     { key: 'all', label: 'All' },
@@ -494,6 +540,42 @@
                         return (o.search_blob || '').includes(q);
                     });
                 },
+                get listLength() {
+                    return this.channel === 'online' ? this.filteredOnline.length : this.filteredPhysical.length;
+                },
+                get pageCount() {
+                    return Math.max(1, Math.ceil(this.listLength / this.perPage));
+                },
+                get currentPage() {
+                    return Math.min(Math.max(1, this.page), this.pageCount);
+                },
+                get pageStart() {
+                    return this.listLength === 0 ? 0 : (this.currentPage - 1) * this.perPage + 1;
+                },
+                get pageEnd() {
+                    return Math.min(this.listLength, this.currentPage * this.perPage);
+                },
+                get pagedPhysical() {
+                    const start = (this.currentPage - 1) * this.perPage;
+                    return this.filteredPhysical.slice(start, start + this.perPage);
+                },
+                get pagedOnline() {
+                    const start = (this.currentPage - 1) * this.perPage;
+                    return this.filteredOnline.slice(start, start + this.perPage);
+                },
+                get pageNumbers() {
+                    const total = this.pageCount;
+                    const current = this.currentPage;
+                    let start = Math.max(1, current - 2);
+                    let end = Math.min(total, start + 4);
+                    start = Math.max(1, end - 4);
+                    const pages = [];
+                    for (let i = start; i <= end; i++) pages.push(i);
+                    return pages;
+                },
+                goPage(n) {
+                    this.page = Math.min(Math.max(1, n), this.pageCount);
+                },
                 setChannel(ch) {
                     if (ch === 'online' && !this.canViewOnline) {
                         return;
@@ -501,6 +583,7 @@
                     this.channel = ch;
                     this.search = '';
                     this.status = 'all';
+                    this.page = 1;
                     const url = new URL(window.location.href);
                     url.searchParams.set('channel', ch);
                     url.searchParams.delete('search');
@@ -519,6 +602,9 @@
                 },
                 init() {
                     this.syncHeaderAction();
+                    this.$watch('search', () => { this.page = 1; });
+                    this.$watch('period', () => { this.page = 1; });
+                    this.$watch('status', () => { this.page = 1; });
                 },
                 physicalBadgeLabel(order) {
                     if (order.status === 'refunded') return 'Refunded';
