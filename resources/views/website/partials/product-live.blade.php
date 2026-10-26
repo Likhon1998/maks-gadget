@@ -139,15 +139,6 @@
                 @endif
             </div>
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-                @if($product->availableStock() > 0)
-                    <span class="text-slate-600">Availability:
-                        <span class="font-semibold text-emerald-700">In Stock</span>
-                    </span>
-                @else
-                    <span class="text-slate-600">Availability:
-                        <span class="font-semibold text-red-600">Out of Stock</span>
-                    </span>
-                @endif
                 @if(filled($product->barcode))
                     <span class="text-slate-600">Code:
                         <span class="font-semibold text-slate-800 font-mono">{{ $product->barcode }}</span>
