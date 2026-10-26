@@ -8,7 +8,7 @@
     $catLabel = $product->category?->name ?? $product->brand_name ?? 'Electronics';
     $isNew = $product->showsAsNew();
     $availableQty = max(0, (int) $product->availableStock());
-    $stockTone = $availableQty < 1 ? 'is-out' : ($availableQty <= 3 ? 'is-low' : 'is-ok');
+    $stockTone = $availableQty < 1 ? 'is-out' : 'is-ok';
     $cartItem = [
         'id' => $product->id,
         'name' => $displayName,
@@ -77,11 +77,7 @@
         </div>
         <p class="tn-product-stock {{ $stockTone }}">
             <span class="tn-product-stock__dot" aria-hidden="true"></span>
-            @if($availableQty < 1)
-                <span>Out of stock</span>
-            @else
-                <span>Stock: <strong class="tn-product-stock__num">{{ $availableQty }}</strong></span>
-            @endif
+            <span>{{ $availableQty < 1 ? 'Out of stock' : 'In stock' }}</span>
         </p>
     </div>
 </article>

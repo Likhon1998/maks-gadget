@@ -378,7 +378,7 @@
                         }
                         if (desired > stockCap) {
                             desired = stockCap;
-                            this.flashToast('Only ' + stockCap + ' available.');
+                            this.flashToast('That quantity is not available.');
                         }
                     }
 
@@ -457,7 +457,7 @@
                     }
                     if (Number.isFinite(stockCap) && stockCap >= 0 && qty > stockCap) {
                         qty = stockCap;
-                        this.flashToast('Only ' + stockCap + ' available.');
+                        this.flashToast('That quantity is not available.');
                     }
                     row.qty = qty;
                     this.cart = next;

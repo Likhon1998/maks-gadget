@@ -985,7 +985,7 @@ class WebsiteController extends Controller
 
             $qty = min($item['qty'], $stock);
             if ($qty < $item['qty']) {
-                $warnings[] = $product->storefrontDisplayName().' quantity was limited to '.$stock.' available.';
+                $warnings[] = $product->storefrontDisplayName().' quantity was reduced. There is not enough stock.';
             }
 
             $unitPrice = (float) $product->currentPrice();
@@ -1122,7 +1122,7 @@ class WebsiteController extends Controller
             if ($product->availableStock() < $qty) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Not enough stock for {$product->name}. Only {$product->availableStock()} left.",
+                    'message' => "Not enough stock for {$product->name}.",
                 ]);
             }
 
