@@ -95,6 +95,8 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/account/profile', [StorefrontAuthController::class, 'editProfile'])->name('website.account.profile.edit');
     Route::put('/account/profile', [StorefrontAuthController::class, 'updateProfile'])->name('website.account.profile.update');
     Route::delete('/account/profile', [StorefrontAuthController::class, 'destroyAccount'])->name('website.account.profile.destroy');
+    Route::get('/account/password', [StorefrontAuthController::class, 'editPassword'])->name('website.account.password.edit');
+    Route::put('/account/password', [StorefrontAuthController::class, 'updatePassword'])->name('website.account.password.update');
 });
 Route::get('/page/{slug}', [WebsiteController::class, 'page'])->name('website.page');
 Route::get('/blog', [WebsiteController::class, 'blogs'])->name('website.blogs');

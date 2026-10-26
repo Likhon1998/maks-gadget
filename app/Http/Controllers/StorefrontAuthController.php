@@ -222,6 +222,51 @@ class StorefrontAuthController extends Controller
         return redirect()->route('website.account.profile.edit')->with('profile_success', 'Your profile was updated successfully.');
     }
 
+    public function editPassword(): View|RedirectResponse
+    {
+        $user = Auth::user();
+        if (! $user?->isStorefrontCustomer()) {
+            return redirect()->route('home');
+        }
+
+        $shopId = $this->website->shopId();
+        $customer = $user->customerProfile;
+        $activeOrder = $customer
+            ? $customer->orders()
+                ->where('shop_id', $shopId)
+                ->onlineOrders()
+                ->latest()
+                ->first()
+            : null;
+
+        return view('website.account-password', array_merge($this->website->homepageData(), [
+            'customer' => $customer,
+            'user' => $user,
+            'activeOrder' => $activeOrder,
+        ]));
+    }
+
+    public function updatePassword(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+        if (! $user?->isStorefrontCustomer()) {
+            return redirect()->route('home');
+        }
+
+        $data = $request->validate([
+            'current_password' => ['required', 'current_password:web'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        $user->update([
+            'password' => $data['password'],
+        ]);
+
+        return redirect()
+            ->route('website.account.password.edit')
+            ->with('password_success', 'Your password was changed. Use the new password next time you sign in.');
+    }
+
     public function destroyAccount(Request $request): RedirectResponse
     {
         $user = Auth::user();
