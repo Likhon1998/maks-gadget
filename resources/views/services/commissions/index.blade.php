@@ -29,28 +29,28 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-5 gap-2">
-            <div class="min-w-0 rounded-xl border border-indigo-200 bg-indigo-50 px-2.5 py-2 sm:px-3 sm:py-2.5">
-                <p class="truncate text-[9px] font-bold uppercase tracking-wide text-indigo-700 sm:text-[10px]">Earned · {{ $rangeLabel ?? 'Period' }}</p>
+        <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:100%">
+            <div class="rounded-xl border border-indigo-200 bg-indigo-50 px-2.5 py-2.5" style="min-width:0">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-indigo-700" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Earned · {{ $rangeLabel ?? 'Period' }}</p>
                 <p class="mt-1 text-sm font-bold tabular-nums leading-none text-indigo-950 sm:text-base">{{ $tk($totals['period_earned'] ?? 0) }}</p>
-                <p class="mt-1 truncate text-[9px] font-semibold text-indigo-600 sm:text-[10px]">Still to pay {{ $tk($totals['period_suggested'] ?? 0) }}</p>
+                <p class="mt-1 text-[10px] font-semibold text-indigo-600" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Still to pay {{ $tk($totals['period_suggested'] ?? 0) }}</p>
             </div>
-            <div class="min-w-0 rounded-xl border border-slate-200 bg-white px-2.5 py-2 sm:px-3 sm:py-2.5">
-                <p class="truncate text-[9px] font-bold uppercase tracking-wide text-slate-400 sm:text-[10px]">Today earned</p>
+            <div class="rounded-xl border border-slate-200 bg-white px-2.5 py-2.5" style="min-width:0">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Today earned</p>
                 <p class="mt-1 text-sm font-bold tabular-nums leading-none text-slate-900 sm:text-base">{{ $tk($totals['earned_today']) }}</p>
-                <p class="mt-1 truncate text-[9px] text-slate-400 sm:text-[10px]">{{ $totals['jobs_today'] }} bill(s)</p>
+                <p class="mt-1 text-[10px] text-slate-400">{{ $totals['jobs_today'] }} bill(s)</p>
             </div>
-            <div class="min-w-0 rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-2 sm:px-3 sm:py-2.5">
-                <p class="truncate text-[9px] font-bold uppercase tracking-wide text-emerald-700 sm:text-[10px]">Paid</p>
+            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-2.5 py-2.5" style="min-width:0">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-700">Paid</p>
                 <p class="mt-1 text-sm font-bold tabular-nums leading-none text-emerald-950 sm:text-base">{{ $tk($totals['paid']) }}</p>
             </div>
-            <div class="min-w-0 rounded-xl border border-amber-200 bg-amber-50 px-2.5 py-2 sm:px-3 sm:py-2.5">
-                <p class="truncate text-[9px] font-bold uppercase tracking-wide text-amber-700 sm:text-[10px]">Tech baki</p>
+            <div class="rounded-xl border border-amber-200 bg-amber-50 px-2.5 py-2.5" style="min-width:0">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-amber-700">Tech baki</p>
                 <p class="mt-1 text-sm font-bold tabular-nums leading-none text-amber-950 sm:text-base">{{ $tk($totals['outstanding']) }}</p>
-                <p class="mt-1 truncate text-[9px] text-amber-700/80 sm:text-[10px]">Still unpaid</p>
+                <p class="mt-1 text-[10px] text-amber-700/80">Still unpaid</p>
             </div>
-            <div class="min-w-0 rounded-xl border border-teal-200 bg-teal-50 px-2.5 py-2 sm:px-3 sm:py-2.5">
-                <p class="truncate text-[9px] font-bold uppercase tracking-wide text-teal-700 sm:text-[10px]">Advance</p>
+            <div class="rounded-xl border border-teal-200 bg-teal-50 px-2.5 py-2.5" style="min-width:0">
+                <p class="text-[10px] font-bold uppercase tracking-wide text-teal-700">Advance</p>
                 <p class="mt-1 text-sm font-bold tabular-nums leading-none text-teal-950 sm:text-base">{{ $tk($totals['advance']) }}</p>
             </div>
         </div>
