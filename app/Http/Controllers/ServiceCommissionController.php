@@ -241,7 +241,7 @@ class ServiceCommissionController extends Controller
             '7d' => [now()->subDays(6)->toDateString(), $today, 'Last 7 days'],
             'month' => [now()->startOfMonth()->toDateString(), $today, 'This month'],
             '30d' => [now()->subDays(29)->toDateString(), $today, 'Last 30 days'],
-            'all' => [null, null, 'All due'],
+            'all' => [null, null, 'All time'],
         ];
     }
 

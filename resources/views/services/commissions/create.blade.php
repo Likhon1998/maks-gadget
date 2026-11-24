@@ -17,7 +17,7 @@
                  '7d': { earned: {{ $periodStats['7d']['earned'] }}, suggested: {{ $periodStats['7d']['suggested'] }}, label: '7 days' },
                  month: { earned: {{ $periodStats['month']['earned'] }}, suggested: {{ $periodStats['month']['suggested'] }}, label: 'Month' },
                  '30d': { earned: {{ $periodStats['30d']['earned'] }}, suggested: {{ $periodStats['30d']['suggested'] }}, label: '30 days' },
-                 all: { earned: {{ $earned }}, suggested: {{ $outstanding }}, label: 'All due' }
+                      all: { earned: {{ $earned }}, suggested: {{ $outstanding }}, label: 'All time' }
              },
              setRange(key) {
                  this.range = key;

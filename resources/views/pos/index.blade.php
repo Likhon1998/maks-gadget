@@ -2733,6 +2733,17 @@
                                    x-model.number="serviceBill.labor_cost"
                                    @input="serviceBill.labor_cost = Math.max(0, Number($event.target.value) || 0)"
                                    placeholder="0.00">
+                            <div class="svc-hint" style="margin-top:4px"
+                                 x-show="selectedServiceTechnician() && (Number(serviceBill.labor_cost)||0) > 0" x-cloak>
+                                Commission
+                                <strong x-text="formatMoney(effectiveServiceCommissionPercent()) + '%'"></strong>
+                                → Tk<strong x-text="formatMoney(serviceCommissionPreview())"></strong>
+                                <span style="opacity:.75">(auto)</span>
+                            </div>
+                            <div class="svc-hint" style="margin-top:4px;color:#b45309"
+                                 x-show="!selectedServiceTechnician() && (Number(serviceBill.labor_cost)||0) > 0" x-cloak>
+                                Select technician to auto-calculate commission
+                            </div>
                         </div>
 
                         <div class="svc-field">
@@ -2882,6 +2893,10 @@
                                 </div>
                                 <div class="svc-summary-row"><span>Service</span><strong>Tk<span x-text="formatMoney(Number(serviceBill.labor_cost) || 0)"></span></strong></div>
                                 <div class="svc-total"><span>Total</span><span>Tk<span x-text="formatMoney(serviceBillTotal())"></span></span></div>
+                                <div class="svc-comm" x-show="selectedServiceTechnician()" x-cloak>
+                                    <span>Tech commission <span x-text="formatMoney(effectiveServiceCommissionPercent())"></span>%</span>
+                                    <strong>Tk<span x-text="formatMoney(serviceCommissionPreview())"></span></strong>
+                                </div>
                             </div>
 
                             <div class="svc-field">
@@ -3535,6 +3550,11 @@
                         <span>Total</span>
                         <span style="font-variant-numeric:tabular-nums">Tk<span x-text="formatMoney(serviceBillTotal())"></span></span>
                     </div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:6px 0;padding:8px 10px;border-radius:8px;background:#fffbeb;border:1px solid #fcd34d"
+                         x-show="selectedServiceTechnician()" x-cloak>
+                        <span style="color:#92400e">Commission <span x-text="formatMoney(effectiveServiceCommissionPercent())"></span>% (auto)</span>
+                        <strong style="font-variant-numeric:tabular-nums;color:#92400e">Tk<span x-text="formatMoney(serviceCommissionPreview())"></span></strong>
+                    </div>
 
                     <div style="border-top:1px dashed var(--border);margin:10px 0"></div>
                     <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0" x-show="(Number(svcPayCash)||0) > 0 || servicePreviewReceived() <= 0" x-cloak>
@@ -4173,6 +4193,13 @@ function posSystem() {
                 ? (Number(tech.commission_percent) || 0)
                 : 0;
         },
+        effectiveServiceCommissionPercent() {
+            const tech = this.selectedServiceTechnician();
+            if (tech) {
+                return Math.max(0, Math.min(100, Number(tech.commission_percent) || 0));
+            }
+            return Math.max(0, Math.min(100, Number(this.serviceBill.commission_percent) || 0));
+        },
         commissionDiffersFromDefault() {
             const tech = this.selectedServiceTechnician();
             if (!tech) return false;
@@ -4357,8 +4384,9 @@ function posSystem() {
             return Math.max(0, Math.round((Number(this.serviceBill.labor_cost) || 0) * 100) / 100);
         },
         serviceCommissionPreview() {
-            const pct = Math.max(0, Math.min(100, Number(this.serviceBill.commission_percent) || 0));
-            return Math.round(this.serviceCommissionBase() * pct * 100) / 10000;
+            const pct = this.effectiveServiceCommissionPercent();
+            const base = this.serviceCommissionBase();
+            return Math.round((base * pct) / 100 * 100) / 100;
         },
         serviceCustomerPaid() {
             return Math.round((
@@ -4510,7 +4538,7 @@ function posSystem() {
                                 amount: Math.max(0, Number(r.amount) || 0),
                             })),
                         labor_cost: Math.max(0, Number(this.serviceBill.labor_cost) || 0),
-                        commission_percent: Math.max(0, Math.min(100, Number(this.selectedServiceTechnician()?.commission_percent) || Number(this.serviceBill.commission_percent) || 0)),
+                        commission_percent: this.effectiveServiceCommissionPercent(),
                         cash_amount: cash,
                         card_amount: card,
                         mobile_amount: mobile,

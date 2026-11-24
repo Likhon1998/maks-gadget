@@ -111,18 +111,24 @@
                                 <td class="px-3 py-2.5">
                                     @unless($job->isVoided())
                                         <form method="POST" action="{{ route('services.commission.job', $job) }}"
-                                              class="ml-auto flex w-full max-w-[11.5rem] items-center justify-end gap-2">
+                                              class="ml-auto flex w-full max-w-[13rem] flex-col items-end gap-1"
+                                              x-data="{ pct: {{ number_format((float) $job->commission_percent, 2, '.', '') }}, labor: {{ (float) $job->labor_cost }} }">
                                             @csrf
-                                            <div class="inline-flex h-8 min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100">
-                                                <input type="number" name="commission_percent" step="0.01" min="0" max="100" required
-                                                       value="{{ number_format((float) $job->commission_percent, 2, '.', '') }}"
-                                                       class="svc-pct h-full w-full min-w-0 border-0 bg-transparent px-2.5 text-center text-xs font-bold tabular-nums text-slate-900 focus:ring-0">
-                                                <span class="inline-flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-2 text-[11px] font-bold text-slate-500">%</span>
+                                            <div class="flex w-full items-center gap-2">
+                                                <div class="inline-flex h-8 min-w-0 flex-1 items-stretch overflow-hidden rounded-lg border border-slate-200 bg-white focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100">
+                                                    <input type="number" name="commission_percent" step="0.01" min="0" max="100" required
+                                                           x-model.number="pct"
+                                                           class="svc-pct h-full w-full min-w-0 border-0 bg-transparent px-2.5 text-center text-xs font-bold tabular-nums text-slate-900 focus:ring-0">
+                                                    <span class="inline-flex shrink-0 items-center border-l border-slate-200 bg-slate-50 px-2 text-[11px] font-bold text-slate-500">%</span>
+                                                </div>
+                                                <button type="submit"
+                                                        class="inline-flex h-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 px-3 text-xs font-bold text-white hover:bg-slate-800">
+                                                    Update
+                                                </button>
                                             </div>
-                                            <button type="submit"
-                                                    class="inline-flex h-8 shrink-0 items-center justify-center rounded-lg bg-slate-900 px-3 text-xs font-bold text-white hover:bg-slate-800">
-                                                Update
-                                            </button>
+                                            <p class="text-[10px] font-semibold tabular-nums text-amber-700">
+                                                = Tk <span x-text="(Math.max(0, labor) * Math.max(0, Math.min(100, Number(pct) || 0)) / 100).toFixed(2)"></span>
+                                            </p>
                                         </form>
                                     @else
                                         <div class="text-right text-[11px] font-semibold text-rose-600">Voided</div>
