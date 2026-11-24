@@ -293,18 +293,43 @@
 [data-theme="dark"] .svc-new-tech {
     background: #0f2a28; border-color: #115e59;
 }
-.svc-new-tech-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.svc-new-tech-actions { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+.svc-new-tech-cancel,
+.svc-new-tech-save {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    min-width: 72px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
 .svc-new-tech-cancel {
-    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
-    color: var(--text-2); font: inherit; font-size: 11.5px; font-weight: 700;
-    padding: 6px 10px; cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-2);
 }
 .svc-new-tech-save {
-    border: 0; border-radius: 8px; background: #0d9488; color: #fff;
-    font: inherit; font-size: 11.5px; font-weight: 800;
-    padding: 6px 10px; cursor: pointer;
+    border: 1px solid #0d9488;
+    background: #0d9488;
+    color: #fff;
 }
 .svc-new-tech-save:disabled { opacity: .55; cursor: not-allowed; }
+.svc-new-tech .svc-input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.svc-new-tech .svc-input[type="number"]::-webkit-outer-spin-button,
+.svc-new-tech .svc-input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 .svc-part-picker { position: relative; flex-shrink: 0; z-index: 5; }
 .svc-part-drop {
     position: absolute; left: 0; right: 0; top: calc(100% + 3px); z-index: 40;
