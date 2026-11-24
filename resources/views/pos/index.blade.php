@@ -104,6 +104,390 @@
 .pos-brand-mark svg { width: 17px; height: 17px; }
 .pos-brand em { font-style: normal; color: #93c5fd; font-weight: 600; }
 
+.pos-mode-toggle {
+    display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0;
+    padding: 3px; border-radius: 11px;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+}
+.pos-mode-btn {
+    border: 0; background: transparent; color: #94a3b8;
+    font: inherit; font-size: 12px; font-weight: 750;
+    padding: 7px 14px; border-radius: 9px; cursor: pointer;
+    letter-spacing: .01em;
+}
+.pos-mode-btn:hover { color: #e2e8f0; }
+.pos-mode-btn.is-on {
+    background: #2563eb; color: #fff;
+    box-shadow: 0 4px 12px rgba(37,99,235,.35);
+}
+.pos-mode-btn.is-on.is-service {
+    background: #0d9488; box-shadow: 0 4px 12px rgba(13,148,136,.35);
+}
+
+/* Service mode — single viewport, no page scroll */
+.pos-service {
+    height: 100%; min-height: 0; min-width: 0;
+    padding: 8px; overflow: hidden;
+    display: flex; flex-direction: column;
+}
+.pos-service-card {
+    flex: 1 1 0; min-height: 0; width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+.pos-service-head {
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, #f0fdfa 0%, #eff6ff 100%);
+}
+[data-theme="dark"] .pos-service-head {
+    background: linear-gradient(135deg, #0f2a28 0%, #0b1f44 100%);
+}
+.pos-service-title { font-size: 14px; font-weight: 800; color: var(--text-1); line-height: 1.2; }
+.pos-service-sub { font-size: 11px; color: var(--text-2); margin-top: 1px; line-height: 1.2; }
+.pos-service-body {
+    flex: 1 1 0; min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.2fr) minmax(260px, .85fr);
+    overflow: hidden;
+}
+.pos-service-form,
+.pos-service-parts,
+.pos-service-side {
+    min-height: 0; min-width: 0;
+    padding: 10px;
+    display: flex; flex-direction: column; gap: 7px;
+    overflow: hidden;
+}
+.pos-service-parts { border-left: 1px solid var(--border); }
+.pos-service-side {
+    border-left: 1px solid var(--border);
+    background: var(--surface-2);
+}
+.svc-field { min-width: 0; }
+.svc-label {
+    display: block; font-size: 10px; font-weight: 750; color: var(--text-2);
+    text-transform: uppercase; letter-spacing: .04em; margin: 0 0 3px;
+    line-height: 1.2;
+}
+.svc-input, .svc-select, .svc-textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 9px;
+    background: var(--surface); color: var(--text-1);
+    font: inherit; font-size: 12.5px; padding: 7px 9px; outline: none;
+    line-height: 1.25;
+}
+.svc-textarea {
+    height: 56px; min-height: 56px; max-height: 56px;
+    resize: none; line-height: 1.35;
+}
+.svc-input:focus, .svc-select:focus, .svc-textarea:focus {
+    border-color: #14b8a6; box-shadow: 0 0 0 2px rgba(20,184,166,.16);
+}
+.svc-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; min-width: 0; }
+.svc-split-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.svc-sp-row {
+    border: 1px solid var(--border); border-radius: 9px; background: var(--surface);
+    padding: 5px 7px; min-width: 0;
+}
+.svc-sp-label { font-size: 9px; font-weight: 800; text-transform: uppercase; color: var(--text-3); letter-spacing: .04em; margin-bottom: 2px; }
+.svc-sp-input {
+    width: 100%; border: 0; background: transparent; outline: none;
+    font: inherit; font-size: 13px; font-weight: 800; color: var(--text-1);
+    font-variant-numeric: tabular-nums; padding: 0;
+}
+.svc-qc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.svc-qc-btn {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    padding: 5px 2px; font: inherit; font-size: 10.5px; font-weight: 750;
+    color: var(--text-2); cursor: pointer;
+}
+.svc-qc-btn.exact { border-color: #14b8a6; color: #0f766e; background: #f0fdfa; }
+.svc-qc-btn:hover { border-color: #14b8a6; color: #0f766e; }
+.svc-pay-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+}
+.svc-pay-stat {
+    border: 1px solid var(--border); border-radius: 9px; background: var(--surface);
+    padding: 6px 7px; min-width: 0;
+}
+.svc-pay-stat .ps-l { font-size: 9px; font-weight: 800; text-transform: uppercase; color: var(--text-3); letter-spacing: .03em; }
+.svc-pay-stat .ps-v { font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text-1); margin-top: 1px; }
+.svc-pay-stat.is-ok .ps-v { color: #15803d; }
+.svc-pay-stat.is-due .ps-v { color: #b45309; }
+.svc-pay-stat.is-err .ps-v { color: #dc2626; }
+.svc-tech-pay {
+    border-radius: 9px; padding: 7px 9px;
+    background: #fffbeb; border: 1px solid #fde68a;
+    display: grid; gap: 5px; flex-shrink: 0;
+}
+[data-theme="dark"] .svc-tech-pay { background: #2a1d05; border-color: #78350f; }
+.svc-tech-pay-row { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: #92400e; line-height: 1.25; }
+[data-theme="dark"] .svc-tech-pay-row { color: #fbbf24; }
+.svc-tech-pay-row strong { font-variant-numeric: tabular-nums; color: #78350f; }
+[data-theme="dark"] .svc-tech-pay-row strong { color: #fde68a; }
+.svc-side-scroll {
+    flex: 1 1 0; min-height: 0; overflow: auto;
+    display: flex; flex-direction: column; gap: 7px;
+}
+.svc-summary {
+    display: grid; gap: 5px;
+    padding: 8px; border-radius: 10px;
+    background: var(--surface); border: 1px solid var(--border);
+}
+.svc-summary-row {
+    display: flex; justify-content: space-between; gap: 8px;
+    font-size: 12px; color: var(--text-2); line-height: 1.2;
+}
+.svc-summary-row strong { color: var(--text-1); font-variant-numeric: tabular-nums; }
+.svc-total {
+    margin-top: 2px; padding-top: 7px; border-top: 1px dashed var(--border);
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 14px; font-weight: 800; color: var(--text-1); line-height: 1.2;
+}
+.svc-comm {
+    border-radius: 9px; padding: 7px 9px;
+    background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+    font-size: 11.5px; line-height: 1.35; flex-shrink: 0;
+}
+[data-theme="dark"] .svc-comm { background: #2a1d05; border-color: #78350f; color: #fbbf24; }
+.svc-submit {
+    flex-shrink: 0; width: 100%; border: 0; border-radius: 10px;
+    background: #0d9488; color: #fff; font: inherit; font-size: 13px; font-weight: 800;
+    padding: 11px 12px; cursor: pointer; position: relative; z-index: 2;
+    box-shadow: 0 6px 14px rgba(13,148,136,.25);
+}
+.svc-submit.is-busy, .svc-submit.is-blocked { opacity: .72; }
+.svc-submit.is-busy { cursor: wait; }
+.svc-submit:not(.is-busy):hover { background: #0f766e; }
+.svc-empty-tech {
+    border-radius: 9px; padding: 7px 9px; background: #fef2f2; border: 1px solid #fecaca;
+    color: #991b1b; font-size: 11.5px; line-height: 1.35; flex-shrink: 0;
+}
+.svc-tech-row { display: flex; gap: 6px; align-items: stretch; min-width: 0; }
+.svc-tech-row .svc-select { flex: 1; min-width: 0; }
+.svc-add-tech-btn {
+    flex-shrink: 0; border: 1px dashed #14b8a6; border-radius: 9px;
+    background: #f0fdfa; color: #0f766e;
+    font: inherit; font-size: 11.5px; font-weight: 800;
+    padding: 0 10px; cursor: pointer; white-space: nowrap;
+}
+.svc-add-tech-btn:hover, .svc-add-tech-btn.is-on {
+    background: #0d9488; border-style: solid; color: #fff;
+}
+[data-theme="dark"] .svc-add-tech-btn {
+    background: #0f2a28; border-color: #0d9488; color: #5eead4;
+}
+[data-theme="dark"] .svc-add-tech-btn:hover,
+[data-theme="dark"] .svc-add-tech-btn.is-on {
+    background: #0d9488; color: #fff;
+}
+.svc-new-tech {
+    padding: 8px; border-radius: 10px;
+    border: 1px solid #99f6e4; background: #f0fdfa;
+    display: grid; gap: 6px; flex-shrink: 0;
+}
+[data-theme="dark"] .svc-new-tech {
+    background: #0f2a28; border-color: #115e59;
+}
+.svc-new-tech-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.svc-new-tech-cancel {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    color: var(--text-2); font: inherit; font-size: 11.5px; font-weight: 700;
+    padding: 6px 10px; cursor: pointer;
+}
+.svc-new-tech-save {
+    border: 0; border-radius: 8px; background: #0d9488; color: #fff;
+    font: inherit; font-size: 11.5px; font-weight: 800;
+    padding: 6px 10px; cursor: pointer;
+}
+.svc-new-tech-save:disabled { opacity: .55; cursor: not-allowed; }
+.svc-part-picker { position: relative; flex-shrink: 0; z-index: 5; }
+.svc-part-drop {
+    position: absolute; left: 0; right: 0; top: calc(100% + 3px); z-index: 40;
+    max-height: min(220px, 36vh); overflow: auto;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface);
+    box-shadow: 0 12px 28px rgba(15,23,42,.14);
+}
+.svc-part-opt {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%; padding: 6px 8px; border: 0; border-bottom: 1px solid var(--border);
+    background: transparent; text-align: left; cursor: pointer;
+    font: inherit; font-size: 12px; color: var(--text-1);
+}
+.svc-part-opt:last-child { border-bottom: 0; }
+.svc-part-opt:hover, .svc-part-opt.is-active { background: #f0fdfa; }
+[data-theme="dark"] .svc-part-opt:hover,
+[data-theme="dark"] .svc-part-opt.is-active { background: #0f2a28; }
+.svc-part-opt.is-disabled { opacity: .45; cursor: not-allowed; }
+.svc-part-thumb {
+    width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+    background: var(--surface-2); border: 1px solid var(--border);
+    overflow: hidden; display: flex; align-items: center; justify-content: center;
+}
+.svc-part-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.svc-part-opt-body { flex: 1; min-width: 0; }
+.svc-part-opt-name {
+    font-weight: 750; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.svc-part-opt-meta { font-size: 10.5px; color: var(--text-3); margin-top: 1px; }
+.svc-part-opt-right {
+    text-align: right; white-space: nowrap; flex-shrink: 0;
+    font-variant-numeric: tabular-nums; color: var(--text-2); font-size: 11.5px; font-weight: 700;
+}
+.svc-parts-list {
+    flex: 0 0 auto; max-height: 34%;
+    overflow-x: hidden; overflow-y: auto;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface-2);
+    padding: 4px;
+}
+.svc-parts-empty {
+    min-height: 44px;
+    display: grid; place-items: center;
+    text-align: center; padding: 8px;
+    font-size: 11.5px; color: var(--text-3); line-height: 1.35;
+}
+.svc-stock-panel {
+    flex: 1 1 0; min-height: 0;
+    display: flex; flex-direction: column; gap: 5px;
+}
+.svc-stock-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    flex-shrink: 0;
+}
+.svc-stock-count {
+    font-size: 10px; font-weight: 700; color: var(--text-3);
+    white-space: nowrap;
+}
+.svc-stock-grid {
+    flex: 1 1 0; min-height: 0;
+    overflow-x: hidden; overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 6px;
+    align-content: start;
+    padding: 2px;
+}
+.svc-stock-card {
+    display: flex; flex-direction: column; gap: 4px;
+    border: 1px solid var(--border); border-radius: 10px;
+    background: var(--surface); padding: 6px;
+    text-align: left; cursor: pointer; font: inherit; color: var(--text-1);
+    transition: border-color .12s, box-shadow .12s, transform .08s;
+    min-width: 0;
+}
+.svc-stock-card:hover {
+    border-color: #14b8a6;
+    box-shadow: 0 4px 12px rgba(20,184,166,.12);
+}
+.svc-stock-card:active { transform: scale(.98); }
+.svc-stock-card.is-out { opacity: .48; cursor: not-allowed; }
+.svc-stock-card.is-on-bill {
+    border-color: #0d9488;
+    background: #f0fdfa;
+    box-shadow: inset 0 0 0 1px rgba(13,148,136,.18);
+}
+[data-theme="dark"] .svc-stock-card.is-on-bill {
+    background: #0f2a28; border-color: #0d9488;
+}
+.svc-stock-img {
+    width: 100%; aspect-ratio: 1 / 1; border-radius: 8px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    overflow: hidden;
+}
+.svc-stock-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.svc-stock-name {
+    font-size: 11px; font-weight: 750; line-height: 1.2;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; min-height: 2.4em;
+}
+.svc-stock-meta {
+    display: flex; align-items: center; justify-content: space-between; gap: 4px;
+}
+.svc-stock-price {
+    font-size: 11.5px; font-weight: 850; font-variant-numeric: tabular-nums; color: var(--text-1);
+}
+.svc-stock-qty {
+    font-size: 9.5px; font-weight: 700; color: var(--text-3);
+}
+.svc-stock-qty.is-low { color: #b45309; }
+.svc-stock-qty.is-out { color: #dc2626; }
+.svc-onbill-label {
+    font-size: 10px; font-weight: 750; color: var(--text-2);
+    text-transform: uppercase; letter-spacing: .04em;
+    margin: 2px 0 0;
+}
+.svc-line {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 78px auto auto auto;
+    gap: 6px; align-items: center;
+    padding: 5px 6px; border-radius: 8px;
+}
+.svc-line + .svc-line { margin-top: 2px; }
+.svc-line:hover { background: var(--surface); }
+.svc-line-thumb {
+    width: 32px; height: 32px; border-radius: 7px; flex-shrink: 0;
+    background: var(--surface); border: 1px solid var(--border); overflow: hidden;
+}
+.svc-line-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.svc-line-price {
+    display: flex; align-items: center; gap: 2px;
+    border: 1px solid var(--border); border-radius: 7px;
+    background: var(--surface); padding: 2px 5px; min-width: 0;
+}
+.svc-line-price:focus-within { border-color: #14b8a6; box-shadow: 0 0 0 2px rgba(20,184,166,.14); }
+.svc-line-price-ccy { font-size: 10px; font-weight: 800; color: var(--text-3); }
+.svc-line-price-input {
+    width: 100%; min-width: 0; border: 0; background: transparent; outline: none;
+    font: inherit; font-size: 12px; font-weight: 800; color: var(--text-1);
+    font-variant-numeric: tabular-nums; padding: 2px 0;
+}
+.svc-line-reset {
+    border: 0; background: transparent; padding: 0; margin-top: 2px;
+    font: inherit; font-size: 10px; font-weight: 700; color: #0f766e;
+    cursor: pointer; text-align: left;
+}
+.svc-line-reset:hover { text-decoration: underline; }
+.svc-outside-list { display: grid; gap: 5px; min-width: 0; }
+.svc-outside-row {
+    display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(72px, .7fr) 18px;
+    gap: 5px; align-items: center;
+}
+.svc-outside-row .svc-input { padding: 6px 8px; font-size: 12px; }
+.svc-hint { font-size: 10.5px; color: var(--text-3); margin-top: 2px; line-height: 1.25; }
+.svc-side-spacer { flex: 1 1 auto; min-height: 4px; }
+@media (max-width: 1100px) {
+    .pos-service-body {
+        grid-template-columns: minmax(0, 1fr) minmax(240px, .9fr);
+        grid-template-rows: minmax(0, 1fr) auto;
+    }
+    .pos-service-form { grid-column: 1; grid-row: 1; }
+    .pos-service-parts { grid-column: 1; grid-row: 2; border-left: 0; border-top: 1px solid var(--border); max-height: 34vh; }
+    .pos-service-side { grid-column: 2; grid-row: 1 / span 2; }
+}
+@media (max-width: 760px) {
+    .pos-service { padding: 6px; }
+    .pos-service-body {
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+        overflow: auto;
+    }
+    .pos-service-form,
+    .pos-service-parts,
+    .pos-service-side {
+        border-left: 0; border-top: 1px solid var(--border);
+        max-height: none; overflow: visible;
+    }
+    .pos-service-form { border-top: 0; }
+    .pos-service-parts { max-height: 220px; overflow: hidden; }
+}
+
 .pos-chrome-search {
     flex: 1; max-width: 560px; margin: 0 auto; position: relative;
 }
@@ -175,6 +559,14 @@
     flex: 1 1 0; min-height: 0;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    overflow: hidden;
+}
+.pos-body > .pos-root,
+.pos-body > .pos-service {
+    min-height: 0;
+    min-width: 0;
+    height: 100%;
     overflow: hidden;
 }
 .pos-home-btn {
@@ -1620,7 +2012,16 @@
             <span>{{ Auth::user()->shop->name ?? config('app.name', 'Maks Gadget') }} <em>POS</em></span>
         </a>
 
-        <div class="pos-chrome-search">
+        <div class="pos-mode-toggle" role="tablist" aria-label="POS mode">
+            <button type="button" class="pos-mode-btn" role="tab"
+                    :class="workspaceMode === 'sales' && 'is-on'"
+                    @click="setWorkspaceMode('sales')">Sales</button>
+            <button type="button" class="pos-mode-btn" role="tab"
+                    :class="workspaceMode === 'service' && 'is-on is-service'"
+                    @click="setWorkspaceMode('service')">Service</button>
+        </div>
+
+        <div class="pos-chrome-search" x-show="workspaceMode === 'sales'" x-cloak>
             <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -1631,17 +2032,23 @@
                    @keydown.enter.prevent="onSearchEnter()">
             <span class="kbd">Ctrl K</span>
         </div>
+        <div class="pos-chrome-search" x-show="workspaceMode === 'service'" x-cloak
+             style="display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12.5px;font-weight:650">
+            Service billing · job + materials
+        </div>
 
         <div class="pos-chrome-right">
             <a href="{{ route('dashboard') }}" class="pos-home-btn" title="Home / Dashboard">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 Home
             </a>
-            <button type="button" class="pos-tool-btn" @click="$refs.searchInput.focus()" title="Focus barcode / search">
+            <button type="button" class="pos-tool-btn" x-show="workspaceMode === 'sales'" x-cloak
+                    @click="$refs.searchInput.focus()" title="Focus barcode / search">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6.5 0a5.5 5.5 0 11-11 0 5.5 5.5 0 0111 0zM4 8V6a2 2 0 012-2h2m8 0h2a2 2 0 012 2v2"/></svg>
                 <span class="pos-tool-label">Scan</span>
             </button>
-            <button type="button" class="pos-tool-btn pos-return-btn" @click="openReturns()" title="Return, exchange or refund a past sale (F8)">
+            <button type="button" class="pos-tool-btn pos-return-btn" x-show="workspaceMode === 'sales'" x-cloak
+                    @click="openReturns()" title="Return, exchange or refund a past sale (F8)">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span class="pos-tool-label">Return / Exchange</span>
             </button>
@@ -1701,7 +2108,7 @@
     </div>
 
     <div class="pos-body">
-        <div class="pos-root">
+        <div class="pos-root" x-show="workspaceMode === 'sales'" x-cloak>
     <!-- LEFT PANEL - Products -->
     <div class="panel-left">
         <div class="panel-top">
@@ -2190,6 +2597,321 @@
             </div>
         </div>
     </div>
+        </div>
+
+        {{-- Service mode — one-screen layout --}}
+        <div class="pos-service" x-show="workspaceMode === 'service'" x-cloak>
+            <div class="pos-service-card">
+                <div class="pos-service-head">
+                    <div>
+                        <div class="pos-service-title">Service bill</div>
+                        <div class="pos-service-sub">Shop stock · products · service amount · customer pay</div>
+                    </div>
+                    <a href="{{ route('services.jobs.index') }}" target="_blank" rel="noopener"
+                       style="font-size:11.5px;font-weight:700;color:#0f766e;text-decoration:none;white-space:nowrap">Past bills →</a>
+                </div>
+
+                <div class="pos-service-body">
+                    {{-- Col 1: job details --}}
+                    <div class="pos-service-form">
+                        <div class="svc-field">
+                            <label class="svc-label">Technician</label>
+                            <div class="svc-tech-row">
+                                <select class="svc-select" x-model="serviceBill.technician_id"
+                                        @change="applyTechnicianDefaultCommission()">
+                                    <option value="">Select technician…</option>
+                                    <template x-for="tech in serviceTechnicians" :key="'svc-tech-' + tech.id">
+                                        <option :value="String(tech.id)"
+                                                x-text="tech.name"></option>
+                                    </template>
+                                </select>
+                                <button type="button" class="svc-add-tech-btn"
+                                        :class="showNewTechnician && 'is-on'"
+                                        @click="toggleNewTechnicianForm()">+ Add</button>
+                            </div>
+                            <div class="svc-empty-tech" x-show="serviceTechnicians.length === 0 && !showNewTechnician" x-cloak>
+                                No technicians — tap <strong>+ Add</strong>.
+                            </div>
+                            <div class="svc-new-tech" x-show="showNewTechnician" x-cloak>
+                                <div class="svc-grid-2">
+                                    <div class="svc-field">
+                                        <label class="svc-label">Name *</label>
+                                        <input type="text" class="svc-input" x-model="newTechnician.name"
+                                               placeholder="Name" x-ref="newTechName">
+                                    </div>
+                                    <div class="svc-field">
+                                        <label class="svc-label">Default %</label>
+                                        <input type="number" min="0" max="100" step="0.01" class="svc-input"
+                                               x-model.number="newTechnician.commission_percent">
+                                    </div>
+                                </div>
+                                <div class="svc-field">
+                                    <label class="svc-label">Phone</label>
+                                    <input type="text" class="svc-input" x-model="newTechnician.phone" placeholder="Optional">
+                                </div>
+                                <div class="svc-new-tech-actions">
+                                    <button type="button" class="svc-new-tech-cancel" @click="cancelNewTechnician()">Cancel</button>
+                                    <button type="button" class="svc-new-tech-save"
+                                            :disabled="isSavingTechnician || !canSaveNewTechnician()"
+                                            @click="saveNewTechnician()">
+                                        <span x-show="!isSavingTechnician" x-cloak>Save</span>
+                                        <span x-show="isSavingTechnician" x-cloak>…</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="svc-grid-2">
+                            <div class="svc-field">
+                                <label class="svc-label">Customer phone</label>
+                                <input type="text" class="svc-input" x-model="serviceBill.customer_phone" placeholder="Optional">
+                            </div>
+                            <div class="svc-field">
+                                <label class="svc-label">Customer name</label>
+                                <input type="text" class="svc-input" x-model="serviceBill.customer_name" placeholder="Optional">
+                            </div>
+                        </div>
+
+                        <div class="svc-field">
+                            <label class="svc-label">Job description <span style="font-weight:600;opacity:.65">(optional)</span></label>
+                            <textarea class="svc-textarea" x-model="serviceBill.job_description"
+                                      placeholder="Screen replace, battery, software…"></textarea>
+                        </div>
+
+                        <div class="svc-field">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">
+                                <label class="svc-label" style="margin:0">Products</label>
+                                <button type="button" class="svc-qc-btn exact" style="padding:3px 8px"
+                                        @click="addServiceOutsideItem()">+ Add</button>
+                            </div>
+                            <div class="svc-outside-list">
+                                <template x-for="(row, oidx) in serviceOutsideItems" :key="row._key || ('svc-out-form-' + oidx)">
+                                    <div class="svc-outside-row">
+                                        <input type="text" class="svc-input" placeholder="Product name"
+                                               x-model="row.name">
+                                        <input type="number" min="0" step="0.01" class="svc-input" placeholder="Price"
+                                               x-model.number="row.amount"
+                                               @input="row.amount = Math.max(0, Number($event.target.value) || 0)">
+                                        <button type="button" @click="removeServiceOutsideItem(oidx)" title="Remove"
+                                                style="border:0;background:transparent;color:#dc2626;cursor:pointer;font-size:15px;line-height:1;padding:0 2px">×</button>
+                                    </div>
+                                </template>
+                                <div class="svc-hint" x-show="serviceOutsideItems.length === 0" x-cloak>
+                                    Bought parts — product name + price
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="svc-field">
+                            <label class="svc-label">Service amount</label>
+                            <input type="number" min="0" step="0.01" class="svc-input"
+                                   x-model.number="serviceBill.labor_cost"
+                                   @input="serviceBill.labor_cost = Math.max(0, Number($event.target.value) || 0)"
+                                   placeholder="0.00">
+                        </div>
+
+                        <div class="svc-field">
+                            <label class="svc-label">Notes</label>
+                            <input type="text" class="svc-input" x-model="serviceBill.notes" placeholder="Optional">
+                        </div>
+                    </div>
+
+                    {{-- Col 2: store product grid + selected lines --}}
+                    <div class="pos-service-parts">
+                        <div class="svc-field" style="flex-shrink:0">
+                            <label class="svc-label">Shop stock</label>
+                            <input type="text" class="svc-input" x-model="servicePartSearch"
+                                   x-ref="servicePartInput"
+                                   placeholder="Search store products — name, SKU, barcode…"
+                                   autocomplete="off"
+                                   @input="onServicePartSearchInput()"
+                                   @keydown.enter.prevent="confirmServicePartHighlight()">
+                        </div>
+
+                        <div class="svc-stock-panel">
+                            <div class="svc-stock-head">
+                                <span class="svc-label" style="margin:0">Store products</span>
+                                <span class="svc-stock-count"
+                                      x-text="browseServiceProducts().length + ' shown'"></span>
+                            </div>
+                            <div class="svc-stock-grid">
+                                <template x-for="p in browseServiceProducts()" :key="'svc-grid-' + p.id">
+                                    <button type="button" class="svc-stock-card"
+                                            :class="{
+                                                'is-out': (Number(p.stock_quantity) || 0) < 1,
+                                                'is-on-bill': servicePartOnBill(p.id)
+                                            }"
+                                            :disabled="(Number(p.stock_quantity) || 0) < 1"
+                                            @click="addServicePart(p)"
+                                            :title="p.name">
+                                        <div class="svc-stock-img">
+                                            <img :src="productImageSrc(p) || placeholderDataUri(p.name)"
+                                                 :alt="p.name" referrerpolicy="no-referrer"
+                                                 x-on:error="recoverProductImage($event, p)">
+                                        </div>
+                                        <div class="svc-stock-name" x-text="p.name"></div>
+                                        <div class="svc-stock-meta">
+                                            <span class="svc-stock-price">Tk<span x-text="formatNumber(p.selling_price)"></span></span>
+                                            <span class="svc-stock-qty"
+                                                  :class="{
+                                                      'is-out': (Number(p.stock_quantity) || 0) < 1,
+                                                      'is-low': (Number(p.stock_quantity) || 0) > 0 && (Number(p.stock_quantity) || 0) < 5
+                                                  }"
+                                                  x-text="(Number(p.stock_quantity) || 0) < 1 ? 'Out' : ('×' + p.stock_quantity)"></span>
+                                        </div>
+                                    </button>
+                                </template>
+                                <div x-show="browseServiceProducts().length === 0" x-cloak
+                                     style="grid-column:1/-1;padding:18px 10px;text-align:center;font-size:12px;color:var(--text-3)">
+                                    No store products match this search
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="svc-onbill-label" x-show="serviceParts.length > 0 || serviceOutsideItems.length > 0" x-cloak>On this bill</div>
+                        <div class="svc-parts-list" x-show="serviceParts.length > 0 || serviceOutsideItems.length > 0" x-cloak>
+                            <template x-for="(line, idx) in serviceParts" :key="'svc-line-' + line.id">
+                                <div class="svc-line">
+                                    <div class="svc-line-thumb">
+                                        <img :src="line.image_url || placeholderDataUri(line.name)" :alt="line.name" referrerpolicy="no-referrer">
+                                    </div>
+                                    <div style="min-width:0">
+                                        <div style="font-size:12px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" x-text="line.name"></div>
+                                        <div style="font-size:10px;font-weight:650;color:var(--text-3)">Shop stock</div>
+                                        <button type="button" class="svc-line-reset"
+                                                x-show="Number(line.list_price || 0) > 0 && Math.abs(Number(line.price) - Number(line.list_price)) > 0.009"
+                                                x-cloak
+                                                @click="resetServicePartPrice(idx)">
+                                            Reset Tk<span x-text="formatNumber(line.list_price)"></span>
+                                        </button>
+                                    </div>
+                                    <div class="svc-line-price" title="Unit price — edits update total instantly">
+                                        <span class="svc-line-price-ccy">Tk</span>
+                                        <input type="number" class="svc-line-price-input" min="0" step="0.01"
+                                               x-model.number="line.price"
+                                               @input="line.price = Math.max(0, Number($event.target.value) || 0)">
+                                    </div>
+                                    <div style="display:inline-flex;align-items:center;gap:3px">
+                                        <button type="button" class="qty-btn" @click="bumpServicePartQty(idx, -1)">−</button>
+                                        <span style="min-width:16px;text-align:center;font-weight:800;font-size:12px" x-text="line.qty"></span>
+                                        <button type="button" class="qty-btn" @click="bumpServicePartQty(idx, 1)">+</button>
+                                    </div>
+                                    <strong style="font-size:12px;font-variant-numeric:tabular-nums">Tk<span x-text="formatNumber((Number(line.price) || 0) * (Number(line.qty) || 0))"></span></strong>
+                                    <button type="button" @click="removeServicePart(idx)" title="Remove"
+                                            style="border:0;background:transparent;color:#dc2626;cursor:pointer;font-size:15px;line-height:1;padding:0 2px">×</button>
+                                </div>
+                            </template>
+
+                            <template x-for="(row, oidx) in serviceOutsideItems" :key="row._key || ('svc-out-' + oidx)">
+                                <div class="svc-line">
+                                    <div class="svc-line-thumb">
+                                        <img :src="placeholderDataUri(row.name || 'Product')" :alt="row.name || 'Product'">
+                                    </div>
+                                    <div style="min-width:0">
+                                        <input type="text" class="svc-input"
+                                               style="padding:4px 6px;font-size:12px;font-weight:750"
+                                               placeholder="Product name"
+                                               x-model="row.name"
+                                               @input="row.name = $event.target.value">
+                                        <div style="font-size:10px;font-weight:650;color:var(--text-3);margin-top:2px">Product</div>
+                                    </div>
+                                    <div class="svc-line-price" title="Price — updates total instantly">
+                                        <span class="svc-line-price-ccy">Tk</span>
+                                        <input type="number" class="svc-line-price-input" min="0" step="0.01"
+                                               x-model.number="row.amount"
+                                               @input="row.amount = Math.max(0, Number($event.target.value) || 0)">
+                                    </div>
+                                    <div style="min-width:42px;text-align:center;font-size:10px;font-weight:700;color:var(--text-3)">×1</div>
+                                    <strong style="font-size:12px;font-variant-numeric:tabular-nums">Tk<span x-text="formatNumber(Number(row.amount) || 0)"></span></strong>
+                                    <button type="button" @click="removeServiceOutsideItem(oidx)" title="Remove"
+                                            style="border:0;background:transparent;color:#dc2626;cursor:pointer;font-size:15px;line-height:1;padding:0 2px">×</button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Col 3: pay (POS-style split + tech baki) --}}
+                    <div class="pos-service-side">
+                        <div class="svc-side-scroll">
+                            <div class="svc-summary">
+                                <template x-for="(line, idx) in serviceParts" :key="'svc-sum-shop-' + line.id">
+                                    <div class="svc-summary-row">
+                                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:58%"
+                                              x-text="line.name + (line.qty > 1 ? (' ×' + line.qty) : '')"></span>
+                                        <strong>Tk<span x-text="formatMoney((Number(line.price) || 0) * (Number(line.qty) || 0))"></span></strong>
+                                    </div>
+                                </template>
+                                <template x-for="(row, oidx) in serviceOutsideItems" :key="'svc-sum-out-' + (row._key || oidx)">
+                                    <div class="svc-summary-row"
+                                         x-show="String(row.name || '').trim() || (Number(row.amount) || 0) > 0"
+                                         x-cloak>
+                                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:58%"
+                                              x-text="String(row.name || '').trim() || 'Product'"></span>
+                                        <strong>Tk<span x-text="formatMoney(Number(row.amount) || 0)"></span></strong>
+                                    </div>
+                                </template>
+                                <div class="svc-summary-row"
+                                     x-show="serviceParts.length === 0 && serviceOutsideItems.every(r => !String(r.name || '').trim() && !(Number(r.amount) || 0))"
+                                     x-cloak>
+                                    <span>No products yet</span><strong>Tk0</strong>
+                                </div>
+                                <div class="svc-summary-row"><span>Service</span><strong>Tk<span x-text="formatMoney(Number(serviceBill.labor_cost) || 0)"></span></strong></div>
+                                <div class="svc-total"><span>Total</span><span>Tk<span x-text="formatMoney(serviceBillTotal())"></span></span></div>
+                            </div>
+
+                            <div class="svc-field">
+                                <label class="svc-label">Customer pays · split</label>
+                                <div class="svc-split-grid">
+                                    <div class="svc-sp-row">
+                                        <div class="svc-sp-label">Cash</div>
+                                        <input type="number" min="0" step="0.01" class="svc-sp-input" placeholder="0"
+                                               x-model.number="svcPayCash">
+                                    </div>
+                                    <div class="svc-sp-row">
+                                        <div class="svc-sp-label">Card</div>
+                                        <input type="number" min="0" step="0.01" class="svc-sp-input" placeholder="0"
+                                               x-model.number="svcPayCard">
+                                    </div>
+                                    <div class="svc-sp-row">
+                                        <div class="svc-sp-label">bKash</div>
+                                        <input type="number" min="0" step="0.01" class="svc-sp-input" placeholder="0"
+                                               x-model.number="svcPayBkash">
+                                    </div>
+                                </div>
+                                <div class="svc-qc-grid" style="margin-top:5px">
+                                    <button type="button" class="svc-qc-btn exact" @click="svcPayCash = serviceBillTotal(); svcPayCard = 0; svcPayBkash = 0">Exact</button>
+                                    <button type="button" class="svc-qc-btn" @click="svcPayCash = 500; svcPayCard = 0; svcPayBkash = 0">Tk500</button>
+                                    <button type="button" class="svc-qc-btn" @click="svcPayCash = 1000; svcPayCard = 0; svcPayBkash = 0">Tk1K</button>
+                                    <button type="button" class="svc-qc-btn" @click="svcPayCash = 2000; svcPayCard = 0; svcPayBkash = 0">Tk2K</button>
+                                </div>
+                            </div>
+
+                            <div class="svc-pay-stats">
+                                <div class="svc-pay-stat">
+                                    <div class="ps-l">Received</div>
+                                    <div class="ps-v">Tk<span x-text="formatMoney(serviceCustomerPaid())"></span></div>
+                                </div>
+                                <div class="svc-pay-stat" :class="serviceCustomerChange() > 0 ? 'is-ok' : ''">
+                                    <div class="ps-l">Change</div>
+                                    <div class="ps-v">Tk<span x-text="formatMoney(serviceCustomerChange())"></span></div>
+                                </div>
+                                <div class="svc-pay-stat" :class="serviceCustomerDue() > 0 ? 'is-due' : ''">
+                                    <div class="ps-l">Due / Baki</div>
+                                    <div class="ps-v">Tk<span x-text="formatMoney(serviceCustomerDue())"></span></div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <button type="button" class="svc-submit"
+                                :class="{ 'is-busy': isProcessing, 'is-blocked': !canSubmitServiceBill() }"
+                                @click="openServiceBillPreview()">
+                            <span x-show="!isProcessing">Review bill · F2</span>
+                            <span x-show="isProcessing" x-cloak>Saving…</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2720,6 +3442,121 @@
         </div>
     </div>
 
+    <!-- SERVICE BILL REVIEW (before save) -->
+    <div x-show="servicePreviewOpen" style="display:none" class="modal-overlay"
+         x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div class="modal-bg" @click="closeServiceBillPreview()"></div>
+        <div class="modal" style="max-width:440px"
+             x-show="servicePreviewOpen"
+             x-transition:enter="ease-out duration-250" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             @click.stop>
+            <div class="modal-head">
+                <div>
+                    <div class="modal-title">Review service bill</div>
+                    <div class="modal-subtitle">Check everything — nothing is saved yet</div>
+                </div>
+                <button type="button" @click="closeServiceBillPreview()" class="modal-close" aria-label="Close">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height:min(62vh,560px);overflow:auto;padding:14px 16px">
+                <div style="border:1px dashed var(--border);border-radius:12px;padding:14px 14px 10px;background:var(--surface)">
+                    <div style="text-align:center;font-weight:850;font-size:14px;margin-bottom:2px">Service receipt preview</div>
+                    <div style="text-align:center;font-size:11px;color:var(--text-3);margin-bottom:12px">Not saved until you confirm</div>
+
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0">
+                        <span style="color:var(--text-3)">Technician</span>
+                        <strong x-text="selectedServiceTechnician()?.name || '—'"></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0"
+                         x-show="serviceBill.customer_name || serviceBill.customer_phone" x-cloak>
+                        <span style="color:var(--text-3)">Customer</span>
+                        <strong style="text-align:right"
+                                x-text="[serviceBill.customer_name, serviceBill.customer_phone].filter(Boolean).join(' · ') || '—'"></strong>
+                    </div>
+                    <div x-show="String(serviceBill.job_description || '').trim()" x-cloak style="margin:8px 0 4px">
+                        <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em">Job</div>
+                        <div style="font-size:12px;white-space:pre-wrap;line-height:1.4" x-text="serviceBill.job_description"></div>
+                    </div>
+
+                    <div style="border-top:1px dashed var(--border);margin:10px 0"></div>
+
+                    <template x-for="(line, idx) in serviceParts" :key="'pv-shop-' + line.id">
+                        <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:5px 0">
+                            <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                                  x-text="line.name + (line.qty > 1 ? (' ×' + line.qty) : '')"></span>
+                            <strong style="font-variant-numeric:tabular-nums;flex-shrink:0">Tk<span x-text="formatMoney((Number(line.price)||0)*(Number(line.qty)||0))"></span></strong>
+                        </div>
+                    </template>
+                    <template x-for="(row, oidx) in serviceOutsideItems" :key="'pv-out-' + (row._key || oidx)">
+                        <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:5px 0"
+                             x-show="String(row.name || '').trim() || (Number(row.amount)||0) > 0" x-cloak>
+                            <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                                  x-text="String(row.name || '').trim() || 'Product'"></span>
+                            <strong style="font-variant-numeric:tabular-nums;flex-shrink:0">Tk<span x-text="formatMoney(Number(row.amount)||0)"></span></strong>
+                        </div>
+                    </template>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:5px 0"
+                         x-show="(Number(serviceBill.labor_cost)||0) > 0" x-cloak>
+                        <span>Service</span>
+                        <strong style="font-variant-numeric:tabular-nums">Tk<span x-text="formatMoney(Number(serviceBill.labor_cost)||0)"></span></strong>
+                    </div>
+
+                    <div style="border-top:1px dashed var(--border);margin:10px 0"></div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:15px;font-weight:900;margin:6px 0">
+                        <span>Total</span>
+                        <span style="font-variant-numeric:tabular-nums">Tk<span x-text="formatMoney(serviceBillTotal())"></span></span>
+                    </div>
+
+                    <div style="border-top:1px dashed var(--border);margin:10px 0"></div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0" x-show="(Number(svcPayCash)||0) > 0 || servicePreviewReceived() <= 0" x-cloak>
+                        <span style="color:var(--text-3)">Cash</span>
+                        <strong>Tk<span x-text="formatMoney(servicePreviewCash())"></span></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0" x-show="(Number(svcPayCard)||0) > 0" x-cloak>
+                        <span style="color:var(--text-3)">Card</span>
+                        <strong>Tk<span x-text="formatMoney(Number(svcPayCard)||0)"></span></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0" x-show="(Number(svcPayBkash)||0) > 0" x-cloak>
+                        <span style="color:var(--text-3)">bKash</span>
+                        <strong>Tk<span x-text="formatMoney(Number(svcPayBkash)||0)"></span></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0">
+                        <span style="color:var(--text-3)">Received</span>
+                        <strong>Tk<span x-text="formatMoney(servicePreviewReceived())"></span></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0" x-show="servicePreviewChange() > 0" x-cloak>
+                        <span style="color:#059669">Change</span>
+                        <strong style="color:#059669">Tk<span x-text="formatMoney(servicePreviewChange())"></span></strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:4px 0" x-show="servicePreviewDue() > 0" x-cloak>
+                        <span style="color:#b45309">Due / Baki</span>
+                        <strong style="color:#b45309">Tk<span x-text="formatMoney(servicePreviewDue())"></span></strong>
+                    </div>
+                    <div x-show="String(serviceBill.notes || '').trim()" x-cloak style="margin-top:10px;font-size:11px;color:var(--text-3)">
+                        Notes: <span x-text="serviceBill.notes"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot" style="gap:8px">
+                <button type="button" @click="closeServiceBillPreview()" class="modal-cancel">
+                    ← Edit bill <span class="modal-kbd">ESC</span>
+                </button>
+                <button type="button" class="modal-confirm"
+                        style="background:#0f766e;box-shadow:0 4px 12px rgba(15,118,110,.28)"
+                        :disabled="isProcessing"
+                        x-ref="confirmServiceBillBtn"
+                        @click="confirmServiceBill()">
+                    <span x-show="!isProcessing" x-cloak>OK · save &amp; print <span class="modal-kbd">ENTER</span></span>
+                    <span x-show="isProcessing" x-cloak>Saving…</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- INVOICE PREVIEW MODAL (after successful sale) -->
     <div x-show="invoiceModalOpen" style="display:none" class="modal-overlay invoice-overlay"
          x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
@@ -2730,7 +3567,7 @@
              x-transition:enter="ease-out duration-250" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
             <div class="modal-head">
                 <div>
-                    <div class="modal-title">Sale complete · Invoice</div>
+                    <div class="modal-title" x-text="lastSale?.kind === 'service' ? 'Service bill complete' : 'Sale complete · Invoice'"></div>
                     <div class="modal-subtitle" x-text="(lastSale?.invoice_no || '') + (lastSale?.customer ? ' · ' + lastSale.customer : '')"></div>
                 </div>
                 <button type="button" @click="closeInvoiceModal()" class="modal-close" aria-label="Close">
@@ -2763,6 +3600,14 @@
                 <div class="invoice-meta-item change" x-show="(lastSale?.change || 0) > 0 || (!(lastSale?.is_baki) && !(lastSale?.is_emi) && (lastSale?.discount_amount || 0) <= 0 && !(lastSale?.credit_amount))" x-cloak>
                     <div class="im-label">Change to return</div>
                     <div class="im-val">Tk<span x-text="formatNumber(lastSale?.change || 0)"></span></div>
+                </div>
+                <div class="invoice-meta-item change" x-show="lastSale?.kind === 'service' && (lastSale?.tech_baki || 0) > 0" x-cloak>
+                    <div class="im-label">Tech baki</div>
+                    <div class="im-val" style="color:#b45309">Tk<span x-text="formatNumber(lastSale?.tech_baki || 0)"></span></div>
+                </div>
+                <div class="invoice-meta-item change" x-show="lastSale?.kind === 'service' && (lastSale?.tech_advance || 0) > 0" x-cloak>
+                    <div class="im-label">Tech advance</div>
+                    <div class="im-val" style="color:#0f766e">Tk<span x-text="formatNumber(lastSale?.tech_advance || 0)"></span></div>
                 </div>
             </div>
             <div class="invoice-frame-wrap">
@@ -3006,6 +3851,32 @@ function posSystem() {
         posBakiEnabled: @json((bool) ($posBakiEnabled ?? true)),
         posSaleEnabled: @json((bool) ($posSaleEnabled ?? true)),
 
+        /* ── Service mode ── */
+        workspaceMode: 'sales',
+        serviceTechnicians: @json($serviceTechnicians ?? []),
+        showNewTechnician: false,
+        isSavingTechnician: false,
+        newTechnician: { name: '', phone: '', commission_percent: 10 },
+        servicePartSearch: '',
+        servicePartDropOpen: false,
+        servicePartHighlight: 0,
+        serviceParts: [],
+        svcPayCash: 0,
+        svcPayCard: 0,
+        svcPayBkash: 0,
+        serviceOutsideItems: [],
+        serviceBill: {
+            technician_id: '',
+            customer_name: '',
+            customer_phone: '',
+            job_description: '',
+            labor_cost: 0,
+            commission_percent: 0,
+            payment_method: 'cash',
+            paid_amount: null,
+            notes: '',
+        },
+
         /* â”€â”€ Discount â”€â”€ */
         discountType: 'percent',
         discountValue: 0,
@@ -3019,6 +3890,8 @@ function posSystem() {
         /* â”€â”€ Checkout â”€â”€ */
         checkoutModalOpen: false,
         invoiceModalOpen: false,
+        servicePreviewOpen: false,
+        servicePrintAfterSave: false,
         cartViewModalOpen: false,
         lastSale: null,
         isProcessing: false,
@@ -3138,6 +4011,559 @@ function posSystem() {
             setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, ms);
         },
 
+        setWorkspaceMode(mode) {
+            this.workspaceMode = mode === 'service' ? 'service' : 'sales';
+            if (this.workspaceMode === 'sales') {
+                this.cancelNewTechnician();
+                this.$nextTick(() => this.$refs.searchInput?.focus());
+            } else if ((this.serviceTechnicians || []).length === 0) {
+                this.showNewTechnician = true;
+                this.$nextTick(() => this.$refs.newTechName?.focus());
+            }
+        },
+        toggleNewTechnicianForm() {
+            this.showNewTechnician = !this.showNewTechnician;
+            if (this.showNewTechnician) {
+                this.$nextTick(() => this.$refs.newTechName?.focus());
+            }
+        },
+        cancelNewTechnician() {
+            this.showNewTechnician = false;
+            this.newTechnician = { name: '', phone: '', commission_percent: 10 };
+        },
+        canSaveNewTechnician() {
+            const name = String(this.newTechnician.name || '').trim();
+            const pct = Number(this.newTechnician.commission_percent);
+            return name.length > 0 && !Number.isNaN(pct) && pct >= 0 && pct <= 100;
+        },
+        async saveNewTechnician() {
+            if (this.isSavingTechnician || !this.canSaveNewTechnician()) return;
+            if (!this.isOnline) {
+                this.showToast('Need an online connection to add a technician', 'error');
+                return;
+            }
+
+            this.isSavingTechnician = true;
+            try {
+                const res = await fetch('{{ route('pos.service.technicians.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: String(this.newTechnician.name || '').trim(),
+                        phone: this.newTechnician.phone || null,
+                        commission_percent: Number(this.newTechnician.commission_percent) || 0,
+                    }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success || !data.technician) {
+                    const msg = data.message
+                        || (data.errors ? Object.values(data.errors).flat()[0] : null)
+                        || 'Could not add technician';
+                    this.playBeep(false);
+                    this.showToast(msg, 'error');
+                    return;
+                }
+
+                const tech = data.technician;
+                this.serviceTechnicians = [...(this.serviceTechnicians || []), tech]
+                    .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+                this.serviceBill.technician_id = String(tech.id);
+                this.serviceBill.commission_percent = Number(tech.commission_percent) || 0;
+                this.cancelNewTechnician();
+                this.playBeep(true);
+                this.showToast(tech.name + ' added', 'success');
+            } catch (err) {
+                this.playBeep(false);
+                this.showToast('Network error adding technician', 'error');
+            } finally {
+                this.isSavingTechnician = false;
+            }
+        },
+        resetServiceBill() {
+            const keepTechId = this.serviceBill.technician_id || '';
+            const keepPct = keepTechId
+                ? (Number(this.selectedServiceTechnician()?.commission_percent) || 0)
+                : 0;
+            this.serviceParts = [];
+            this.servicePartSearch = '';
+            this.servicePartDropOpen = false;
+            this.servicePartHighlight = 0;
+            this.svcPayCash = 0;
+            this.svcPayCard = 0;
+            this.svcPayBkash = 0;
+            this.serviceOutsideItems = [];
+            this.serviceBill = {
+                technician_id: keepTechId,
+                customer_name: '',
+                customer_phone: '',
+                job_description: '',
+                labor_cost: 0,
+                commission_percent: keepPct,
+                payment_method: 'cash',
+                paid_amount: null,
+                notes: '',
+            };
+        },
+        addServiceOutsideItem() {
+            this.serviceOutsideItems.push({
+                _key: 'out-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+                name: '',
+                amount: 0,
+            });
+            this.$nextTick(() => {
+                const inputs = this.$root?.querySelectorAll?.('.svc-outside-list input[placeholder="Product name"]');
+                if (inputs && inputs.length) inputs[inputs.length - 1].focus();
+            });
+        },
+        removeServiceOutsideItem(index) {
+            this.serviceOutsideItems.splice(index, 1);
+        },
+        setServiceOutsideAmount(index, value) {
+            const row = this.serviceOutsideItems[index];
+            if (!row) return;
+            let amount = Number(value);
+            if (!Number.isFinite(amount) || amount < 0) amount = 0;
+            this.serviceOutsideItems[index] = {
+                ...row,
+                amount: Math.round(amount * 100) / 100,
+            };
+        },
+        serviceOutsideTotal() {
+            return Math.round((this.serviceOutsideItems || []).reduce((s, r) => {
+                return s + Math.max(0, Number(r.amount) || 0);
+            }, 0) * 100) / 100;
+        },
+        selectedServiceTechnician() {
+            const id = Number(this.serviceBill.technician_id);
+            if (!id) return null;
+            return (this.serviceTechnicians || []).find(t => Number(t.id) === id) || null;
+        },
+        applyTechnicianDefaultCommission() {
+            const tech = this.selectedServiceTechnician();
+            this.serviceBill.commission_percent = tech
+                ? (Number(tech.commission_percent) || 0)
+                : 0;
+        },
+        commissionDiffersFromDefault() {
+            const tech = this.selectedServiceTechnician();
+            if (!tech) return false;
+            return Math.abs((Number(this.serviceBill.commission_percent) || 0) - (Number(tech.commission_percent) || 0)) > 0.009;
+        },
+        onServicePartSearchInput() {
+            this.servicePartDropOpen = true;
+            this.servicePartHighlight = 0;
+        },
+        closeServicePartDropdown() {
+            this.servicePartDropOpen = false;
+            this.servicePartHighlight = 0;
+        },
+        servicePartOnBill(productId) {
+            return (this.serviceParts || []).some((l) => Number(l.id) === Number(productId));
+        },
+        browseServiceProducts() {
+            const raw = String(this.servicePartSearch || '').trim().toLowerCase();
+            const tokens = raw ? raw.split(/\s+/).filter(Boolean) : [];
+            const list = [];
+
+            (this.products || []).forEach((p) => {
+                if (p.requires_imei) return;
+                const name = String(p.name || '').toLowerCase();
+                const sku = String(p.sku || '').toLowerCase();
+                const barcode = String(p.barcode || '').toLowerCase();
+                const hay = [name, sku, barcode].filter(Boolean).join(' ');
+                if (tokens.length && !tokens.every((t) => hay.includes(t))) return;
+                list.push(p);
+            });
+
+            list.sort((a, b) => {
+                const sa = Number(a.stock_quantity) || 0;
+                const sb = Number(b.stock_quantity) || 0;
+                if ((sa > 0) !== (sb > 0)) return sb > 0 ? 1 : -1;
+                return String(a.name || '').localeCompare(String(b.name || ''));
+            });
+
+            return list.slice(0, 80);
+        },
+        filteredServiceProducts() {
+            const raw = String(this.servicePartSearch || '').trim();
+            const q = raw.toLowerCase();
+            if (!q) return this.browseServiceProducts().slice(0, 12);
+
+            const tokens = q.split(/\s+/).filter(Boolean);
+            const scored = [];
+
+            (this.products || []).forEach((p) => {
+                if (p.requires_imei) return;
+
+                const name = String(p.name || '').toLowerCase();
+                const sku = String(p.sku || '').toLowerCase();
+                const barcode = String(p.barcode || '').toLowerCase();
+                const hay = [name, sku, barcode].filter(Boolean).join(' ');
+
+                if (!tokens.every((t) => hay.includes(t))) return;
+
+                let score = 0;
+                if (barcode && (barcode === q || barcode.startsWith(q))) score += 100;
+                if (sku && (sku === q || sku.startsWith(q))) score += 80;
+                if (name.startsWith(q)) score += 60;
+                if (name.includes(q)) score += 30;
+                tokens.forEach((t) => {
+                    if (name.includes(t)) score += 8;
+                    if (sku.includes(t)) score += 12;
+                    if (barcode.includes(t)) score += 14;
+                });
+                if ((Number(p.stock_quantity) || 0) > 0) score += 5;
+
+                scored.push({ p, score });
+            });
+
+            return scored
+                .sort((a, b) => b.score - a.score || String(a.p.name).localeCompare(String(b.p.name)))
+                .slice(0, 12)
+                .map((row) => row.p);
+        },
+        moveServicePartHighlight(delta) {
+            const list = this.filteredServiceProducts();
+            if (!list.length) return;
+            this.servicePartDropOpen = true;
+            const next = (this.servicePartHighlight + delta + list.length) % list.length;
+            this.servicePartHighlight = next;
+        },
+        confirmServicePartHighlight() {
+            const list = this.filteredServiceProducts();
+            if (!list.length) return;
+            const idx = Math.min(Math.max(0, this.servicePartHighlight), list.length - 1);
+            this.addServicePart(list[idx]);
+        },
+        addServicePart(product) {
+            if (!product || product.requires_imei) {
+                this.showToast('IMEI products belong in Sales mode', 'warning');
+                return;
+            }
+            const max = Math.max(0, Number(product.stock_quantity) || 0);
+            if (max < 1) {
+                this.showToast(product.name + ' is out of stock', 'error');
+                return;
+            }
+            const existing = this.serviceParts.find(l => Number(l.id) === Number(product.id));
+            if (existing) {
+                if (existing.qty >= existing.max_stock) {
+                    this.showToast('Max stock for ' + product.name, 'warning');
+                    return;
+                }
+                existing.qty += 1;
+            } else {
+                const listPrice = Number(product.list_price ?? product.selling_price) || 0;
+                const sellPrice = Number(product.selling_price) || 0;
+                this.serviceParts.push({
+                    id: product.id,
+                    name: product.name,
+                    price: sellPrice,
+                    list_price: listPrice,
+                    cost: Number(product.cost_price) || 0,
+                    qty: 1,
+                    max_stock: max,
+                    image_url: this.productImageSrc(product) || this.placeholderDataUri(product.name),
+                });
+            }
+            this.servicePartSearch = '';
+            this.closeServicePartDropdown();
+            this.$nextTick(() => this.$refs.servicePartInput?.focus());
+            this.showToast(product.name + ' added · edit price if needed', 'success', 1800);
+        },
+        setServicePartPrice(index, value) {
+            const line = this.serviceParts[index];
+            if (!line) return;
+            let price = Number(value);
+            if (!Number.isFinite(price) || price < 0) price = 0;
+            this.serviceParts[index] = {
+                ...line,
+                price: Math.round(price * 100) / 100,
+            };
+        },
+        resetServicePartPrice(index) {
+            const line = this.serviceParts[index];
+            if (!line) return;
+            this.serviceParts[index] = {
+                ...line,
+                price: Number(line.list_price ?? line.price) || 0,
+            };
+        },
+        bumpServicePartQty(index, delta) {
+            const line = this.serviceParts[index];
+            if (!line) return;
+            const next = line.qty + delta;
+            if (next < 1) {
+                this.removeServicePart(index);
+                return;
+            }
+            if (next > line.max_stock) {
+                this.showToast('Max stock for ' + line.name, 'warning');
+                return;
+            }
+            line.qty = next;
+        },
+        removeServicePart(index) {
+            this.serviceParts.splice(index, 1);
+        },
+        formatMoney(n) {
+            const v = Math.round((Number(n) || 0) * 100) / 100;
+            return v.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        },
+        serviceShopPartsTotal() {
+            return Math.round((this.serviceParts || []).reduce((s, l) => s + (Number(l.price) || 0) * (Number(l.qty) || 0), 0) * 100) / 100;
+        },
+        serviceShopPartsProfit() {
+            return Math.round((this.serviceParts || []).reduce((s, l) => {
+                const unitProfit = Math.max(0, (Number(l.price) || 0) - (Number(l.cost) || 0));
+                return s + unitProfit * (Number(l.qty) || 0);
+            }, 0) * 100) / 100;
+        },
+        serviceBillTotal() {
+            const labor = Math.max(0, Number(this.serviceBill.labor_cost) || 0);
+            return Math.round((this.serviceShopPartsTotal() + this.serviceOutsideTotal() + labor) * 100) / 100;
+        },
+        serviceCommissionBase() {
+            // Service amount only — shop inventory profit is never shared
+            return Math.max(0, Math.round((Number(this.serviceBill.labor_cost) || 0) * 100) / 100);
+        },
+        serviceCommissionPreview() {
+            const pct = Math.max(0, Math.min(100, Number(this.serviceBill.commission_percent) || 0));
+            return Math.round(this.serviceCommissionBase() * pct * 100) / 10000;
+        },
+        serviceCustomerPaid() {
+            return Math.round((
+                Math.max(0, Number(this.svcPayCash) || 0) +
+                Math.max(0, Number(this.svcPayCard) || 0) +
+                Math.max(0, Number(this.svcPayBkash) || 0)
+            ) * 100) / 100;
+        },
+        serviceCustomerChange() {
+            return Math.max(0, Math.round((this.serviceCustomerPaid() - this.serviceBillTotal()) * 100) / 100);
+        },
+        serviceCustomerDue() {
+            return Math.max(0, Math.round((this.serviceBillTotal() - this.serviceCustomerPaid()) * 100) / 100);
+        },
+        serviceTechAdvanceOnHand() {
+            const tech = this.selectedServiceTechnician();
+            return Math.max(0, Math.round((Number(tech?.advance_balance) || 0) * 100) / 100);
+        },
+        serviceTechAdvanceApplied() {
+            // Advance is applied only from admin Service payout (owner choice)
+            return 0;
+        },
+        serviceTechDueAfterAdvance() {
+            return Math.max(0, Math.round(this.serviceCommissionPreview() * 100) / 100);
+        },
+        serviceTechBaki() {
+            // Full commission accrues as due; admin decides advance deduct later
+            return this.serviceTechDueAfterAdvance();
+        },
+        serviceBillBlockReason() {
+            if (!this.selectedServiceTechnician()) return 'Select a technician first';
+            if (this.serviceBillTotal() <= 0) return 'Add shop parts, products, or service amount';
+            return '';
+        },
+        canSubmitServiceBill() {
+            return !this.serviceBillBlockReason();
+        },
+        servicePreviewCash() {
+            const total = this.serviceBillTotal();
+            let cash = Math.max(0, Number(this.svcPayCash) || 0);
+            let card = Math.max(0, Number(this.svcPayCard) || 0);
+            let mobile = Math.max(0, Number(this.svcPayBkash) || 0);
+            if ((cash + card + mobile) <= 0 && total > 0) return total;
+            return cash;
+        },
+        servicePreviewReceived() {
+            const total = this.serviceBillTotal();
+            let cash = Math.max(0, Number(this.svcPayCash) || 0);
+            let card = Math.max(0, Number(this.svcPayCard) || 0);
+            let mobile = Math.max(0, Number(this.svcPayBkash) || 0);
+            const received = Math.round((cash + card + mobile) * 100) / 100;
+            if (received <= 0 && total > 0) return total;
+            return received;
+        },
+        servicePreviewChange() {
+            return Math.max(0, Math.round((this.servicePreviewReceived() - this.serviceBillTotal()) * 100) / 100);
+        },
+        servicePreviewDue() {
+            return Math.max(0, Math.round((this.serviceBillTotal() - this.servicePreviewReceived()) * 100) / 100);
+        },
+        openServiceBillPreview() {
+            if (this.isProcessing) return;
+            const block = this.serviceBillBlockReason();
+            if (block) {
+                this.playBeep(false);
+                this.showToast(block, 'warning');
+                return;
+            }
+            // Mirror Exact cash on blank pay so preview matches what will save
+            const total = this.serviceBillTotal();
+            const received = Math.round((
+                Math.max(0, Number(this.svcPayCash) || 0) +
+                Math.max(0, Number(this.svcPayCard) || 0) +
+                Math.max(0, Number(this.svcPayBkash) || 0)
+            ) * 100) / 100;
+            if (received <= 0 && total > 0) {
+                this.svcPayCash = total;
+                this.svcPayCard = 0;
+                this.svcPayBkash = 0;
+            }
+            this.servicePreviewOpen = true;
+            this.$nextTick(() => this.$refs.confirmServiceBillBtn?.focus());
+        },
+        closeServiceBillPreview() {
+            this.servicePreviewOpen = false;
+        },
+        async confirmServiceBill() {
+            if (this.isProcessing) return;
+            this.servicePreviewOpen = false;
+            await this.submitServiceBill({ printAfter: true });
+        },
+        async submitServiceBill(opts = {}) {
+            if (this.isProcessing) return;
+
+            const block = this.serviceBillBlockReason();
+            if (block) {
+                this.playBeep(false);
+                this.showToast(block, 'warning');
+                return;
+            }
+            if (!this.isOnline) {
+                this.playBeep(false);
+                this.showToast('Service bills need an online connection', 'error');
+                return;
+            }
+
+            const total = this.serviceBillTotal();
+            let cash = Math.max(0, Number(this.svcPayCash) || 0);
+            let card = Math.max(0, Number(this.svcPayCard) || 0);
+            let mobile = Math.max(0, Number(this.svcPayBkash) || 0);
+            let received = Math.round((cash + card + mobile) * 100) / 100;
+
+            // Blank payment = Exact cash (same as old Amount paid blank behavior)
+            if (received <= 0 && total > 0) {
+                cash = total;
+                card = 0;
+                mobile = 0;
+                received = total;
+                this.svcPayCash = cash;
+                this.svcPayCard = 0;
+                this.svcPayBkash = 0;
+            }
+
+            this.servicePrintAfterSave = !!opts.printAfter;
+            this.isProcessing = true;
+            try {
+                const res = await fetch('{{ route('pos.service.checkout') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({
+                        service_technician_id: Number(this.serviceBill.technician_id),
+                        customer_name: this.serviceBill.customer_name || null,
+                        customer_phone: this.serviceBill.customer_phone || null,
+                        job_description: String(this.serviceBill.job_description || '').trim() || null,
+                        items: (this.serviceParts || []).map(l => ({
+                            id: Number(l.id),
+                            qty: Number(l.qty) || 1,
+                            price: Number(l.price) || 0,
+                        })),
+                        outside_items: (this.serviceOutsideItems || [])
+                            .filter((r) => String(r.name || '').trim() || (Number(r.amount) || 0) > 0)
+                            .map((r) => ({
+                                name: String(r.name || '').trim() || 'Product',
+                                amount: Math.max(0, Number(r.amount) || 0),
+                            })),
+                        labor_cost: Math.max(0, Number(this.serviceBill.labor_cost) || 0),
+                        commission_percent: Math.max(0, Math.min(100, Number(this.selectedServiceTechnician()?.commission_percent) || Number(this.serviceBill.commission_percent) || 0)),
+                        cash_amount: cash,
+                        card_amount: card,
+                        mobile_amount: mobile,
+                        notes: this.serviceBill.notes || null,
+                    }),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    const msg = data.message
+                        || (data.errors ? Object.values(data.errors).flat()[0] : null)
+                        || ('Could not save service bill' + (res.status ? ' (' + res.status + ')' : ''));
+                    this.playBeep(false);
+                    this.showToast(msg, 'error');
+                    return;
+                }
+
+                this.playBeep(true);
+                this.applyStockUpdates(data.stock_updates || [], [], {});
+
+                // Keep technician advance / baki in sync for the next bill
+                if (data.technician?.id) {
+                    const tid = Number(data.technician.id);
+                    this.serviceTechnicians = (this.serviceTechnicians || []).map((t) => {
+                        if (Number(t.id) !== tid) return t;
+                        return {
+                            ...t,
+                            advance_balance: Number(data.technician.advance_balance) || 0,
+                            outstanding_commission: Number(data.technician.outstanding_commission) || 0,
+                        };
+                    });
+                }
+
+                const customerSnap = this.serviceBill.customer_name || 'Walk-in';
+                const paidSnap = Number(data.job?.paid_amount ?? Math.min(received, total));
+                const creditSnap = Number(data.job?.credit_amount ?? 0);
+                const changeSnap = Number(data.job?.change ?? 0);
+                const techBakiSnap = Number(data.job?.tech_baki ?? 0);
+                const techAdvanceSnap = Number(data.job?.tech_advance_after ?? 0);
+                this.resetServiceBill();
+                this.lastSale = {
+                    kind: 'service',
+                    invoice_no: data.job?.invoice_no || '',
+                    paid_amount: paidSnap,
+                    change: changeSnap,
+                    discount_amount: 0,
+                    credit_amount: creditSnap,
+                    baki_balance: creditSnap,
+                    emi_balance: 0,
+                    is_baki: creditSnap > 0,
+                    is_emi: false,
+                    total_amount: data.job?.total_amount ?? total,
+                    customer: customerSnap,
+                    receipt_url: data.receipt_url,
+                    receipt_html: null,
+                    offline: false,
+                    tech_baki: techBakiSnap,
+                    tech_advance: techAdvanceSnap,
+                };
+                this.invoiceModalOpen = true;
+                let toast = data.message || 'Service bill saved';
+                if (creditSnap > 0.009 && !(data.message || '').toLowerCase().includes('customer')) {
+                    toast += ' · Customer due Tk' + this.formatMoney(creditSnap);
+                }
+                this.showToast(toast, 'success');
+                if (this.servicePrintAfterSave) {
+                    this.$nextTick(() => {
+                        setTimeout(() => this.printLastReceipt(), 350);
+                    });
+                }
+            } catch (err) {
+                this.playBeep(false);
+                this.showToast('Network error saving service bill', 'error');
+            } finally {
+                this.servicePrintAfterSave = false;
+                this.isProcessing = false;
+            }
+        },
+
         /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
            BEEP FEEDBACK
         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -3161,6 +4587,19 @@ function posSystem() {
            KEYBOARD SHORTCUTS
         â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
         handleKeydown(e) {
+            // Service bill review (before save) — Enter confirms, Esc edits
+            if (this.servicePreviewOpen) {
+                if (e.key === 'Enter' || e.key === 'NumpadEnter') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!this.isProcessing) this.confirmServiceBill();
+                }
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    this.closeServiceBillPreview();
+                }
+                return;
+            }
             // Invoice preview after sale — Enter prints, Esc closes
             if (this.invoiceModalOpen) {
                 if (e.key === 'Enter' || e.key === 'NumpadEnter') {
@@ -3201,11 +4640,24 @@ function posSystem() {
                 return;
             }
             // Global
-            if (e.key === 'F2')    { e.preventDefault(); if (this.canProceedToCheckout()) this.openCheckout(); }
+            if (e.key === 'F2') {
+                e.preventDefault();
+                if (this.workspaceMode === 'service') {
+                    this.openServiceBillPreview();
+                } else if (this.canProceedToCheckout()) {
+                    this.openCheckout();
+                }
+            }
             if (e.key === 'F11')   { e.preventDefault(); this.toggleFullscreen(); }
-            if (e.key === 'F8')    { e.preventDefault(); this.openReturns(); }
-            if (e.key === 'Escape'){ this.search = ''; this.$refs.searchInput.focus(); }
-            if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) {
+            if (e.key === 'F8') {
+                e.preventDefault();
+                if (this.workspaceMode === 'sales') this.openReturns();
+            }
+            if (e.key === 'Escape' && this.workspaceMode === 'sales') {
+                this.search = '';
+                this.$refs.searchInput?.focus();
+            }
+            if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey) && this.workspaceMode === 'sales') {
                 e.preventDefault();
                 this.$refs.searchInput?.focus();
                 this.$refs.searchInput?.select();

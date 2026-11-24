@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\ServiceCommissionPayment;
+use App\Models\ServiceJob;
+use App\Models\ServiceTechnician;
 use App\Services\AnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -411,5 +414,133 @@ class ReportController extends Controller
                 ];
             })
         ]);
+    }
+
+    public function serviceMonthly(Request $request)
+    {
+        $this->ensureAdmin();
+
+        $shopId = Auth::user()->shop_id;
+        $month = $request->input('month', now()->format('Y-m'));
+        if (! preg_match('/^\d{4}-\d{2}$/', $month)) {
+            $month = now()->format('Y-m');
+        }
+
+        $start = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        $end = (clone $start)->endOfMonth();
+
+        $jobs = ServiceJob::where('shop_id', $shopId)
+            ->completed()
+            ->whereBetween('served_at', [$start, $end])
+            ->with('technician:id,name,commission_percent')
+            ->orderByDesc('served_at')
+            ->get();
+
+        $billedTotal = round((float) $jobs->sum('total_amount'), 2);
+        $paidTotal = round((float) $jobs->sum('paid_amount'), 2);
+        $customerDueTotal = round((float) $jobs->sum('credit_amount'), 2);
+        $shopPartsTotal = round((float) $jobs->sum('shop_parts_amount'), 2);
+        $shopPartsCost = round((float) $jobs->sum('shop_parts_cost'), 2);
+        $shopPartsProfit = max(0, round($shopPartsTotal - $shopPartsCost, 2));
+        $outsideTotal = round((float) $jobs->sum('materials_cost'), 2);
+        $laborTotal = round((float) $jobs->sum('labor_cost'), 2);
+        $serviceRevenue = round($outsideTotal + $laborTotal, 2);
+        $commissionEarned = round((float) $jobs->sum('commission_amount'), 2);
+        $commissionPaidOnJobs = round((float) $jobs->sum('commission_paid_amount'), 2);
+
+        $paymentsByTech = ServiceCommissionPayment::where('shop_id', $shopId)
+            ->where('period_month', $month)
+            ->selectRaw('service_technician_id, SUM(amount) as paid_total')
+            ->groupBy('service_technician_id')
+            ->pluck('paid_total', 'service_technician_id');
+
+        $commissionPaid = round((float) $paymentsByTech->sum(), 2);
+        $outstanding = max(0, round($commissionEarned - $commissionPaid, 2));
+
+        // Prefer period payout ledger; fall back to checkout "pay tech now" if no period payments
+        $byTechnician = $jobs->groupBy('service_technician_id')->map(function ($group) use ($paymentsByTech) {
+            /** @var \Illuminate\Support\Collection $group */
+            $tech = $group->first()->technician;
+            $techId = $group->first()->service_technician_id;
+            $earned = round((float) $group->sum('commission_amount'), 2);
+            $paidFromLedger = round((float) ($paymentsByTech[$techId] ?? 0), 2);
+            $paidAtCheckout = round((float) $group->sum('commission_paid_amount'), 2);
+            $paid = $paidFromLedger > 0.009 ? $paidFromLedger : $paidAtCheckout;
+            $parts = round((float) $group->sum('shop_parts_amount'), 2);
+            $partsCost = round((float) $group->sum('shop_parts_cost'), 2);
+
+            return [
+                'technician_id' => $techId,
+                'name' => $tech?->name ?? 'Unknown',
+                'jobs' => $group->count(),
+                'billed' => round((float) $group->sum('total_amount'), 2),
+                'paid' => round((float) $group->sum('paid_amount'), 2),
+                'customer_due' => round((float) $group->sum('credit_amount'), 2),
+                'shop_parts' => $parts,
+                'shop_parts_profit' => max(0, round($parts - $partsCost, 2)),
+                'outside' => round((float) $group->sum('materials_cost'), 2),
+                'labor' => round((float) $group->sum('labor_cost'), 2),
+                'commission_earned' => $earned,
+                'commission_paid' => $paid,
+                'commission_outstanding' => max(0, round($earned - $paid, 2)),
+            ];
+        })->sortByDesc('billed')->values();
+
+        $byService = $jobs->groupBy(function (ServiceJob $job) {
+            $desc = trim(mb_strtolower($job->job_description));
+            $desc = preg_replace('/\s+/', ' ', $desc) ?: 'general service';
+
+            return mb_substr($desc, 0, 80);
+        })->map(function ($group, $label) {
+            return [
+                'label' => $label,
+                'jobs' => $group->count(),
+                'billed' => round((float) $group->sum('total_amount'), 2),
+                'shop_parts' => round((float) $group->sum('shop_parts_amount'), 2),
+                'outside' => round((float) $group->sum('materials_cost'), 2),
+                'labor' => round((float) $group->sum('labor_cost'), 2),
+                'commission' => round((float) $group->sum('commission_amount'), 2),
+            ];
+        })->sortByDesc('billed')->values()->take(40);
+
+        $totals = [
+            'jobs' => $jobs->count(),
+            'billed' => $billedTotal,
+            'paid' => $paidTotal,
+            'customer_due' => $customerDueTotal,
+            'shop_parts' => $shopPartsTotal,
+            'shop_parts_cost' => $shopPartsCost,
+            'shop_parts_profit' => $shopPartsProfit,
+            'outside' => $outsideTotal,
+            'labor' => $laborTotal,
+            'service_revenue' => $serviceRevenue,
+            'commission_earned' => $commissionEarned,
+            'commission_paid' => $commissionPaid,
+            'commission_paid_on_jobs' => $commissionPaidOnJobs,
+            'outstanding' => $outstanding,
+        ];
+
+        // Keep old variable names used by any cached views / links
+        $totalCollected = $billedTotal;
+
+        return view('reports.service-monthly', compact(
+            'month',
+            'start',
+            'end',
+            'jobs',
+            'totals',
+            'totalCollected',
+            'shopPartsTotal',
+            'shopPartsCost',
+            'shopPartsProfit',
+            'outsideTotal',
+            'laborTotal',
+            'serviceRevenue',
+            'commissionEarned',
+            'commissionPaid',
+            'outstanding',
+            'byTechnician',
+            'byService',
+        ));
     }
 }

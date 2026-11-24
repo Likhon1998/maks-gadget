@@ -21,6 +21,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SalesLedgerController;
+use App\Http\Controllers\ServiceCommissionController;
+use App\Http\Controllers\ServiceJobController;
+use App\Http\Controllers\ServiceTechnicianController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\DamageProductController;
 use App\Http\Controllers\OpeningInventoryController;
@@ -155,6 +158,8 @@ Route::middleware([
 
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
     Route::post('/pos/checkout', [PosController::class, 'store'])->name('pos.checkout');
+    Route::post('/pos/service-checkout', [ServiceJobController::class, 'store'])->name('pos.service.checkout');
+    Route::post('/pos/service-technicians', [ServiceTechnicianController::class, 'storeFromPos'])->name('pos.service.technicians.store');
     Route::get('/pos/receipt/{order}', [PosController::class, 'receipt'])->name('pos.receipt');
     Route::get('/pos/customer-lookup', [PosController::class, 'lookupCustomer'])->name('pos.customer-lookup');
     Route::post('/pos/sync-offline', [PosController::class, 'syncOffline'])->name('pos.sync');
@@ -162,6 +167,24 @@ Route::middleware([
     Route::post('/pos/orders/{order}/refund', [PosController::class, 'refundOrder'])->name('pos.orders.refund');
     Route::get('/pos/settings', [PosSettingsController::class, 'edit'])->name('pos.settings.edit');
     Route::put('/pos/settings', [PosSettingsController::class, 'update'])->name('pos.settings.update');
+
+    Route::get('/services/technicians', [ServiceTechnicianController::class, 'index'])->name('services.technicians.index');
+    Route::get('/services/technicians/create', [ServiceTechnicianController::class, 'create'])->name('services.technicians.create');
+    Route::post('/services/technicians', [ServiceTechnicianController::class, 'store'])->name('services.technicians.store');
+    Route::get('/services/technicians/{technician}/edit', [ServiceTechnicianController::class, 'edit'])->name('services.technicians.edit');
+    Route::put('/services/technicians/{technician}', [ServiceTechnicianController::class, 'update'])->name('services.technicians.update');
+    Route::delete('/services/technicians/{technician}', [ServiceTechnicianController::class, 'destroy'])->name('services.technicians.destroy');
+    Route::get('/services', [ServiceCommissionController::class, 'index'])->name('services.hub');
+    Route::get('/services/payments', [ServiceCommissionController::class, 'index'])->name('services.payments.index');
+    Route::get('/services/commission', [ServiceCommissionController::class, 'settings'])->name('services.commission.settings');
+    Route::post('/services/commission/gross', [ServiceCommissionController::class, 'updateGross'])->name('services.commission.gross');
+    Route::post('/services/commission/technicians/{technician}', [ServiceCommissionController::class, 'updateTechnician'])->name('services.commission.technician');
+    Route::post('/services/commission/jobs/{job}', [ServiceCommissionController::class, 'updateJob'])->name('services.commission.job');
+    Route::get('/services/technicians/{technician}/commissions/create', [ServiceCommissionController::class, 'create'])->name('services.commissions.create');
+    Route::post('/services/technicians/{technician}/commissions', [ServiceCommissionController::class, 'store'])->name('services.commissions.store');
+    Route::get('/services/jobs', [ServiceJobController::class, 'index'])->name('services.jobs.index');
+    Route::get('/services/jobs/{job}/receipt', [ServiceJobController::class, 'receipt'])->name('services.jobs.receipt');
+    Route::post('/services/jobs/{job}/void', [ServiceJobController::class, 'void'])->name('services.jobs.void');
 
     Route::resource('customers', CustomerController::class);
     Route::get('/customers-baki', [CustomerBakiController::class, 'index'])->name('customers.baki.index');
@@ -270,6 +293,7 @@ Route::middleware([
         ->name('reports.low_stock');
     Route::get('/reports/staff-performance', [ReportController::class, 'staffPerformance'])->name('reports.staff_performance');
     Route::get('/reports/staff-daily-details', [ReportController::class, 'staffDailyDetails'])->name('reports.staff_daily_details');
+    Route::get('/reports/service-monthly', [ReportController::class, 'serviceMonthly'])->name('reports.service_monthly');
     Route::post('/orders/{order}/exchange', [ExchangeController::class, 'processExchange'])->name('orders.exchange');
 
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');

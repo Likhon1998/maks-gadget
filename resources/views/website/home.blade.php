@@ -1,4 +1,4 @@
-﻿@extends('website.layout')
+@extends('website.layout')
 @php $ws = app(\App\Services\WebsiteService::class); @endphp
 
 @section('content')

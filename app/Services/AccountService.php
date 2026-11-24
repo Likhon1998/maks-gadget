@@ -11,6 +11,8 @@ use App\Models\Customer;
 use App\Models\CustomerBakiEntry;
 use App\Models\CustomerEmiEntry;
 use App\Models\Order;
+use App\Models\ServiceCommissionPayment;
+use App\Models\ServiceJob;
 use App\Models\StockMovement;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -34,6 +36,8 @@ class AccountService
         ['code' => 'BAKI-AR', 'name' => 'Customer Baki Receivable', 'type' => 'asset'],
         ['code' => 'EMI-AR', 'name' => 'Customer EMI Receivable', 'type' => 'asset'],
         ['code' => 'EXPENSE', 'name' => 'General Expenses', 'type' => 'expense'],
+        ['code' => 'SVC-REV', 'name' => 'Service Revenue', 'type' => 'income'],
+        ['code' => 'SVC-COMM', 'name' => 'Technician Commission Payable', 'type' => 'liability'],
     ];
 
     public function dateRange(Request $request): array
@@ -692,6 +696,246 @@ class AccountService
             ],
             userId: Auth::id(),
         );
+    }
+
+    public function postServiceJob(ServiceJob $job, ?int $counterId = null): void
+    {
+        if ($this->transactionExists($job->shop_id, 'service_sale', ServiceJob::class, $job->id)) {
+            return;
+        }
+
+        $this->ensureShopAccounts($job->shop_id);
+
+        $shopParts = round((float) ($job->shop_parts_amount ?? 0), 2);
+        $shopPartsCost = round((float) ($job->shop_parts_cost ?? 0), 2);
+        $outside = round((float) $job->materials_cost, 2);
+        $labor = round((float) $job->labor_cost, 2);
+        $total = round((float) $job->total_amount, 2);
+        $paid = round((float) $job->paid_amount, 2);
+        $commission = round((float) $job->commission_amount, 2);
+        $serviceCollections = round($outside + $labor, 2);
+
+        if ($total <= 0 && $shopPartsCost <= 0 && $commission <= 0) {
+            return;
+        }
+
+        $lines = [];
+
+        $cash = round((float) ($job->cash_amount ?? 0), 2);
+        $card = round((float) ($job->card_amount ?? 0), 2);
+        $mobile = round((float) ($job->mobile_amount ?? 0), 2);
+        $hasSplit = ($cash + $card + $mobile) > 0.009;
+
+        if ($hasSplit) {
+            if ($cash > 0) {
+                $lines[] = [
+                    'account' => $this->resolveServicePaymentAccount($job->shop_id, 'cash', $counterId),
+                    'debit' => $cash,
+                    'credit' => 0,
+                    'counter_id' => $counterId,
+                ];
+            }
+            if ($card > 0) {
+                $lines[] = [
+                    'account' => $this->resolveServicePaymentAccount($job->shop_id, 'card', $counterId),
+                    'debit' => $card,
+                    'credit' => 0,
+                    'counter_id' => $counterId,
+                ];
+            }
+            if ($mobile > 0) {
+                $lines[] = [
+                    'account' => $this->resolveServicePaymentAccount($job->shop_id, 'bkash', $counterId),
+                    'debit' => $mobile,
+                    'credit' => 0,
+                    'counter_id' => $counterId,
+                ];
+            }
+        } else {
+            // Only book what was actually collected (0 paid = full customer baki)
+            $collect = max(0, $paid);
+            if ($collect > 0.009) {
+                $lines[] = [
+                    'account' => $this->resolveServicePaymentAccount($job->shop_id, $job->payment_method, $counterId),
+                    'debit' => $collect,
+                    'credit' => 0,
+                    'counter_id' => $counterId,
+                ];
+            }
+        }
+
+        // Customer service baki (unpaid remainder)
+        $credit = round((float) ($job->credit_amount ?? 0), 2);
+        if ($credit <= 0 && $paid + 0.009 < $total) {
+            $credit = round($total - max(0, $paid), 2);
+        }
+        if ($credit > 0.009) {
+            $lines[] = [
+                'account' => $this->getAccount($job->shop_id, 'BAKI-AR'),
+                'debit' => $credit,
+                'credit' => 0,
+                'counter_id' => null,
+            ];
+        }
+
+        // Shop parts = normal product revenue + COGS (shop keeps product profit)
+        if ($shopParts > 0) {
+            $lines[] = [
+                'account' => $this->getAccount($job->shop_id, 'REVENUE'),
+                'debit' => 0,
+                'credit' => $shopParts,
+                'counter_id' => $counterId,
+            ];
+        }
+        if ($shopPartsCost > 0) {
+            $lines[] = [
+                'account' => $this->getAccount($job->shop_id, 'COGS'),
+                'debit' => $shopPartsCost,
+                'credit' => 0,
+                'counter_id' => $counterId,
+            ];
+            $lines[] = [
+                'account' => $this->getAccount($job->shop_id, 'INVENTORY'),
+                'debit' => 0,
+                'credit' => $shopPartsCost,
+                'counter_id' => $counterId,
+            ];
+        }
+
+        // Labor + outside materials collected → service revenue (commission on service/labor only)
+        if ($serviceCollections > 0) {
+            $lines[] = [
+                'account' => $this->getAccount($job->shop_id, 'SVC-REV'),
+                'debit' => 0,
+                'credit' => $serviceCollections,
+                'counter_id' => $counterId,
+            ];
+        }
+
+        if ($commission > 0) {
+            $lines[] = [
+                'account' => $this->getAccount($job->shop_id, 'EXPENSE'),
+                'debit' => $commission,
+                'credit' => 0,
+                'counter_id' => null,
+            ];
+            $lines[] = [
+                'account' => $this->getAccount($job->shop_id, 'SVC-COMM'),
+                'debit' => 0,
+                'credit' => $commission,
+                'counter_id' => null,
+            ];
+        }
+
+        if ($lines === []) {
+            return;
+        }
+
+        $this->createTransaction(
+            shopId: $job->shop_id,
+            type: 'service_sale',
+            referenceType: ServiceJob::class,
+            referenceId: $job->id,
+            description: 'Service bill - '.$job->invoice_no,
+            date: $job->served_at ?? $job->created_at,
+            lines: $lines,
+            userId: $job->created_by,
+        );
+    }
+
+    public function postServiceJobVoid(ServiceJob $job): void
+    {
+        if ($this->transactionExists($job->shop_id, 'service_void', ServiceJob::class, $job->id)) {
+            return;
+        }
+
+        if (! $this->transactionExists($job->shop_id, 'service_sale', ServiceJob::class, $job->id)) {
+            return;
+        }
+
+        $this->ensureShopAccounts($job->shop_id);
+
+        $sale = AccountTransaction::where('shop_id', $job->shop_id)
+            ->where('type', 'service_sale')
+            ->where('reference_type', ServiceJob::class)
+            ->where('reference_id', $job->id)
+            ->with('entries.account')
+            ->first();
+
+        if (! $sale) {
+            return;
+        }
+
+        $lines = [];
+        foreach ($sale->entries as $entry) {
+            $lines[] = [
+                'account' => $entry->account,
+                'debit' => $entry->entry_type === 'credit' ? (float) $entry->amount : 0,
+                'credit' => $entry->entry_type === 'debit' ? (float) $entry->amount : 0,
+                'counter_id' => $entry->counter_id,
+            ];
+        }
+
+        $this->createTransaction(
+            shopId: $job->shop_id,
+            type: 'service_void',
+            referenceType: ServiceJob::class,
+            referenceId: $job->id,
+            description: 'Void service bill - '.$job->invoice_no,
+            date: now(),
+            lines: $lines,
+            userId: Auth::id(),
+        );
+    }
+
+    public function postServiceCommissionPayment(ServiceCommissionPayment $payment): void
+    {
+        if ($this->transactionExists($payment->shop_id, 'service_commission_payout', ServiceCommissionPayment::class, $payment->id)) {
+            return;
+        }
+
+        $this->ensureShopAccounts($payment->shop_id);
+        $amount = round((float) $payment->amount, 2);
+        if ($amount <= 0) {
+            return;
+        }
+
+        $payable = $this->getAccount($payment->shop_id, 'SVC-COMM');
+        $petty = $this->getAccount($payment->shop_id, 'PETTY');
+
+        $this->createTransaction(
+            shopId: $payment->shop_id,
+            type: 'service_commission_payout',
+            referenceType: ServiceCommissionPayment::class,
+            referenceId: $payment->id,
+            description: 'Technician commission payout'.($payment->period_month ? ' ('.$payment->period_month.')' : ''),
+            date: $payment->paid_on,
+            lines: [
+                ['account' => $payable, 'debit' => $amount, 'credit' => 0, 'counter_id' => null],
+                ['account' => $petty, 'debit' => 0, 'credit' => $amount, 'counter_id' => null],
+            ],
+            userId: $payment->paid_by,
+        );
+    }
+
+    protected function resolveServicePaymentAccount(int $shopId, string $method, ?int $counterId = null): Account
+    {
+        $method = strtolower(trim($method));
+        if ($method === 'card') {
+            return $this->getAccount($shopId, 'CARD');
+        }
+        if (in_array($method, ['bkash', 'mobile'], true)) {
+            return $this->getAccount($shopId, 'BKASH');
+        }
+
+        if ($counterId) {
+            $counter = Counter::find($counterId);
+            if ($counter && (int) $counter->shop_id === $shopId) {
+                return $this->ensureCounterCashAccount($counter);
+            }
+        }
+
+        return $this->getAccount($shopId, 'PETTY');
     }
 
     public function postOpeningInventory(StockMovement $movement): void

@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Counter;
 use App\Models\Customer;
+use App\Models\ServiceTechnician;
 use App\Models\Shop;
 use App\Models\User;
 use App\Services\AccountService;
@@ -106,6 +107,7 @@ class PosController extends Controller
                     'storage' => $product->storage,
                     'selling_price' => $chargePrice,
                     'list_price' => $listPrice,
+                    'cost_price' => (float) $product->cost_price,
                     'on_sale' => $onSale,
                     'sale_percent' => $onSale ? $product->discountPercent() : 0,
                     'stock_quantity' => $product->availableStock(),
@@ -159,6 +161,20 @@ class PosController extends Controller
         $returnQty = (int) $request->query('return_qty', 0);
         $credit = (float) $request->query('credit', 0);
 
+        $serviceTechnicians = ServiceTechnician::where('shop_id', $shopId)
+            ->active()
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'commission_percent'])
+            ->map(fn (ServiceTechnician $t) => [
+                'id' => $t->id,
+                'name' => $t->name,
+                'phone' => $t->phone,
+                'commission_percent' => (float) $t->commission_percent,
+                'advance_balance' => $t->advanceBalance(),
+                'outstanding_commission' => $t->outstandingCommission(),
+            ])
+            ->values();
+
         return view('pos.index', compact(
             'categories',
             'brands',
@@ -173,6 +189,7 @@ class PosController extends Controller
             'posEmiEnabled',
             'posBakiEnabled',
             'posSaleEnabled',
+            'serviceTechnicians',
         ));
     }
 
